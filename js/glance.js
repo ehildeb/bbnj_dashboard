@@ -824,6 +824,19 @@ function glQuality() {
     });
   }
 
+  // Publications: the newest few show, the rest behind a button
+  function pubsMore() {
+    var box = document.querySelector('.gl-pubs'), btn = document.querySelector('.gl-pubs-more');
+    if (!box || !btn) return;
+    var n = box.querySelectorAll('.gl-pub').length;
+    btn.textContent = 'Show all ' + n + ' publications';
+    btn.addEventListener('click', function () {
+      var open = box.classList.toggle('is-all');
+      btn.textContent = open ? 'Show fewer' : 'Show all ' + n + ' publications';
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  }
+
   // Tooltip for the meetings and the Agreement
   function moTip(stage) {
     var tip = stage.querySelector('.gl-tl-tip');
@@ -832,7 +845,8 @@ function glQuality() {
       var t = e.target && e.target.closest ? e.target.closest('.gl-meet:not(.is-hid)') : null;
       if (!t) { tip.style.display = 'none'; return; }
       var r = (t.querySelector('.gl-meet-sq') || t).getBoundingClientRect();
-      tip.textContent = t.getAttribute('data-tip');
+      var t2 = t.getAttribute('data-tip2');
+      tip.textContent = t.getAttribute('data-tip') + (t2 ? '\n' + t2 : '');
       tip.style.display = 'block';
       tip.style.left = (r.left + r.width / 2) + 'px';
       tip.style.top = (r.top - 6) + 'px';
@@ -901,8 +915,8 @@ function glQuality() {
   // one step (MO_STOPS: Agreement alone, official meetings, all meetings) and glides
   // there; the fading rest of that gesture (trackpad momentum) is swallowed, so one
   // fast scroll cannot run several steps, but separate quick flicks each move a step. Coming in fast from above stops at the first step, from below at the
-  // last. After the last step one gesture leaves the section (next section at the top
-  // of the screen); above the first step the page scrolls normally. Touch
+  // last. After the last step (and above the first) the page scrolls normally; the
+  // tail of the flick that reached the last step is still swallowed. Touch
   // and the scrollbar are not gated (phones: to do).
   var MO_STOPS = [0.12, 0.5, 0.84];                    // fractions of the pinned scroll
   function moGate(pin) {
@@ -925,10 +939,7 @@ function glQuality() {
       var p = c01(-r.top / span()), i;
       if (dir > 0) {
         for (i = 0; i < MO_STOPS.length; i++) if (MO_STOPS[i] > p + 0.02) { go(i); return true; }
-        // past the last step: one gesture leaves the section and stops with the next
-        // section at the top of the screen, so the full row is never scrolled away by accident
-        goY(pin.getBoundingClientRect().top + window.pageYOffset + pin.offsetHeight);
-        return true;
+        return false;                                   // past the last step: normal scrolling resumes
       }
       else { for (i = MO_STOPS.length - 1; i >= 0; i--) if (MO_STOPS[i] < p - 0.02) { go(i); return true; } }
       return false;
@@ -970,6 +981,7 @@ function glQuality() {
     window.requestAnimationFrame(function () { ticking = false; update(); });
   }
   function init() {
+    pubsMore();
     moPin = document.querySelector('.gl-shell .gl-mo');
     var room = document.querySelector('.gl-shell #gl-room');
     if (room) roomAnim(room);

@@ -687,6 +687,12 @@ a { color: #006AB4; }
 .gl-anim .gl-shell .gl-mo.is-s1 .gl-mo-t2,
 .gl-anim .gl-shell .gl-mo.is-s2 .gl-mo-t3,
 .gl-anim .gl-shell .gl-mo.is-s3 .gl-mo-t4 { opacity: 1; transform: none; }
+/* One sentence at a time (2026-11-03): all three share one grid cell, each new one
+   replaces the last. The cell keeps the height of the longest, so nothing below moves. */
+.gl-anim .gl-shell .gl-mo .gl-mo-text { display: grid; grid-template-columns: 100%; gap: 0; }
+.gl-anim .gl-shell .gl-mo .gl-mo-t { grid-area: 1 / 1; margin: 0; align-self: start; }
+.gl-anim .gl-shell .gl-mo.is-s1 .gl-mo-t1,
+.gl-anim .gl-shell .gl-mo.is-s3 .gl-mo-t2 { opacity: 0; transform: translateY(-10px); pointer-events: none; }
 .gl-shell .gl-mo-stage { position: relative; width: 100%; height: clamp(250px, 38vh, 380px); }
 .gl-shell .gl-mo-stage > * { position: absolute; left: 0; top: 0; }
 .gl-shell .gl-mo-stage .gl-meet,
@@ -720,8 +726,9 @@ a { color: #006AB4; }
 .gl-shell .gl-tl-tip {
   position: fixed; z-index: 50; display: none; pointer-events: none; transform: translate(-50%, -100%);
   background: #002F62; color: #ffffff; font-size: 12px; line-height: 1.4; padding: 4px 9px;
-  border-radius: 3px; white-space: nowrap; left: 0; top: 0;
+  border-radius: 3px; white-space: pre; left: 0; top: 0;   /* pre: a second line for the ENB hint */
 }
+.gl-shell .gl-meet-link { cursor: pointer; text-decoration: none; color: inherit; }
 .gl-shell .gl-row-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 20px; font-size: 12px; color: #4a5560; }
 .gl-shell .gl-chart-key { display: inline-flex; align-items: center; gap: 6px; }
 .gl-shell .gl-legend-sw { width: 10px; height: 10px; display: inline-block; }
@@ -732,9 +739,14 @@ a { color: #006AB4; }
 .gl-anim .gl-shell .gl-mo.is-s2 .gl-mo-key[data-s="2"],
 .gl-anim .gl-shell .gl-mo.is-s3 .gl-mo-key[data-s="3"] { display: inline-flex; }
 @keyframes gl-fade { from { opacity: 0; } to { opacity: 1; } }
-.gl-shell .gl-mo-note { margin-top: -6px; transition: opacity 0.4s ease; }
-.gl-anim .gl-shell .gl-mo-note { opacity: 0; }                 /* the hint only once the meetings are there */
-.gl-anim .gl-shell .gl-mo.is-s1 .gl-mo-note { opacity: 1; }
+.gl-shell .gl-mo-note { margin-top: -6px; display: grid; justify-items: center; }
+.gl-shell .gl-mo-note > * { grid-area: 1 / 1; transition: opacity 0.4s ease; }
+.gl-shell .gl-mo-note-a { color: inherit; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
+.gl-shell .gl-mo-note-a:hover { color: #006AB4; text-decoration: underline; }
+.gl-shell .gl-ext { flex-shrink: 0; }
+.gl-shell .gl-mo-note-a { opacity: 0; pointer-events: none; }  /* without animations: only the second hint */
+.gl-anim .gl-shell .gl-mo:not(.is-s1) .gl-mo-note-a { opacity: 1; pointer-events: auto; }
+.gl-anim .gl-shell .gl-mo:not(.is-s1) .gl-mo-note-b { opacity: 0; }
 
 /* ---- Negotiation room (not pinned: the dots pop in once it is in view) --------- */
 .gl-shell .gl-room-text { display: flex; flex-direction: column; align-items: center; gap: 14px; }
@@ -750,15 +762,28 @@ a { color: #006AB4; }
 .gl-shell .gl-card-sig { font-size: 12.5px; color: #8a929a; }
 
 /* ---- Next up, publications, literature ------------------------------------------- */
-.gl-shell .gl-pubs { width: 100%; display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+.gl-shell .gl-pubs { width: 100%; display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; }
 .gl-shell .gl-pub {
-  display: flex; flex-direction: column; gap: 8px; padding: 18px; min-height: 150px; text-align: left; text-decoration: none;
+  display: flex; flex-direction: column; gap: 5px; padding: 12px 14px; min-height: 0; text-align: left; text-decoration: none;
   color: #002F62; background: #ffffff; border: 1px solid #e8eaec; border-radius: 3px;
 }
 .gl-shell .gl-pub:hover { border-color: #006AB4; }
 .gl-shell .gl-pub-yr { font-size: 12px; color: #8a929a; }
-.gl-shell .gl-pub-t { font-size: 15.5px; font-weight: 500; line-height: 1.35; }
-.gl-shell .gl-pub-a { margin-top: auto; font-size: 13px; color: #4a5560; }
+.gl-shell .gl-pub-t { font-size: 14.5px; font-weight: 500; line-height: 1.3; }
+.gl-shell .gl-pub-a { margin-top: auto; font-size: 12.5px; line-height: 1.35; color: #4a5560; }
+.gl-shell .gl-pub-a i { font-style: italic; }
+/* newest six show; the rest open with the button (glance.js) */
+.gl-shell .gl-pubs { grid-template-columns: repeat(4, minmax(0, 1fr)); }   /* 4, 2 or 1 a row, so the first eight fill whole rows */
+@media (max-width: 1100px) { .gl-shell .gl-pubs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .gl-shell .gl-pubs { grid-template-columns: minmax(0, 1fr); } }
+.gl-shell .gl-pubs:not(.is-all) .gl-pub:nth-child(n+9) { display: none; }
+.gl-shell .gl-pubs-foot { width: 100%; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 20px; font-size: 13.5px; color: #4a5560; }
+.gl-shell .gl-pubs-more {
+  font: inherit; font-size: 14px; font-weight: 500; color: #002F62; background: #ffffff;
+  border: 1px solid #b8c4d0; border-radius: 3px; padding: 8px 16px; cursor: pointer;
+}
+.gl-shell .gl-pubs-more:hover { border-color: #006AB4; }
+.gl-shell .gl-pubs-all a { color: #006AB4; }
 .gl-shell .gl-btn {
   display: inline-flex; align-items: center; gap: 10px; padding: 12px 22px; border-radius: 3px;
   background: #002F62; color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 500;

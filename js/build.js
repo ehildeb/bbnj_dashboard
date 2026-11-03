@@ -165,9 +165,30 @@
       '<span class="gl-mo-cover-d">Adopted 19 June 2023</span></span>';
     stage.appendChild(agr);
 
+    // Earth Negotiations Bulletin (ENB, IISD) summary report of each official
+    // meeting, by meeting key (checked 2026-11-03). A square with a report is a link.
+    var ENB = {
+      igc1: 'https://enb.iisd.org/events/1st-session-intergovernmental-conference-igc-international-legally-binding-instrument-12',
+      igc2: 'https://enb.iisd.org/events/2nd-session-intergovernmental-conference-igc-conservation-and-sustainable-use-marine/summary',
+      igc3: 'https://enb.iisd.org/events/3rd-session-intergovernmental-conference-igc-conservation-and-sustainable-use-marine/summary',
+      igc4: 'https://enb.iisd.org/marine-biodiversity-beyond-national-jurisdiction-bbnj-igc4-summary',
+      igc5: 'https://enb.iisd.org/marine-biodiversity-beyond-national-jurisdiction-bbnj-igc5-summary',
+      'igc5.2': 'https://enb.iisd.org/marine-biodiversity-beyond-national-jurisdiction-bbnj-igc5-resumed-summary',
+      'igc5.3': 'https://enb.iisd.org/marine-biodiversity-beyond-national-jurisdiction-bbnj-igc5-further-resumed-summary',
+      prepcom1: 'https://enb.iisd.org/marine-biodiversity-beyond-national-jurisdiction-bbnj-cop-prepcom1-summary',
+      prepcom2: 'https://enb.iisd.org/marine-biodiversity-beyond-national-jurisdiction-bbnj-cop-prepcom2-briefing-note',
+      prepcom3: 'https://enb.iisd.org/marine-biodiversity-beyond-national-jurisdiction-bbnj-cop-prepcom3-summary'
+    };
+
     // side: 'before' or 'after' (official meetings) or 'other'
     function square(m, side, pos, outline) {
-      var box = el('div', 'gl-meet is-hid' + (outline ? ' gl-meet-next' : '') + (side === 'other' ? ' gl-meet-x' : ''));
+      var url = side !== 'other' && m.key ? ENB[m.key] : null;
+      var box = el(url ? 'a' : 'div', 'gl-meet is-hid' + (outline ? ' gl-meet-next' : '') + (side === 'other' ? ' gl-meet-x' : '') + (url ? ' gl-meet-link' : ''));
+      if (url) {
+        box.href = url; box.target = '_blank'; box.rel = 'noopener';
+        box.setAttribute('aria-label', m.label + ': Earth Negotiations Bulletin summary report');
+        box.setAttribute('data-tip2', 'Click for the ENB summary report');
+      }
       box.setAttribute('data-cls', m.cls);
       box.setAttribute('data-side', side);
       box.setAttribute('data-pos', pos);
