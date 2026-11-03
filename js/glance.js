@@ -215,7 +215,6 @@ function glQuality() {
     var GL = window.GLANCE || {};
     var rows = (GL.data && GL.data.countries) || [];
     var pkgCols = GL.pkgCols || {};
-    var pkgNames = GL.pkgNames || {};
     var byNum = {};
     var maxLog = { nat: 0, grp: 0 };
     rows.forEach(function (r) {
@@ -387,8 +386,6 @@ function glQuality() {
     function showTip(r, x, y) {
       if (!r) { tipEl.style.display = 'none'; return; }
       var t = '<b>' + r.name + '</b><br>' + val(r).toLocaleString('en-GB') + ' statements';
-      var pk = pkgOf(r);
-      t += '<br>' + (pk ? 'Mostly ' + (pkgNames[pk] || '').toLowerCase() : 'No package statements');
       tipEl.innerHTML = t;
       tipEl.style.display = 'block';
       tipEl.style.left = x + 'px';
@@ -548,23 +545,87 @@ function glQuality() {
   function c01(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
   function fmt(n) { return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
 
-  // ---- Package cards: show the text of the clicked package -------------------
+  // ---- Package cards ----------------------------------------------------------
+  // Start: the intro text left, the four cards right. Click a card: the cards move
+  // under the intro text on the left and the clicked package's text appears on the
+  // right where the cards were. Click another card to switch; click the open one
+  // again to go back. The move is animated (FLIP: measure, move, slide from the old
+  // place); with reduce motion it just jumps.
+  var reduceMo = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function flipMove(cards, change) {
+    var first = cards.map(function (c) { return c.getBoundingClientRect(); });
+    change();
+    if (reduceMo) return;
+    cards.forEach(function (c, i) {
+      var last = c.getBoundingClientRect();
+      var dx = first[i].left - last.left, dy = first[i].top - last.top;
+      var sx = first[i].width / Math.max(1, last.width), sy = first[i].height / Math.max(1, last.height);
+      c.style.transition = 'none';
+      c.style.transformOrigin = '0 0';
+      c.style.transform = 'translate(' + dx + 'px,' + dy + 'px) scale(' + sx + ',' + sy + ')';
+    });
+    void document.body.offsetWidth;                     // apply the start position before animating
+    cards.forEach(function (c, i) {
+      c.style.transition = 'transform 0.55s cubic-bezier(0.22, 1, 0.36, 1)';
+      c.style.transitionDelay = (i * 30) + 'ms';
+      c.style.transform = '';
+    });
+  }
   document.addEventListener('click', function (e) {
     var t = e.target;
     var pkg = t && t.closest ? t.closest('.gl-shell .gl-pkg') : null;
     if (!pkg) return;
-    var inner = pkg.closest('.gl-inner');
-    if (!inner) return;
+    var sec = pkg.closest('section');
+    if (!sec) return;
+    var grid = sec.querySelector('.gl-pkgs'), slotL = sec.querySelector('.gl-pkg-slot-l'), slotR = sec.querySelector('.gl-pkg-slot-r');
+    var cards = Array.prototype.slice.call(sec.querySelectorAll('.gl-pkg'));
     var k = pkg.getAttribute('data-k');
-    inner.querySelectorAll('.gl-pkg').forEach(function (p) {
-      var active = p === pkg;
-      p.classList.toggle('is-active', active);
-      p.setAttribute('aria-pressed', active ? 'true' : 'false');
-    });
-    inner.querySelectorAll('.gl-pkg-text').forEach(function (p) {
-      p.classList.toggle('is-active', p.getAttribute('data-k') === k);
-    });
+    var open = sec.classList.contains('is-open');
+    var closing = open && pkg.classList.contains('is-active');
+    function mark(key) {
+      cards.forEach(function (p) {
+        var on = p.getAttribute('data-k') === key;
+        p.classList.toggle('is-active', on);
+        p.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+      sec.querySelectorAll('.gl-pkg-text').forEach(function (p) { p.classList.toggle('is-active', p.getAttribute('data-k') === key); });
+      var h = sec.querySelector('.gl-pkg-h'), name = pkg.querySelector('.gl-pkg-name');
+      if (h && name && key) h.textContent = name.textContent;
+    }
+    if (closing) {
+      flipMove(cards, function () { mark(null); sec.classList.remove('is-open'); if (slotR && grid) slotR.appendChild(grid); });
+    } else if (!open) {
+      flipMove(cards, function () { mark(k); sec.classList.add('is-open'); if (slotL && grid) slotL.appendChild(grid); });
+    } else {
+      mark(k);
+    }
   });
+
+  // ---- Click pop-ups: one open at a time; a click outside or Esc closes ----------
+  function closePops(except) {
+    document.querySelectorAll('.gl-shell .gl-pop.is-open').forEach(function (p) {
+      if (p === except) return;
+      p.classList.remove('is-open');
+      var b = p.querySelector('.gl-pop-btn');
+      if (b) b.setAttribute('aria-expanded', 'false');
+    });
+  }
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+    var btn = t && t.closest ? t.closest('.gl-shell .gl-pop-btn') : null;
+    if (btn) {
+      var pop = btn.closest('.gl-pop');
+      if (pop.classList.contains('gl-pop-hover')) return;   // hover pop-ups: a click does nothing
+      var open = !pop.classList.contains('is-open');
+      closePops(pop);
+      pop.classList.toggle('is-open', open);
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      return;
+    }
+    if (t && t.closest && t.closest('.gl-pop-box a')) { closePops(null); return; }
+    if (!(t && t.closest && t.closest('.gl-pop-box'))) closePops(null);
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closePops(null); });
 
   // ---- Reveal and count up ------------------------------------------------------
   // Runs both ways: an element that leaves the bottom of the screen (scrolling
@@ -660,7 +721,9 @@ function glQuality() {
   //   3: every online and intersessional meeting joins the row in date order,
   //      same size, and the row zooms out to make room (labels fade, hover
   //      still gives the name and dates).
-  var MO_S = [0.14, 0.38, 0.62];
+  // stick: the Agreement zooms to full size; it then stays alone for a scroll step;
+  // at 0.32 the IGCs and PrepComs come in together (stage 2); at 0.66 the others
+  var MO_S = [0.3, 0.3, 0.66];
   var SLOT = 80, SLOT3 = 58, GAP = 26;                // px per meeting at full size
   var AG_ROW = 0.62, AG_ROW3 = 0.44;                  // Agreement size in the row, as a share of its full size
                                                       // (stage 3: fixed, so it stays big while the meetings shrink)
@@ -706,7 +769,15 @@ function glQuality() {
     var IW = P.sq.length ? P.sq[0].offsetWidth : 72;
     var rowY = H / 2;
     var fit = Math.min(1, (W - 16) / AW, (H - 8) / AH); // the Agreement never leaves the stage
-    var u = 1, sag = fit, slot = 0, gap = 0;
+    // alone, it may use the room the later sentences keep free: centred between
+    // the first sentence and the bottom of the stage, up to 1.3 times its size
+    var t1 = pin.querySelector('.gl-mo-t1'), top = 0;
+    if (t1) top = Math.min(0, t1.getBoundingClientRect().bottom - stage.getBoundingClientRect().top + 28);
+    var agY = s > 0 ? rowY : (top + H) / 2;
+    var u = 1, sag = Math.min(1.3, (W - 16) / AW, (H - top - 12) / AH), slot = 0, gap = 0;
+    // before the section sticks the Agreement waits smaller; the moment it sticks it
+    // zooms to its full size (CSS transition), so the reader stops here
+    if (s === 0 && p <= 0.002) sag *= 0.55;
     if (s > 0) {
       var sl = s >= 3 ? SLOT3 : SLOT;
       if (s >= 3) {
@@ -745,7 +816,7 @@ function glQuality() {
       P.stage = s;
     }
 
-    P.agr.style.transform = 'translate(' + (agX - AW / 2).toFixed(1) + 'px,' + (rowY - AH / 2).toFixed(1) + 'px) scale(' + sag.toFixed(3) + ')';
+    P.agr.style.transform = 'translate(' + (agX - AW / 2).toFixed(1) + 'px,' + (agY - AH / 2).toFixed(1) + 'px) scale(' + sag.toFixed(3) + ')';
     P.sq.forEach(function (b, i) {
       var sc = vis[i] ? u : 0.3 * u;
       b.style.transform = 'translate(' + (xs[i] - IW / 2).toFixed(1) + 'px,' + (rowY - SQ_MID).toFixed(1) + 'px) scale(' + sc.toFixed(3) + ')';
@@ -758,7 +829,7 @@ function glQuality() {
     var tip = stage.querySelector('.gl-tl-tip');
     if (!tip) return;
     stage.addEventListener('mousemove', function (e) {
-      var t = e.target && e.target.closest ? e.target.closest('.gl-meet:not(.is-hid), .gl-mo-agr') : null;
+      var t = e.target && e.target.closest ? e.target.closest('.gl-meet:not(.is-hid)') : null;
       if (!t) { tip.style.display = 'none'; return; }
       var r = (t.querySelector('.gl-meet-sq') || t).getBoundingClientRect();
       tip.textContent = t.getAttribute('data-tip');
@@ -768,6 +839,125 @@ function glQuality() {
     });
     stage.addEventListener('mouseleave', function () { tip.style.display = 'none'; });
     document.addEventListener('scroll', function () { tip.style.display = 'none'; }, { passive: true, capture: true });
+  }
+
+  // ---- Negotiation room: dots pop in on one canvas -------------------------------
+  // When the room comes into view the dots pop in left to right, the states first,
+  // the other actors from 0.5 s (each dot a short springy grow). Scrolled back out
+  // below the screen, it resets and plays again next time. One canvas, drawn frame
+  // by frame: smooth with ~200 dots and does not hold up scrolling. Reduced motion:
+  // drawn at once.
+  function roomAnim(box) {
+    var R = box.__room, cv = box.querySelector('.gl-room-canvas');
+    if (!R || !cv) return;
+    var ctx = cv.getContext('2d');
+    if (!ctx) return;
+    var t0 = null, raf = 0, W = 0, dpr = 1;
+    var STEP = 800, OUT = 500, DUR = 420;
+    function size() {
+      var w = cv.clientWidth;
+      if (!w) return false;
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      if (w !== W) { W = w; cv.width = Math.round(w * dpr); cv.height = Math.round(w * R.h / R.w * dpr); }
+      return true;
+    }
+    function ease(x) { var c = 1.7; x = x - 1; return 1 + (c + 1) * x * x * x + c * x * x; }   // a little overshoot
+    function draw(now) {
+      raf = 0;
+      if (!size()) return;
+      var k = W / R.w, done = true;
+      ctx.setTransform(dpr * k, 0, 0, dpr * k, 0, 0);
+      ctx.clearRect(0, 0, R.w, R.h);
+      R.dots.forEach(function (d) {
+        var s = 1;
+        if (t0 !== null && anim) {
+          var t = (now - t0 - d.f * STEP - (d.out ? OUT : 0)) / DUR;
+          if (t < 1) done = false;
+          if (t <= 0) return;
+          s = t >= 1 ? 1 : ease(t);
+        } else if (anim) return;                         // not started: nothing shown
+        ctx.globalAlpha = Math.min(1, s);
+        ctx.beginPath(); ctx.arc(d.x, d.y, Math.max(0.01, R.r * s), 0, 2 * Math.PI);
+        ctx.fillStyle = d.col; ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+      if (!done) raf = window.requestAnimationFrame(draw);
+    }
+    function play() { if (t0 !== null) return; t0 = performance.now(); if (!raf) raf = window.requestAnimationFrame(draw); }
+    function reset() { t0 = null; if (raf) { window.cancelAnimationFrame(raf); raf = 0; } draw(performance.now()); }
+    if (!anim) { t0 = null; draw(performance.now()); window.addEventListener('resize', function () { draw(performance.now()); }); return; }
+    new IntersectionObserver(function (en) {
+      en.forEach(function (e) {
+        if (e.isIntersecting) play();
+        else if (e.boundingClientRect.top > (e.rootBounds ? e.rootBounds.height : window.innerHeight) / 2) reset();   // left below: play again later
+      });
+    }, { threshold: 0, rootMargin: '0px 0px -15% 0px' }).observe(box);
+    window.addEventListener('resize', function () { W = 0; draw(performance.now()); });
+    draw(performance.now());
+  }
+
+  // ---- One step per scroll gesture in the meeting overview -----------------------
+  // While the section is pinned, each new wheel, trackpad or key gesture moves exactly
+  // one step (MO_STOPS: Agreement alone, official meetings, all meetings) and glides
+  // there; the fading rest of that gesture (trackpad momentum) is swallowed, so one
+  // fast scroll cannot run several steps, but separate quick flicks each move a step. Coming in fast from above stops at the first step, from below at the
+  // last. After the last step one gesture leaves the section (next section at the top
+  // of the screen); above the first step the page scrolls normally. Touch
+  // and the scrollbar are not gated (phones: to do).
+  var MO_STOPS = [0.12, 0.5, 0.84];                    // fractions of the pinned scroll
+  function moGate(pin) {
+    if (!anim) return;
+    var lock = false, keyT = 0;
+    function span() { return Math.max(1, pin.offsetHeight - window.innerHeight); }
+    function goY(y) {
+      window.scrollTo({ top: Math.round(y), behavior: 'smooth' });
+    }
+    function go(i) { goY(pin.getBoundingClientRect().top + window.pageYOffset + MO_STOPS[i] * span()); }
+    // what a gesture in direction dir (1 down, -1 up) does here; true if handled
+    function step(dir) {
+      var r = pin.getBoundingClientRect(), H = window.innerHeight;
+      var stuck = r.top <= 2 && r.bottom >= H - 2;
+      if (!stuck) {
+        if (dir > 0 && r.top > 2 && r.top < H * 0.6) { go(0); return true; }
+        if (dir < 0 && r.bottom < H - 2 && r.bottom > H * 0.4) { go(MO_STOPS.length - 1); return true; }
+        return false;
+      }
+      var p = c01(-r.top / span()), i;
+      if (dir > 0) {
+        for (i = 0; i < MO_STOPS.length; i++) if (MO_STOPS[i] > p + 0.02) { go(i); return true; }
+        // past the last step: one gesture leaves the section and stops with the next
+        // section at the top of the screen, so the full row is never scrolled away by accident
+        goY(pin.getBoundingClientRect().top + window.pageYOffset + pin.offsetHeight);
+        return true;
+      }
+      else { for (i = MO_STOPS.length - 1; i >= 0; i--) if (MO_STOPS[i] < p - 0.02) { go(i); return true; } }
+      return false;
+    }
+    // Telling flicks apart: the leftover momentum of a flick only fades, so a new
+    // flick shows as a pause (over 150ms), a change of direction or a sudden jump in
+    // speed. Only the fading tail of a flick that already moved a step is swallowed.
+    var lastAbs = 0, lastT = 0, lastDir = 0, stepT = 0;
+    window.addEventListener('wheel', function (e) {
+      if (e.ctrlKey) return;                              // pinch zoom
+      var dir = e.deltaY > 0 ? 1 : e.deltaY < 0 ? -1 : 0;
+      if (!dir) return;
+      var now = Date.now(), a = Math.abs(e.deltaY);
+      var fresh = now - lastT > 150 || dir !== lastDir || (a > lastAbs * 1.6 && a > 8 && now - stepT > 200);
+      lastAbs = a; lastT = now; lastDir = dir;
+      if (lock && !fresh) { e.preventDefault(); return; } // the fading tail of a flick that moved a step
+      lock = false;
+      if (step(dir)) { e.preventDefault(); lock = true; stepT = now; }
+    }, { passive: false });
+    window.addEventListener('keydown', function (e) {
+      var t = e.target, tag = t && t.tagName;
+      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA' || (t && t.isContentEditable)) return;
+      var dir = 0;
+      if (e.key === 'ArrowDown' || e.key === 'PageDown' || (e.key === ' ' && !e.shiftKey)) dir = 1;
+      else if (e.key === 'ArrowUp' || e.key === 'PageUp' || (e.key === ' ' && e.shiftKey)) dir = -1;
+      if (!dir) return;
+      if (Date.now() - keyT < 120) { e.preventDefault(); return; }   // key repeat: at most about 8 steps a second
+      if (step(dir)) { e.preventDefault(); keyT = Date.now(); }
+    });
   }
 
   // ---- Wiring ----------------------------------------------------------------------
@@ -781,9 +971,12 @@ function glQuality() {
   }
   function init() {
     moPin = document.querySelector('.gl-shell .gl-mo');
+    var room = document.querySelector('.gl-shell #gl-room');
+    if (room) roomAnim(room);
     if (moPin) {
       var st = moPin.querySelector('.gl-mo-stage');
       if (st) moTip(st);
+      moGate(moPin);
     }
     update();
     document.addEventListener('scroll', schedule, { passive: true, capture: true });

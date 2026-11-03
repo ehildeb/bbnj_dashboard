@@ -23,35 +23,202 @@
 
   <!-- Title with the globe, cut off at the right edge -->
   <section class="gl-hero">
-    <div class="gl-hero-globe">
-      <canvas class="gl-hero-canvas" role="img" aria-label="Globe with the high seas shaded"></canvas>
+    <!-- the globe sits in its own cell, positioned inside it, so it never sets the
+         height of the section (it is cut off at the right, top and bottom instead) -->
+    <div class="gl-hero-globe-cell">
+      <div class="gl-hero-globe">
+        <canvas class="gl-hero-canvas" role="img" aria-label="Globe with the high seas shaded"></canvas>
+      </div>
     </div>
     <div class="gl-hero-text">
+      <!-- Click pop-ups: .gl-pop (button + box), opened and closed by glance.js -->
       <h1 class="gl-title gl-reveal">Welcome to the BBNJ negotiations at a glance</h1>
-      <p class="gl-sub gl-reveal">The &lsquo;BBNJ Agreement&rsquo;, the &lsquo;High Seas Treaty&rsquo;, or its hefty full title: the &lsquo;Agreement under the United Nations Convention on the Law of the Sea on the Conservation and Sustainable Use of Marine Biological Diversity of Areas beyond National Jurisdiction&rsquo; was adopted on 19 June 2023, entered into force on 17 January 2026, and will host its first Conference of the Parties (COP) in January 2027.</p>
+      <!-- .gl-pop-hover: opens on hover (and on click or tap, for phones) -->
+      <p class="gl-sub gl-reveal"><span class="gl-pop gl-pop-hover"><button type="button" class="gl-pop-btn" aria-expanded="false">The BBNJ Agreement</button><span class="gl-pop-box" role="note">Biodiversity beyond national jurisdiction (BBNJ) Agreement. Also known as the High Seas Treaty or, formally, the Agreement under the United Nations Convention on the Law of the Sea on the Conservation and Sustainable Use of Marine Biological Diversity of Areas beyond National Jurisdiction.</span></span> has been hailed as [&hellip;]</p>
+      <p class="gl-sub gl-reveal">It was adopted on 19 June 2023, entered into force on 17 January 2026, and will host its first Conference of the Parties (COP) in January 2027.</p>
       <div class="gl-hero-key gl-reveal">
         <span class="gl-chart-key"><span class="gl-hero-sw gl-hero-sw-abnj"></span>High seas: areas beyond national jurisdiction</span>
         <span class="gl-chart-key"><span class="gl-hero-sw gl-hero-sw-nat"></span>National waters: exclusive economic zones</span>
       </div>
-      <div class="gl-note gl-reveal">Move the pointer to turn the globe.</div>
     </div>
     <div class="gl-cue" aria-hidden="true">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg>
     </div>
   </section>
 
-  <!-- Introduction with counting numbers -->
-  <section class="gl-screen gl-intro"><div class="gl-inner">
-    <h2 class="gl-head gl-reveal">But how did we get here?</h2>
-    <p class="gl-lead gl-reveal">The negotiations leading up to the BBNJ Agreement and its first COP are complex, and keeping tabs on everything can be a challenge.</p>
-    <p class="gl-intro-nums gl-reveal">By our count, <span class="gl-num"><span class="gl-count" data-gl="n_actors">0</span></span> actors have discussed <span class="gl-num"><span class="gl-count" data-gl="n_topics">0</span></span> packages and agenda items across <span class="gl-num"><span class="gl-count" data-gl="n_meetings">0</span></span> meetings so far, including <span class="gl-num"><span class="gl-count" data-gl="n_official">0</span></span> official sessions and at least <span class="gl-num"><span class="gl-count" data-gl="n_other">0</span></span> intersessional and online dialogues.</p>
-    <p class="gl-lead gl-reveal">Here we have created an overview based on our own field note data from the negotiations, giving you a bird&rsquo;s-eye view of the whole process from its first IGC meeting in 2018 to the last PrepCom in 2026. Scroll your way downwards and click around to learn more about specific items and actors.</p>
+  <!-- The BBNJ process: a short introduction, left-aligned across the full width.
+       The numbers sentence was taken out on 2026-11-03 (rounding code stays in build.js). -->
+  <section class="gl-screen gl-intro"><div class="gl-wide">
+    <h2 class="gl-head gl-reveal">The BBNJ process</h2>
+    <p class="gl-lead gl-reveal gl-full">The negotiations leading up to the BBNJ Agreement and its first COP are complex, and keeping tabs on everything can be a challenge.</p>
+    <p class="gl-lead gl-reveal gl-full">Here we have created an overview based on our own <span class="gl-pop gl-pop-hover"><button type="button" class="gl-pop-btn" aria-expanded="false">field note data</button><span class="gl-pop-box" role="note"><a href="#gl-who">Scroll down</a> to learn more about who we are and how we collect our data.</span></span> from the negotiations, giving you a bird&rsquo;s-eye view of the whole process from its first Intergovernmental Conference (IGC) in 2018 to the last Preparatory Commission (PrepCom) in 2026. Scroll your way downwards and click around to learn more about specific items and actors.</p>
+  </div></section>
+
+  <!-- The negotiations at a glance: pinned; three scroll triggers add the IGCs,
+       then the PrepComs, then every other meeting in date order (js/build.js and js/glance.js) -->
+  <section class="gl-pin gl-mo" id="gl-mo">
+    <div class="gl-pin-stick">
+      <div class="gl-inner">
+        <div class="gl-mo-text">
+          <p class="gl-big gl-mo-t gl-mo-t1">The BBNJ Agreement was adopted on 19 June 2023.</p>
+          <p class="gl-big gl-mo-t gl-mo-t2">There have been <span data-gl-word="n_before">seven</span> official meetings leading up to its adoption, and <span data-gl-word="n_after">three</span> following it to prepare for its implementation and the first Conference of the Parties.</p>
+          <p class="gl-big gl-mo-t gl-mo-t4">In addition to many intersessional and online dialogues.</p>
+        </div>
+        <div class="gl-mo-stage" id="gl-mo-stage"></div>
+        <div class="gl-row-legend" id="gl-mo-legend"></div>
+        <div class="gl-note gl-mo-note">Hover over a meeting for its dates. Click the Agreement to read it.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- IGCs and the package elements. Start: text left, cards right. Click a card:
+       the cards move under the text (left) and its sentence shows on the right
+       (glance.js). Names and one sentence each are written here. -->
+  <section class="gl-screen gl-pkg-sec"><div class="gl-split">
+    <div class="gl-split-text">
+      <p class="gl-big gl-reveal">The <span data-gl-word="n_igc">seven</span> meetings leading up to the adoption were Intergovernmental Conferences (IGCs). Here, the text and its central package elements were negotiated.</p>
+      <p class="gl-small gl-reveal gl-pkg-hint">Click a package element to read about it.</p>
+      <div class="gl-pkg-slot-l"></div>
+    </div>
+    <div class="gl-split-vis">
+      <div class="gl-pkg-slot-r">
+      <div class="gl-pkgs gl-reveal">
+        <button type="button" class="gl-pkg" data-k="mgr" aria-pressed="false">
+          <span class="gl-pkg-name">Marine genetic resources (MGR)</span>
+          <span class="gl-pkg-bar"><span class="gl-pkg-fill"></span></span>
+          <span class="gl-pkg-n"><span class="gl-count">0</span> statements</span>
+        </button>
+        <button type="button" class="gl-pkg" data-k="abmt" aria-pressed="false">
+          <span class="gl-pkg-name">Area-based management tools (ABMT)</span>
+          <span class="gl-pkg-bar"><span class="gl-pkg-fill"></span></span>
+          <span class="gl-pkg-n"><span class="gl-count">0</span> statements</span>
+        </button>
+        <button type="button" class="gl-pkg" data-k="eia" aria-pressed="false">
+          <span class="gl-pkg-name">Environmental impact assessments (EIA)</span>
+          <span class="gl-pkg-bar"><span class="gl-pkg-fill"></span></span>
+          <span class="gl-pkg-n"><span class="gl-count">0</span> statements</span>
+        </button>
+        <button type="button" class="gl-pkg" data-k="cb" aria-pressed="false">
+          <span class="gl-pkg-name">Capacity-building and transfer of marine technology (CB&amp;TMT)</span>
+          <span class="gl-pkg-bar"><span class="gl-pkg-fill"></span></span>
+          <span class="gl-pkg-n"><span class="gl-count">0</span> statements</span>
+        </button>
+      </div>
+      </div>
+      <div class="gl-pkg-panel" aria-live="polite">
+        <h3 class="gl-pkg-h"></h3>
+        <div class="gl-pkg-texts">
+          <p class="gl-pkg-text" data-k="mgr">[One sentence on marine genetic resources, including benefit sharing.]</p>
+          <p class="gl-pkg-text" data-k="abmt">[One sentence on area-based management tools, including marine protected areas.]</p>
+          <p class="gl-pkg-text" data-k="eia">[One sentence on environmental impact assessments.]</p>
+          <p class="gl-pkg-text" data-k="cb">[One sentence on capacity-building and the transfer of marine technology.]</p>
+        </div>
+      </div>
+    </div>
+  </div></section>
+
+  <!-- PrepComs: text left, bars right (bars built by js/build.js) -->
+  <section class="gl-screen gl-tint"><div class="gl-split">
+    <div class="gl-split-text">
+      <p class="gl-big gl-reveal">There have also been <span data-gl-word="n_prepcom">three</span> Preparatory Commissions (PrepComs) after its adoption to negotiate the institutional infrastructure of the Agreement.</p>
+    </div>
+    <div class="gl-split-vis">
+      <p class="gl-lead gl-reveal">The most discussed items were:</p>
+      <div class="gl-bars gl-reveal" id="gl-prep"></div>
+      <div class="gl-note gl-reveal" id="gl-prep-note" hidden></div>
+    </div>
+  </div></section>
+
+  <!-- Growth chart -->
+  <section class="gl-screen gl-chart-screen"><div class="gl-inner gl-left">
+    <p class="gl-big gl-reveal">It&rsquo;s a complex process with many moving parts. In our data, we count <span class="gl-count" data-gl="n_statements">0</span> statements delivered across plenaries, working groups, and informal sessions:</p>
+    <div class="gl-home gl-reveal" id="gl-growth">
+      <div class="gl-home-legend">
+        <span><span class="gl-key gl-key-line"></span>Statements so far</span>
+        <span><span class="gl-key gl-key-igc"></span>IGCs</span>
+        <span><span class="gl-key gl-key-prepcom"></span>PrepComs</span>
+        <span><span class="gl-key gl-key-dialogue"></span>Online dialogues</span>
+        <span><span class="gl-key gl-key-intersess"></span>Intersessional meetings</span>
+      </div>
+    </div>
+  </div></section>
+
+  <!-- The negotiation room: one dot per actor, states inside, everyone else outside
+       (js/build.js lays it out from the counts in the data; the dots pop in when it comes into view) -->
+  <section class="gl-screen gl-tint gl-room-sec"><div class="gl-split">
+    <div class="gl-split-text gl-reveal">
+      <p class="gl-big">More than 120 states delivered statements in the negotiations, and over 180 were represented through country blocs.</p>
+      <p class="gl-lead">In addition, over <span data-gl-text="n_nonstate_floor">70</span> nongovernmental and international actors took part.</p>
+      <div class="gl-room-legend" id="gl-room-legend"></div>
+    </div>
+    <div class="gl-split-vis">
+      <div class="gl-room" id="gl-room" role="img" aria-label="Negotiation room: one dot per actor, states in the inner rows, other actors in the outer rows"></div>
+    </div>
+  </div></section>
+
+  <!-- Ratification and the actors globe: globe left (legend under it), sentence,
+       controls and country card right. Sized so globe and the whole card fit on one
+       screen. .gl-globe wraps the section so glance.js finds the controls. -->
+  <section class="gl-screen gl-actors is-grp"><div class="gl-globe gl-act">
+    <div class="gl-split gl-split-rev">
+      <div class="gl-split-vis gl-act-left">
+      <div class="gl-g-wrap">
+        <canvas class="gl-g-canvas" role="img" aria-label="Globe of statements per country. Drag to turn, click a country."></canvas>
+        <div class="gl-g-tip"></div>
+        <div class="gl-g-zoom">
+              <button type="button" class="gl-g-zin" aria-label="Zoom in">+</button>
+              <button type="button" class="gl-g-zout" aria-label="Zoom out">&minus;</button>
+              <button type="button" class="gl-g-reset" aria-label="Reset view" title="Reset view"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></button>
+          </div>
+      </div>
+        <!-- colour: the package element a country spoke on most; shade: how many statements (build.js) -->
+        <div class="gl-g-legend" id="gl-g-legend"></div>
+      </div>
+      <div class="gl-split-text gl-act-side">
+        <p class="gl-big gl-reveal" id="gl-rat-text">To date, 144 states and the EU have signed the Agreement, and 104 states and the EU have ratified it.</p>
+        <div class="gl-g-bar gl-reveal">
+          <div class="gl-g-scope" role="group" aria-label="Country blocs">
+                <span class="gl-g-lens-lbl">Country blocs</span>
+                <button type="button" class="is-active" data-scope="grp">On</button>
+                <button type="button" data-scope="nat">Off</button>
+              </div>
+        </div>
+        <div class="gl-card gl-reveal"><div class="gl-card-body" id="gl-card"><div class="gl-card-empty">Click a country on the globe to see its ratification status, how many statements it made during the negotiations, and on which topics it was most active. Toggle country blocs off to see only statements made in a national capacity.</div></div></div>
+      </div>
+    </div>
+  </div></section>
+
+  <!-- Try it yourself: taken out for now (2026-11-03). The code is still in
+       build.js (QUESTIONS, part 'cross') and does nothing without this section. -->
+
+  <!-- Next up, publications, literature -->
+  <section class="gl-screen gl-next"><div class="gl-wide">
+    <h2 class="gl-head gl-reveal">What happens next?</h2>
+    <p class="gl-lead gl-reveal gl-full">Next on the agenda is the first COP in New York in January. We will be there to continue collecting our data. In the meantime, here you can find all of our publications on the BBNJ so far:</p>
+    <!-- Gallery of papers: one <a class="gl-pub"> per paper (list still to come) -->
+    <div class="gl-pubs gl-reveal">
+      <a class="gl-pub" href="#"><span class="gl-pub-yr">[Year]</span><span class="gl-pub-t">[Paper title]</span><span class="gl-pub-a">[Authors], [Journal]</span></a>
+      <a class="gl-pub" href="#"><span class="gl-pub-yr">[Year]</span><span class="gl-pub-t">[Paper title]</span><span class="gl-pub-a">[Authors], [Journal]</span></a>
+      <a class="gl-pub" href="#"><span class="gl-pub-yr">[Year]</span><span class="gl-pub-t">[Paper title]</span><span class="gl-pub-a">[Authors], [Journal]</span></a>
+    </div>
+    <p class="gl-lead gl-reveal gl-full">Or explore our curated list of BBNJ literature here:</p>
+    <!-- Literature card: a screenshot of the list (img/literature.jpg, made from
+         literature.html; retake it if that page changes a lot) -->
+    <a class="gl-lit-card gl-reveal" href="literature.html">
+      <span class="gl-lit-shot"><img src="img/literature.jpg" alt="Preview of the BBNJ literature list" loading="lazy"></span>
+      <span class="gl-lit-info">
+        <span class="gl-lit-t">BBNJ literature</span>
+        <span class="gl-lit-n" id="gl-lit-n"></span>
+        <span class="gl-lit-d">Research on the BBNJ Agreement and its negotiations, sortable by year, title and authors.</span>
+        <span class="gl-lit-go">Open the list &rarr;</span>
+      </span>
+    </a>
   </div></section>
 
   <!-- Who are we? -->
-  <section class="gl-screen gl-tint gl-who"><div class="gl-inner">
+  <section class="gl-screen gl-tint gl-who" id="gl-who"><div class="gl-wide">
     <h2 class="gl-head gl-reveal">Who are we?</h2>
-    <p class="gl-lead gl-reveal">First, a quick introduction to us.</p>
+    <p class="gl-lead gl-reveal gl-full">A quick introduction to the team behind this page.</p>
     <div class="gl-projects gl-reveal">
       <a class="gl-project" href="https://www.maripoldata.eu/" target="_blank" rel="noopener">
         <img src="img/logos/maripoldata.png" alt="MARIPOLDATA logo" class="gl-project-logo">
@@ -64,172 +231,23 @@
         <span class="gl-project-yr">2024-2029</span>
       </a>
     </div>
-    <p class="gl-lead gl-reveal">We are researchers of the MARIPOLDATA (2018-2025) and TwinPolitics (2024-2029) projects, funded by the European Research Council and led by Dr. Alice Vadrot. We study multilateral negotiations on biodiversity, deep-sea mining, and plastics in areas beyond national jurisdiction.</p>
-    <div class="gl-who-stats gl-reveal">
-      <div class="gl-who-stat"><span class="gl-who-num"><span class="gl-who-pre">more than</span><span class="gl-count" data-gl="hours_floor">0</span></span><span class="gl-who-lbl">hours of structured field notes, on-site and online</span></div>
-      <div class="gl-who-stat"><span class="gl-who-num"><span class="gl-count" data-gl="n_observations">0</span></span><span class="gl-who-lbl">individual observations, from <span data-gl-text="first_year">2018</span> to today</span></div>
+    <p class="gl-lead gl-reveal gl-full">We are researchers of the MARIPOLDATA (2018-2025) and TwinPolitics (2024-2029) projects, funded by the European Research Council and led by Dr. Alice Vadrot. We study multilateral negotiations on biodiversity, deep-sea mining, and plastics in areas beyond national jurisdiction.</p>
+    <!-- stats bar: a full-width strip, one cell per number -->
+    <div class="gl-statbar gl-reveal">
+      <div class="gl-statbar-cell"><span class="gl-statbar-pre">more than</span><span class="gl-statbar-n gl-count" data-gl="hours_floor">0</span><span class="gl-statbar-l">hours of structured field notes on the BBNJ negotiations, on-site and online</span></div>
+      <div class="gl-statbar-cell"><span class="gl-statbar-pre">&nbsp;</span><span class="gl-statbar-n gl-count" data-gl="n_observations">0</span><span class="gl-statbar-l">individual observations, from <span data-gl-text="first_year">2018</span> to today</span></div>
     </div>
-    <p class="gl-lead gl-reveal">Together, we have spent more than <span data-gl-text="hours_floor">1,000</span> hours collecting structured field notes on the BBNJ negotiations, on-site and online. All in all, our database consists of <span data-gl-text="n_observations">0</span> individual observations covering the entire negotiation process from <span data-gl-text="first_year">2018</span> to today. The data from 2018-2024 is available online for download through the <a href="https://doi.org/10.11587/0XXZ0V" target="_blank" rel="noopener">Austrian Social Science Data Archive</a>.</p>
-    <a class="gl-paper gl-reveal" href="https://doi.org/10.1177/14687941251341984" target="_blank" rel="noopener">
+    <p class="gl-lead gl-reveal gl-full">Together, we have spent more than <span data-gl-text="hours_floor">1,000</span> hours collecting structured field notes on the BBNJ negotiations, on-site and online. All in all, our database consists of <span data-gl-text="n_observations">0</span> individual observations covering the entire negotiation process from <span data-gl-text="first_year">2018</span> to today. The data from 2018-2024 is available online for download through the <a href="https://doi.org/10.11587/0XXZ0V" target="_blank" rel="noopener">Austrian Social Science Data Archive</a>.</p>
+    <a class="gl-paper" href="https://doi.org/10.1177/14687941251341984" target="_blank" rel="noopener">
       <span class="gl-paper-q">Want to know exactly how we collect our data? We have written a paper about it:</span>
       <span class="gl-paper-t">[Title of the methods paper]</span>
       <span class="gl-paper-doi">doi.org/10.1177/14687941251341984</span>
     </a>
-    <div class="gl-logos gl-reveal">
+    <div class="gl-logos">
       <img src="img/logos/erc.png" alt="European Research Council" class="gl-logo-erc">
       <img src="img/logos/univie.jpg" alt="University of Vienna" class="gl-logo-univie">
       <img src="img/logos/eprg.png" alt="Environmental Politics Research Group" class="gl-logo-eprg">
     </div>
-  </div></section>
-
-  <!-- The negotiations at a glance: pinned; three scroll triggers add the IGCs,
-       then the PrepComs, then every other meeting in date order (js/build.js and js/glance.js) -->
-  <section class="gl-pin gl-mo" id="gl-mo">
-    <div class="gl-pin-stick">
-      <div class="gl-inner">
-        <div class="gl-eyebrow">The BBNJ negotiations at a glance</div>
-        <div class="gl-mo-text">
-          <p class="gl-big gl-mo-t gl-mo-t1">The BBNJ Agreement was adopted in its final form on 19 June 2023.</p>
-          <p class="gl-big gl-mo-t gl-mo-t2">There were <span data-gl-word="n_before">seven</span> official meetings leading up to its adoption,</p>
-          <p class="gl-big gl-mo-t gl-mo-t3">and <span data-gl-word="n_after">three</span> following it to prepare for its implementation and the first COP.</p>
-          <p class="gl-big gl-mo-t gl-mo-t4">In addition to many intersessional and online dialogues.</p>
-        </div>
-        <div class="gl-mo-stage" id="gl-mo-stage"></div>
-        <div class="gl-row-legend" id="gl-mo-legend"></div>
-        <div class="gl-note gl-mo-note">Hover over a meeting for its dates. Click the Agreement to read it.</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- IGCs and the package elements: names and one sentence each written here -->
-  <section class="gl-screen"><div class="gl-inner">
-    <p class="gl-big gl-reveal">The <span data-gl-word="n_igc">seven</span> meetings leading up to the adoption were Intergovernmental Conferences (IGCs). Here, the text and its central package elements were negotiated.</p>
-    <div class="gl-pkgs gl-reveal">
-      <button type="button" class="gl-pkg is-active" data-k="mgr" aria-pressed="true">
-        <span class="gl-pkg-name">Marine genetic resources</span>
-        <span class="gl-pkg-bar"><span class="gl-pkg-fill"></span></span>
-        <span class="gl-pkg-n"><span class="gl-count">0</span> statements</span>
-      </button>
-      <button type="button" class="gl-pkg" data-k="abmt" aria-pressed="false">
-        <span class="gl-pkg-name">Area-based management tools</span>
-        <span class="gl-pkg-bar"><span class="gl-pkg-fill"></span></span>
-        <span class="gl-pkg-n"><span class="gl-count">0</span> statements</span>
-      </button>
-      <button type="button" class="gl-pkg" data-k="eia" aria-pressed="false">
-        <span class="gl-pkg-name">Environmental impact assessments</span>
-        <span class="gl-pkg-bar"><span class="gl-pkg-fill"></span></span>
-        <span class="gl-pkg-n"><span class="gl-count">0</span> statements</span>
-      </button>
-      <button type="button" class="gl-pkg" data-k="cb" aria-pressed="false">
-        <span class="gl-pkg-name">Capacity-building and technology transfer</span>
-        <span class="gl-pkg-bar"><span class="gl-pkg-fill"></span></span>
-        <span class="gl-pkg-n"><span class="gl-count">0</span> statements</span>
-      </button>
-    </div>
-    <div class="gl-pkg-texts gl-reveal">
-      <p class="gl-pkg-text is-active" data-k="mgr">[One sentence on marine genetic resources, including benefit sharing.]</p>
-      <p class="gl-pkg-text" data-k="abmt">[One sentence on area-based management tools, including marine protected areas.]</p>
-      <p class="gl-pkg-text" data-k="eia">[One sentence on environmental impact assessments.]</p>
-      <p class="gl-pkg-text" data-k="cb">[One sentence on capacity-building and the transfer of marine technology.]</p>
-    </div>
-  </div></section>
-
-  <!-- PrepComs (bars built by js/build.js) -->
-  <section class="gl-screen gl-tint"><div class="gl-inner">
-    <p class="gl-big gl-reveal">There have also been <span data-gl-word="n_prepcom">three</span> Preparatory Commissions (PrepComs) after its adoption to negotiate the institutional infrastructure of the Agreement.</p>
-    <p class="gl-lead gl-reveal">The most discussed items were:</p>
-    <div class="gl-bars gl-reveal" id="gl-prep"></div>
-    <div class="gl-note gl-reveal" id="gl-prep-note" hidden></div>
-  </div></section>
-
-  <!-- Growth chart -->
-  <section class="gl-screen gl-chart-screen"><div class="gl-inner">
-    <p class="gl-big gl-reveal">It&rsquo;s a complex process with many moving parts. In our data, we count <span class="gl-count" data-gl="n_statements">0</span> statements delivered across plenaries, working groups, and informal sessions:</p>
-    <div class="gl-home gl-reveal" id="gl-growth">
-      <div class="gl-home-legend">
-        <span><span class="gl-key gl-key-line"></span>Statements so far</span>
-        <span><span class="gl-key gl-key-igc"></span>IGCs</span>
-        <span><span class="gl-key gl-key-prepcom"></span>PrepComs</span>
-        <span><span class="gl-key gl-key-dialogue"></span>Online dialogues</span>
-        <span><span class="gl-key gl-key-intersess"></span>Intersessional meetings</span>
-      </div>
-      <div class="gl-note">Hover over the chart for the date and the number of statements.</div>
-    </div>
-  </div></section>
-
-  <!-- The negotiation room: one dot per actor, states inside, everyone else outside
-       (js/build.js lays it out from the counts in the data; the dots pop in when it comes into view) -->
-  <section class="gl-screen gl-tint gl-room-sec"><div class="gl-inner">
-    <div class="gl-room-text gl-reveal">
-      <p class="gl-big">More than 120 states took an active part in the negotiations, and over 180 were represented through country blocs.</p>
-      <p class="gl-lead">In addition, over <span data-gl-text="n_nonstate_floor">70</span> nongovernmental and international actors took part.</p>
-    </div>
-    <div class="gl-room gl-reveal" id="gl-room" role="img" aria-label="Negotiation room: one dot per actor, states in the inner rows, other actors in the outer rows"></div>
-    <div class="gl-room-legend gl-reveal" id="gl-room-legend"></div>
-  </div></section>
-
-  <!-- Ratification, then the actors globe: globe left, country card right -->
-  <section class="gl-screen gl-actors is-grp">
-    <div class="gl-inner gl-actors-intro">
-      <p class="gl-big gl-reveal" id="gl-rat-text">To date, 144 states and the EU have signed the Agreement, and 104 states and the EU have ratified it. It entered into force on 17 January 2026, 120 days after its 60th ratification.</p>
-    </div>
-    <div class="gl-actors-grid">
-      <div class="gl-globe gl-reveal">
-        <div class="gl-g-wrap">
-          <canvas class="gl-g-canvas" role="img" aria-label="Globe of statements per country. Drag to turn, click a country."></canvas>
-          <div class="gl-g-tip"></div>
-          <div class="gl-g-scope" role="group" aria-label="Country blocs">
-            <span class="gl-g-lens-lbl">Country blocs</span>
-            <button type="button" class="is-active" data-scope="grp">On</button>
-            <button type="button" data-scope="nat">Off</button>
-          </div>
-          <div class="gl-g-zoom">
-            <button type="button" class="gl-g-zin" aria-label="Zoom in">+</button>
-            <button type="button" class="gl-g-zout" aria-label="Zoom out">&minus;</button>
-            <button type="button" class="gl-g-reset" aria-label="Reset view" title="Reset view"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></button>
-          </div>
-        </div>
-        <!-- colour: the package element a country spoke on most; shade: how many statements (build.js) -->
-        <div class="gl-g-legend" id="gl-g-legend"></div>
-      </div>
-      <div class="gl-actors-side">
-        <p class="gl-small gl-reveal">Click on a country to see its ratification status, how many statements it has made during the negotiations, and on which topics it was most active. Toggle country blocs off to see only statements made in a national capacity.</p>
-        <div class="gl-card gl-reveal"><div class="gl-card-body" id="gl-card"><div class="gl-card-empty">Click a country on the globe.</div></div></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Try it yourself: two variables, bubbles (default) or table -->
-  <section class="gl-screen gl-tint"><div class="gl-inner">
-    <p class="gl-big gl-reveal">Do you have your own question about the process? Try playing with our data yourself:</p>
-    <div class="gl-picks gl-reveal">
-      <label class="gl-pick"><span>Statements per</span><select id="gl-x"></select></label>
-      <label class="gl-pick"><span>Split by</span><select id="gl-fill"></select></label>
-    </div>
-    <div class="gl-view gl-reveal" role="group" aria-label="View">
-      <button type="button" class="is-active" data-view="bubbles" aria-pressed="true">Bubbles</button>
-      <button type="button" data-view="table" aria-pressed="false">Table</button>
-    </div>
-    <div class="gl-cross gl-reveal">
-      <div class="gl-bubbles" id="gl-bubbles"></div>
-      <div class="gl-xtab-wrap" id="gl-xtab" hidden></div>
-      <div class="gl-x-tip"></div>
-    </div>
-    <div class="gl-note gl-reveal" id="gl-cross-note"></div>
-  </div></section>
-
-  <!-- Next up, publications, literature -->
-  <section class="gl-screen gl-next"><div class="gl-inner">
-    <p class="gl-big gl-reveal">Next up is the COP in January. The TwinPolitics team will be there to continue collecting our data.</p>
-    <p class="gl-lead gl-reveal">In the meantime, here you can find all of our BBNJ-related publications so far:</p>
-    <!-- Gallery of papers: one <a class="gl-pub"> per paper (list still to come) -->
-    <div class="gl-pubs gl-reveal">
-      <a class="gl-pub" href="#"><span class="gl-pub-yr">[Year]</span><span class="gl-pub-t">[Paper title]</span><span class="gl-pub-a">[Authors], [Journal]</span></a>
-      <a class="gl-pub" href="#"><span class="gl-pub-yr">[Year]</span><span class="gl-pub-t">[Paper title]</span><span class="gl-pub-a">[Authors], [Journal]</span></a>
-      <a class="gl-pub" href="#"><span class="gl-pub-yr">[Year]</span><span class="gl-pub-t">[Paper title]</span><span class="gl-pub-a">[Authors], [Journal]</span></a>
-    </div>
-    <p class="gl-lead gl-reveal">Or dive into our curated list of BBNJ-relevant literature here:</p>
-    <a class="gl-btn gl-reveal" href="literature.html">BBNJ literature<span class="gl-btn-n" id="gl-lit-n"></span></a>
   </div></section>
 
   <!-- Ending: external links, sources, funding, credits -->
@@ -244,12 +262,10 @@
     <details class="gl-sources">
       <summary>Sources and credits</summary>
       <ul>
-        <li>Statements, meetings and actors: MARIPOLDATA and TwinPolitics field notes, 2018 to <span data-gl-date="last_date">2026</span>. Data from 2018 to 2024: Austrian Social Science Data Archive, <a href="https://doi.org/10.11587/0XXZ0V" target="_blank" rel="noopener">doi.org/10.11587/0XXZ0V</a>.</li>
-        <li>Signatures and ratifications: United Nations Treaty Collection, Chapter XXI, 10, accessed <span data-gl-rat="as_of">2 November 2026</span>. Checked against the High Seas Alliance, <a href="https://highseasalliance.org/treaty-ratification/table-of-countries/" target="_blank" rel="noopener">Treaty ratification: table of countries</a>.</li>
-        <li>High seas on the title globe: Flanders Marine Institute (2024). Maritime Boundaries Geodatabase: High Seas, version 2. Available online at <a href="https://www.marineregions.org/" target="_blank" rel="noopener">marineregions.org</a>. <a href="https://doi.org/10.14284/696" target="_blank" rel="noopener">doi.org/10.14284/696</a>. Licensed under CC BY 4.0; shapes simplified for this page. The boundaries have no legal value.</li>
-        <li>Land and country shapes: world-atlas (Natural Earth, ISC licence), simplified. Country names: UN short names.</li>
-        <li>Flags: flag-icons (MIT licence). Fonts: Inter and Open Sans (SIL Open Font Licence). Maps drawn with d3-geo and topojson-client (ISC licence).</li>
-        <li>Country blocs and their members: see the sources listed for each bloc in the project notes.</li>
+        <li>Data: MARIPOLDATA and TwinPolitics field notes, 2018 to <span data-gl-date="last_date">2 April 2026</span>. Data from 2018 to 2024: Austrian Social Science Data Archive, <a href="https://doi.org/10.11587/0XXZ0V" target="_blank" rel="noopener">doi.org/10.11587/0XXZ0V</a>.</li>
+        <li>Signatures and ratifications: High Seas Alliance, <a href="https://highseasalliance.org/treaty-ratification/table-of-countries/" target="_blank" rel="noopener">Signature and Ratification Progress Table</a>.</li>
+        <li>High seas area on title globe: Flanders Marine Institute (2024). Maritime Boundaries Geodatabase: High Seas, version 2. Available online at <a href="https://www.marineregions.org/" target="_blank" rel="noopener">marineregions.org</a>. <a href="https://doi.org/10.14284/696" target="_blank" rel="noopener">doi.org/10.14284/696</a>. Licensed under CC BY 4.0; shapes simplified for this page.</li>
+        <li>All country names are UN short names.</li>
       </ul>
     </details>
     <!-- Add the LinkedIn link: <a href="...">Emil W. Hildebrand</a> -->

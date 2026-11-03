@@ -23,7 +23,8 @@
     igc: 'IGCs', prepcom: 'PrepComs', cop: 'COP', dialogue: 'Online dialogues',
     intersess: 'Intersessional meetings', informal: 'Other meetings'
   };
-  var PKG_COLS = { mgr: '#5cc79a', abmt: '#5ba4ae', eia: '#9486c8', cb: '#3670a8' };
+  // globe only: four clearly different hues (green, blue, orange, magenta)
+  var PKG_COLS = { mgr: '#45a774', abmt: '#4683c4', eia: '#d9965a', cb: '#a26a9e' };
   var CROSS_COLS = ['#5cc79a', '#f0b27f', '#002F62', '#9486c8', '#5ba4ae', '#3670a8', '#009EE3', '#c8b79a'];
   var CROSS_GREY = '#b8c0c8';
   // Negotiation room: states in the inner rows, everyone else outside
@@ -65,6 +66,12 @@
     if (n >= 20) return Math.floor(n / 10) * 10;
     return n;
   }
+  // Down to a round figure for "more than": 219 to 200, 41 to 40, 1,009 to 1,000
+  function roundDown(n) {
+    if (!(n > 0)) return 0;
+    var u = Math.pow(10, Math.floor(Math.log(n) / Math.LN10));
+    return Math.floor(n / u) * u;
+  }
   function isoDays(s) { var p = s.split('-'); return Date.UTC(+p[0], +p[1] - 1, +p[2]) / 864e5; }
   function longDate(s) { var p = s.split('-'); return (+p[2]) + ' ' + MONTHS[+p[1] - 1] + ' ' + p[0]; }
   function part(name, f) {
@@ -81,7 +88,9 @@
     n_igc: M.n_igc, n_prepcom: M.n_prepcom, n_before: M.n_before, n_after: M.n_after,
     n_observations: M.n_observations, hours_floor: floorNice(M.hours || 0),
     n_nonstate_floor: floorNice(nonState),
-    n_packages: (D.packages || []).length, first_year: M.first_year
+    n_packages: (D.packages || []).length, first_year: M.first_year,
+    n_actors_round: roundDown(M.n_actors), n_topics_round: roundDown(M.n_topics),
+    n_meetings_round: roundDown(M.n_meetings)
   };
 
   // ---- Numbers in the text --------------------------------------------------------
@@ -95,6 +104,11 @@
     $$('[data-gl-text]').forEach(function (e) {
       var v = nums[e.getAttribute('data-gl-text')];
       if (v !== undefined) e.textContent = typeof v === 'number' ? fmt(v) : v;
+    });
+    // "more than" only when the real number is above its round figure
+    $$('[data-gl-more]').forEach(function (e) {
+      var v = M[e.getAttribute('data-gl-more')];
+      if (typeof v === 'number' && roundDown(v) >= v) e.hidden = true;
     });
     $$('[data-gl-word]').forEach(function (e) {
       var v = nums[e.getAttribute('data-gl-word')];
@@ -118,8 +132,7 @@
     if (!R || !p) return;
     function who(n, eu) { return fmt(n) + (n === 1 ? ' state' : ' states') + (eu ? ' and the EU' : ''); }
     p.textContent = 'To date, ' + who(R.states_signed, R.eu_signed) + ' have signed the Agreement, and ' +
-      who(R.states_ratified, R.eu_ratified) + ' have ratified it. It entered into force on 17 January 2026, ' +
-      '120 days after its 60th ratification.';
+      who(R.states_ratified, R.eu_ratified) + ' have ratified it.';
   });
 
   // ---- The negotiations at a glance: the Agreement and the meetings ------------
@@ -142,10 +155,9 @@
     stage.setAttribute('data-agr', nBefore - 0.5);
 
     var agr = el('a', 'gl-mo-agr');
-    agr.href = 'https://www.un.org/bbnjagreement/en';
+    agr.href = 'https://www.un.org/bbnjagreement/en/bbnj-agreement/text-bbnj-agreement';
     agr.target = '_blank';
     agr.rel = 'noopener';
-    agr.setAttribute('data-tip', 'BBNJ Agreement: adopted 19 June 2023. Click to read it.');
     // Stand-in cover until a picture of the real front page is added
     agr.innerHTML = '<span class="gl-mo-cover"><span class="gl-mo-cover-k">Agreement</span>' +
       '<span class="gl-mo-cover-t">under the United Nations Convention on the Law of the Sea on the Conservation ' +
@@ -278,15 +290,16 @@
     dots.forEach(function (d) { if (d.ring === 'in') d.key = 'state'; });
 
     var Hv = cy + dotR + 6, h = [];
-    h.push('<svg viewBox="0 ' + (cy - R - dotR - 6).toFixed(1) + ' ' + Wv + ' ' + (R + 2 * dotR + 12).toFixed(1) +
-           '" preserveAspectRatio="xMidYMid meet" aria-hidden="true">');
-    dots.forEach(function (d) {
-      var x = cx + d.r * Math.cos(d.ang), y = cy - d.r * Math.sin(d.ang);
-      h.push('<circle class="gl-room-dot gl-room-' + d.ring + '" data-k="' + d.key + '" cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) +
-             '" r="' + dotR.toFixed(1) + '" fill="' + ROOM[d.key].col + '" style="--d:' + (d.ord / Math.max(1, d.of - 1)).toFixed(3) + '"></circle>');
-    });
-    h.push('</svg>');
-    box.innerHTML = h.join('');
+    // The dots are drawn on one canvas by glance.js (frame by frame, one layer):
+    // smooth even with ~200 dots popping in. Here only the box (same shape as the
+    // layout) and the dot list in layout units.
+    var y0 = cy - R - dotR - 6, Hb = R + 2 * dotR + 12;
+    box.innerHTML = '<div class="gl-room-box" style="padding-top:' + (Hb / Wv * 100).toFixed(3) + '%" aria-hidden="true">' +
+      '<canvas class="gl-room-canvas"></canvas></div>';
+    box.__room = { w: Wv, h: Hb, r: dotR, dots: dots.map(function (d) {
+      return { x: cx + d.r * Math.cos(d.ang), y: cy - d.r * Math.sin(d.ang) - y0, col: ROOM[d.key].col,
+               out: d.ring === 'out', f: d.ord / Math.max(1, d.of - 1) };
+    }) };
     box.setAttribute('data-hv', Hv.toFixed(0));
 
     var leg = $('#gl-room-legend');
@@ -334,7 +347,7 @@
     });
     var note = $('#gl-prep-note');
     if (note) {
-      note.textContent = 'Statements per agenda item at the PrepComs, as coded in our data.';
+      note.textContent = 'Statements per agenda item';
       note.hidden = false;
     }
   });
@@ -441,7 +454,7 @@
     var c = hexRgb(col), lo = [], hi = [], out = [];
     for (var i = 0; i < 3; i++) {
       lo[i] = c[i] + (255 - c[i]) * 0.72;              // pale tint
-      hi[i] = c[i] * 0.62 + [0, 30, 60][i] * 0.38;     // deep, towards navy
+      hi[i] = c[i] * 0.72 + [0, 30, 60][i] * 0.28;     // deep, a little towards navy (keeps the hue)
       out[i] = Math.round(lo[i] + (hi[i] - lo[i]) * t);
     }
     return 'rgb(' + out.join(',') + ')';
@@ -449,15 +462,22 @@
   part('globe legend', function () {
     var leg = $('#gl-g-legend');
     if (!leg) return;
-    function key(col, name) {
-      return el('span', 'gl-chart-key', '<span class="gl-g-ramp" style="background:linear-gradient(90deg,' +
-        shade(col, 0) + ',' + shade(col, 1) + ')"></span>' + esc(name));
+    // short names to save room; the full name shows on hover
+    var ABBR = { mgr: 'MGR', abmt: 'ABMT', eia: 'EIA', cb: 'CB&TMT' };
+    function key(col, short, full) {
+      var k = el('span', 'gl-chart-key', '<span class="gl-g-ramp" style="background:linear-gradient(90deg,' +
+        shade(col, 0) + ',' + shade(col, 1) + ')"></span>' + esc(short));
+      k.title = full;
+      return k;
     }
     var keys = el('div', 'gl-g-keys');
-    (D.packages || []).forEach(function (p) { keys.appendChild(key(PKG_COLS[p.key], pkgNames[p.key] || p.key)); });
-    keys.appendChild(key(NOPKG_COL, 'No package statements'));
+    (D.packages || []).forEach(function (p) {
+      var full = pkgNames[p.key] || p.key;
+      keys.appendChild(key(PKG_COLS[p.key], ABBR[p.key] || full, full));
+    });
+    keys.appendChild(key(NOPKG_COL, 'None', 'No package statements'));
     leg.appendChild(keys);
-    leg.appendChild(el('div', 'gl-g-legend-note', 'Colour: the package element a country spoke on most. Light to dark: fewer to more statements.'));
+    leg.appendChild(el('div', 'gl-g-legend-note', 'Colour: the package element a country spoke on most. Darker: more statements.'));
   });
 
   function topList(t, title, cls) {
@@ -473,9 +493,9 @@
   }
 
   function ratLine(r) {
-    if (r.rat) return '<span class="gl-card-rat is-rat">Ratified ' + longDate(r.rat) + '</span>' +
+    if (r.rat) return '<span class="gl-card-rat">Ratified ' + longDate(r.rat) + '</span>' +
       (r.sig ? '<span class="gl-card-sig">Signed ' + longDate(r.sig) + '</span>' : '');
-    if (r.sig) return '<span class="gl-card-rat is-sig">Signed ' + longDate(r.sig) + '</span><span class="gl-card-sig">Not ratified yet</span>';
+    if (r.sig) return '<span class="gl-card-rat">Signed ' + longDate(r.sig) + '</span><span class="gl-card-sig">Not ratified yet</span>';
     return '<span class="gl-card-rat">Not signed</span>';
   }
 
@@ -484,7 +504,7 @@
   function renderCard(r) {
     var box = $('#gl-card');
     if (!box) return;
-    if (!r) { box.innerHTML = '<div class="gl-card-empty">Click a country on the globe.</div>'; return; }
+    if (!r) { box.innerHTML = '<div class="gl-card-empty">Click a country on the globe to see its ratification status, how many statements it made during the negotiations, and on which topics it was most active. Toggle country blocs off to see only statements made in a national capacity.</div>'; return; }
     var grp = window.GLANCE && window.GLANCE.scope === 'grp';
     var gs = r.groups || [], nVia = 0;
     gs.forEach(function (g) { nVia += g[1]; });
@@ -684,6 +704,90 @@
     note.textContent = crossNote(p, v1, v2);
   }
 
+  // Question cards: each sets the two variables and gives a one-line answer
+  // worked out from the counts (labels as in the data). A question whose pair
+  // is not in the data is left out.
+  function rowTotals(p) {
+    var t = p.a.labels.map(function () { return 0; });
+    p.cells.forEach(function (c) { t[c[0]] += c[2]; });
+    return t;
+  }
+  function topCol(p, rowOk) {
+    var t = p.b.labels.map(function () { return 0; });
+    p.cells.forEach(function (c) { if (rowOk(c[0])) t[c[1]] += c[2]; });
+    var best = -1;
+    t.forEach(function (v, j) { if (v > 0 && !p.b.undef[j] && (best < 0 || v > t[best])) best = j; });
+    return best;
+  }
+  function B(x) { return '<b>' + esc(x) + '</b>'; }
+  var QUESTIONS = [
+    { q: 'Which topics dominated each meeting?', v1: 'meeting', v2: 'section_level1',
+      take: function (p) {
+        var cls = p.a.cls || [];
+        var i = topCol(p, function (r) { return cls[r] === 'igc'; });
+        var j = topCol(p, function (r) { return cls[r] === 'prepcom'; });
+        if (i < 0 || j < 0) return '';
+        return 'At the IGCs, ' + B(p.b.labels[i]) + ' drew the most statements; at the PrepComs, ' + B(p.b.labels[j]) + '.';
+      } },
+    { q: 'Who did the talking?', v1: 'actor_type', v2: 'meeting',
+      take: function (p) {
+        var t = rowTotals(p), top = 0;
+        t.forEach(function (v, i) { if (v > t[top]) top = i; });
+        var cols = p.b.labels.length, won = 0;
+        p.b.labels.forEach(function (x, j) {
+          var best = -1, bv = -1;
+          p.cells.forEach(function (c) { if (c[1] === j && c[2] > bv) { bv = c[2]; best = c[0]; } });
+          if (best === top) won++;
+        });
+        return B(p.a.labels[top]) + ' was the most frequent actor type at ' +
+          (won === cols ? 'every meeting' : won + ' of ' + cols + ' meetings') + '.';
+      } },
+    { q: 'Who spoke the most, and on what?', v1: 'actor', v2: 'section_level1',
+      take: function (p) {
+        var l = p.a.labels;
+        if (l.length < 3) return '';
+        return 'The most active speakers were ' + B(l[0]) + ', ' + B(l[1]) + ' and ' + B(l[2]) + '.';
+      } },
+    { q: 'Where were statements made?', v1: 'negotiation_format', v2: 'meeting',
+      take: function (p) {
+        var t = rowTotals(p), o = t.map(function (v, i) { return i; })
+          .filter(function (i) { return !p.a.undef[i]; })
+          .sort(function (x, y) { return t[y] - t[x]; });
+        if (o.length < 2) return '';
+        return 'Most statements were made in ' + B(p.a.labels[o[0]].toLowerCase()) + ', followed by ' + B(p.a.labels[o[1]].toLowerCase()) + '.';
+      } },
+    { q: 'How busy was each year?', v1: 'year', v2: 'actor_type',
+      take: function (p) {
+        var t = rowTotals(p), top = 0;
+        t.forEach(function (v, i) { if (v > t[top]) top = i; });
+        return B(p.a.labels[top]) + ' was the busiest year in our data.';
+      } }
+  ];
+  var curQ = -1;
+
+  function setQuestion(k) {
+    curQ = k;
+    $$('.gl-q').forEach(function (b) {
+      var on = +b.getAttribute('data-q') === k;
+      b.classList.toggle('is-active', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  }
+  // after any change: if the two lists match a question, that card lights up
+  function syncQuestion() {
+    var v1 = $('#gl-x').value, v2 = $('#gl-fill').value, k = -1;
+    QUESTIONS.forEach(function (q, i) { if (q.ok && q.v1 === v1 && q.v2 === v2) k = i; });
+    setQuestion(k);
+  }
+  function renderTake() {
+    var box = $('#gl-x-take');
+    if (!box) return;
+    var q = QUESTIONS[curQ], p = q ? cross.pairs[q.v1 + '|' + q.v2] : null, t = '';
+    if (q && p) { try { t = q.take(p) || ''; } catch (e) { t = ''; } }
+    box.innerHTML = t;
+    box.hidden = !t;
+  }
+
   part('cross', function () {
     var sx = $('#gl-x'), sf = $('#gl-fill');
     if (!sx || !sf || !cross || !cross.vars.length) return;
@@ -692,10 +796,36 @@
       sf.appendChild(new Option(v.label, v.key));
     });
     var keys = cross.vars.map(function (v) { return v.key; });
-    sx.value = keys.indexOf('section_level1') >= 0 ? 'section_level1' : keys[0];
-    sf.value = keys.indexOf('actor_type') >= 0 ? 'actor_type' : keys[Math.min(1, keys.length - 1)];
-    sx.addEventListener('change', renderCross);
-    sf.addEventListener('change', renderCross);
+    // question cards
+    var qs = $('#gl-qs');
+    QUESTIONS.forEach(function (q, i) {
+      q.ok = keys.indexOf(q.v1) >= 0 && keys.indexOf(q.v2) >= 0 && !!cross.pairs[q.v1 + '|' + q.v2];
+      if (!q.ok || !qs) return;
+      var b = el('button', 'gl-q', esc(q.q));
+      b.type = 'button';
+      b.setAttribute('data-q', i);
+      b.setAttribute('aria-pressed', 'false');
+      b.addEventListener('click', function () {
+        sx.value = q.v1;
+        sf.value = q.v2;
+        setQuestion(i);
+        renderCross();
+        renderTake();
+      });
+      qs.appendChild(b);
+    });
+    var first = -1;
+    QUESTIONS.forEach(function (q, i) { if (first < 0 && q.ok) first = i; });
+    if (first >= 0) {
+      sx.value = QUESTIONS[first].v1;
+      sf.value = QUESTIONS[first].v2;
+    } else {
+      sx.value = keys.indexOf('section_level1') >= 0 ? 'section_level1' : keys[0];
+      sf.value = keys.indexOf('actor_type') >= 0 ? 'actor_type' : keys[Math.min(1, keys.length - 1)];
+    }
+    function onPick() { syncQuestion(); renderCross(); renderTake(); }
+    sx.addEventListener('change', onPick);
+    sf.addEventListener('change', onPick);
     $$('.gl-view button').forEach(function (b) {
       b.addEventListener('click', function () {
         view = b.getAttribute('data-view');
@@ -716,7 +846,9 @@
       tmr = window.setTimeout(renderCross, 120);
     }
     window.addEventListener('resize', onResize);
+    syncQuestion();
     renderCross();
+    renderTake();
     lastW = $('#gl-bubbles').clientWidth;
     // the fonts change label widths: redraw once they are in
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { if (view === 'bubbles') renderCross(); });
