@@ -48,37 +48,48 @@
 
   <!-- The BBNJ process: a short introduction, left-aligned across the full width.
        The numbers sentence was taken out on 2026-11-03 (rounding code stays in build.js). -->
-  <section class="gl-screen gl-intro"><div class="gl-wide">
+  <section class="gl-screen gl-tint gl-intro"><div class="gl-wide">
     <h2 class="gl-head gl-reveal">The BBNJ process</h2>
     <p class="gl-lead gl-reveal gl-full">The negotiations leading up to the BBNJ Agreement and its first COP are complex, and keeping tabs on everything can be a challenge.</p>
     <p class="gl-lead gl-reveal gl-full">Here we have created an overview based on our own <span class="gl-pop gl-pop-hover"><button type="button" class="gl-pop-btn" aria-expanded="false">field note data</button><span class="gl-pop-box" role="note"><a href="#gl-who">Scroll down</a> to learn more about who we are and how we collect our data.</span></span> from the negotiations, giving you a bird&rsquo;s-eye view of the whole process from its first Intergovernmental Conference (IGC) in 2018 to the last Preparatory Commission (PrepCom) in 2026. Scroll your way downwards and click around to learn more about specific items and actors.</p>
   </div></section>
 
-  <!-- The negotiations at a glance: pinned; three scroll triggers add the IGCs,
-       then the PrepComs, then every other meeting in date order (js/build.js and js/glance.js) -->
-  <section class="gl-pin gl-mo" id="gl-mo">
-    <div class="gl-pin-stick">
-      <div class="gl-inner">
-        <div class="gl-mo-text">
-          <p class="gl-big gl-mo-t gl-mo-t1">The BBNJ Agreement was adopted on 19 June 2023.</p>
-          <p class="gl-big gl-mo-t gl-mo-t2">There have been <span data-gl-word="n_before">seven</span> Intergovernmental Conferences (IGCs) leading up to its adoption, and <span data-gl-word="n_after">three</span> Preparatory Commissions (PrepComs) following it to prepare for the first Conference of the Parties (COP).</p>
-          <p class="gl-big gl-mo-t gl-mo-t4">In addition to many intersessional and online dialogues.</p>
-        </div>
-        <div class="gl-mo-stage" id="gl-mo-stage"></div>
-        <div class="gl-row-legend" id="gl-mo-legend"></div>
-        <!-- two hints in the same spot: the first while the Agreement is alone, the second once the meetings are there -->
-        <div class="gl-note gl-mo-note">
-          <a class="gl-mo-note-a" href="https://www.un.org/bbnjagreement/en/bbnj-agreement/text-bbnj-agreement" target="_blank" rel="noopener">Click on Agreement to visit the full text<svg class="gl-ext" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/></svg></a>
-          <span class="gl-mo-note-b">Hover over a meeting for its dates and click it for its Earth Negotiations Bulletin (ENB) summary. Click on Agreement to visit the full text</span>
-        </div>
+  <!-- The Agreement and the official meetings (2026-11-03: not pinned). Part one
+       shows the Agreement big; scrolling on, it floats down into the row of
+       meetings in part two, and the meetings pop in around it (glance.js moUpdate).
+       The Agreement sits in .gl-mo itself so it can travel between the parts. -->
+  <section class="gl-mo" id="gl-mo">
+    <div class="gl-mo-part gl-mo-a"><div class="gl-inner">
+      <p class="gl-big gl-mo-t">The BBNJ Agreement was adopted on 19 June 2023.</p>
+      <div class="gl-mo-slot"><div class="gl-mo-ghost"></div></div>
+      <div class="gl-note gl-mo-note"><a class="gl-mo-note-a" href="https://www.un.org/bbnjagreement/en/bbnj-agreement/text-bbnj-agreement" target="_blank" rel="noopener">Click on Agreement to visit the full text<svg class="gl-ext" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/></svg></a></div>
+    </div></div>
+    <div class="gl-mo-part gl-mo-b"><div class="gl-inner">
+      <p class="gl-big gl-mo-t">There have been <span data-gl-word="n_before">seven</span> Intergovernmental Conferences (IGCs) leading up to its adoption, and <span data-gl-word="n_after">three</span> Preparatory Commissions (PrepComs) following it to prepare for the first Conference of the Parties (COP).</p>
+      <div class="gl-mo-stage" id="gl-mo-stage"></div>
+      <div class="gl-row-legend" id="gl-mo-legend"></div>
+      <div class="gl-note gl-mo-note">Hover over a meeting for its dates and click it for its Earth Negotiations Bulletin (ENB) summary. Click on Agreement to visit the full text</div>
+    </div></div>
+  </section>
+
+  <!-- Statements over time ("It's a complex process"; moved above the IGCs 2026-11-03) -->
+  <section class="gl-screen gl-chart-screen"><div class="gl-inner gl-left">
+    <p class="gl-big gl-reveal">It&rsquo;s a complex process with many moving parts. In our data, we count <span class="gl-count" data-gl="n_statements">0</span> statements delivered across plenaries, working groups, and informal sessions:</p>
+    <div class="gl-home gl-reveal" id="gl-growth">
+      <div class="gl-home-legend">
+        <span><span class="gl-key gl-key-line"></span>Statements so far</span>
+        <span><span class="gl-key gl-key-igc"></span>IGCs</span>
+        <span><span class="gl-key gl-key-prepcom"></span>PrepComs</span>
+        <span><span class="gl-key gl-key-dialogue"></span>Online dialogues</span>
+        <span><span class="gl-key gl-key-intersess"></span>Intersessional meetings</span>
       </div>
     </div>
-  </section>
+  </div></section>
 
   <!-- IGCs and the package elements. Start: text left, cards right. Click a card:
        the cards move under the text (left) and its sentence shows on the right
        (glance.js). Names and one sentence each are written here. -->
-  <section class="gl-screen gl-pkg-sec"><div class="gl-split">
+  <section class="gl-screen gl-tint gl-pkg-sec"><div class="gl-split">
     <div class="gl-split-text">
       <p class="gl-big gl-reveal">The <span data-gl-word="n_igc">seven</span> meetings leading up to the adoption were Intergovernmental Conferences (IGCs). Here, the text and its central package elements were negotiated.</p>
       <p class="gl-small gl-reveal gl-pkg-hint">Click a package element to read about it.</p>
@@ -89,23 +100,15 @@
       <div class="gl-pkgs gl-reveal">
         <button type="button" class="gl-pkg" data-k="mgr" aria-pressed="false">
           <span class="gl-pkg-name">Marine genetic resources (MGR)</span>
-          <span class="gl-pkg-bar"><span class="gl-pkg-fill"></span></span>
-          <span class="gl-pkg-n"><span class="gl-count">0</span> statements</span>
         </button>
         <button type="button" class="gl-pkg" data-k="abmt" aria-pressed="false">
           <span class="gl-pkg-name">Area-based management tools (ABMT)</span>
-          <span class="gl-pkg-bar"><span class="gl-pkg-fill"></span></span>
-          <span class="gl-pkg-n"><span class="gl-count">0</span> statements</span>
         </button>
         <button type="button" class="gl-pkg" data-k="eia" aria-pressed="false">
           <span class="gl-pkg-name">Environmental impact assessments (EIA)</span>
-          <span class="gl-pkg-bar"><span class="gl-pkg-fill"></span></span>
-          <span class="gl-pkg-n"><span class="gl-count">0</span> statements</span>
         </button>
         <button type="button" class="gl-pkg" data-k="cb" aria-pressed="false">
           <span class="gl-pkg-name">Capacity-building and transfer of marine technology (CB&amp;TMT)</span>
-          <span class="gl-pkg-bar"><span class="gl-pkg-fill"></span></span>
-          <span class="gl-pkg-n"><span class="gl-count">0</span> statements</span>
         </button>
       </div>
       </div>
@@ -117,12 +120,14 @@
           <p class="gl-pkg-text" data-k="eia">[One sentence on environmental impact assessments.]</p>
           <p class="gl-pkg-text" data-k="cb">[One sentence on capacity-building and the transfer of marine technology.]</p>
         </div>
+        <!-- one small bar chart per package: its statements at each IGC (build.js) -->
+        <div class="gl-pkg-igcs"></div>
       </div>
     </div>
   </div></section>
 
   <!-- PrepComs: text left, bars right (bars built by js/build.js) -->
-  <section class="gl-screen gl-tint"><div class="gl-split">
+  <section class="gl-screen"><div class="gl-split">
     <div class="gl-split-text">
       <p class="gl-big gl-reveal">There have also been <span data-gl-word="n_prepcom">three</span> Preparatory Commissions (PrepComs) after its adoption to negotiate the institutional infrastructure of the Agreement.</p>
     </div>
@@ -130,20 +135,6 @@
       <p class="gl-lead gl-reveal">The most discussed items were:</p>
       <div class="gl-bars gl-reveal" id="gl-prep"></div>
       <div class="gl-note gl-reveal" id="gl-prep-note" hidden></div>
-    </div>
-  </div></section>
-
-  <!-- Growth chart -->
-  <section class="gl-screen gl-chart-screen"><div class="gl-inner gl-left">
-    <p class="gl-big gl-reveal">It&rsquo;s a complex process with many moving parts. In our data, we count <span class="gl-count" data-gl="n_statements">0</span> statements delivered across plenaries, working groups, and informal sessions:</p>
-    <div class="gl-home gl-reveal" id="gl-growth">
-      <div class="gl-home-legend">
-        <span><span class="gl-key gl-key-line"></span>Statements so far</span>
-        <span><span class="gl-key gl-key-igc"></span>IGCs</span>
-        <span><span class="gl-key gl-key-prepcom"></span>PrepComs</span>
-        <span><span class="gl-key gl-key-dialogue"></span>Online dialogues</span>
-        <span><span class="gl-key gl-key-intersess"></span>Intersessional meetings</span>
-      </div>
     </div>
   </div></section>
 
@@ -196,9 +187,11 @@
        build.js (QUESTIONS, part 'cross') and does nothing without this section. -->
 
   <!-- Next up, publications, literature -->
-  <section class="gl-screen gl-next"><div class="gl-wide">
+  <section class="gl-screen gl-tint gl-next"><div class="gl-wide">
     <h2 class="gl-head gl-reveal">What happens next?</h2>
-    <p class="gl-lead gl-reveal gl-full">Next on the agenda is the first COP in New York in January. We will be there to continue collecting our data. In the meantime, here you can find all of our publications on the BBNJ so far:</p>
+    <p class="gl-lead gl-reveal gl-full">Next on the agenda is the first COP in New York in January. [More on what will happen at the COP].</p>
+    <p class="gl-lead gl-reveal gl-full">We will be there to continue collecting our data.</p>
+    <p class="gl-lead gl-reveal gl-full">In the meantime, here you can find all of our publications on the BBNJ so far:</p>
     <!-- Gallery of papers, newest first (2026-11-03): BBNJ papers from the
          MARIPOLDATA and TwinPolitics publication pages (no project label, 2026-11-03). The first eight show; the
          rest open with the button (glance.js, pubsMore). -->
@@ -224,7 +217,6 @@
     </div>
     <div class="gl-pubs-foot gl-reveal">
       <button type="button" class="gl-pubs-more" aria-expanded="false">Show all publications</button>
-      <span class="gl-pubs-all">All publications: <a href="https://www.maripoldata.eu/publications/" target="_blank" rel="noopener">MARIPOLDATA</a> and <a href="https://twinpolitics.eu/publications/" target="_blank" rel="noopener">TwinPolitics</a></span>
     </div>
     <p class="gl-lead gl-reveal gl-full">Or explore our curated list of BBNJ literature here:</p>
     <!-- Literature card: a screenshot of the list (img/literature.jpg, made from
@@ -241,7 +233,7 @@
   </div></section>
 
   <!-- Who are we? -->
-  <section class="gl-screen gl-tint gl-who" id="gl-who"><div class="gl-wide">
+  <section class="gl-screen gl-who" id="gl-who"><div class="gl-wide">
     <h2 class="gl-head gl-reveal">Who are we?</h2>
     <p class="gl-lead gl-reveal gl-full">A quick introduction to the team behind this page.</p>
     <div class="gl-projects gl-reveal">

@@ -14,6 +14,31 @@
     return;
   }
 
+  // States on the globe with no statements in the data (Emil, 2026-11-03): they get a
+  // hover name and a card too (flag, name, ratification, "no statements"). Hand-written
+  // here until data_cleaning.R keeps states with no statements: signature and
+  // ratification dates from claude/bbnj_ratification_status.csv (UN Treaty Collection).
+  // A state the data already has is not added twice.
+  var NO_STATEMENTS = [
+    { isonum: '008', iso2: 'al', name: 'Albania', sig: '2025-02-20', rat: '2025-06-09' },
+    { isonum: '020', iso2: 'ad', name: 'Andorra', sig: '2025-06-09', rat: null },
+    { isonum: '070', iso2: 'ba', name: 'Bosnia and Herzegovina', sig: null, rat: null },
+    { isonum: '268', iso2: 'ge', name: 'Georgia', sig: null, rat: null },
+    { isonum: '499', iso2: 'me', name: 'Montenegro', sig: '2025-06-10', rat: null },
+    { isonum: '688', iso2: 'rs', name: 'Serbia', sig: '2025-06-09', rat: '2026-07-29' },
+    { isonum: '804', iso2: 'ua', name: 'Ukraine', sig: '2025-08-29', rat: null }
+  ];
+  if (D.countries) {
+    var haveNum = {};
+    D.countries.forEach(function (r) { haveNum[r.isonum] = true; });
+    NO_STATEMENTS.forEach(function (r) {
+      if (haveNum[r.isonum]) return;
+      r.none = true; r.n = 0; r.ng = 0; r.groups = []; r.flag = true;
+      r.point_lon = null; r.point_lat = null;
+      D.countries.push(r);
+    });
+  }
+
   // ---- Colours and names --------------------------------------------------------
   var PAL = {
     igc: '#5cc79a', prepcom: '#f0b27f', cop: '#9cc8f0',
@@ -163,7 +188,7 @@
       '<span class="gl-mo-cover-t">under the United Nations Convention on the Law of the Sea on the Conservation ' +
       'and Sustainable Use of Marine Biological Diversity of Areas beyond National Jurisdiction</span>' +
       '<span class="gl-mo-cover-d">Adopted 19 June 2023</span></span>';
-    stage.appendChild(agr);
+    (stage.closest('.gl-mo') || stage).appendChild(agr);   // outside the stage: it travels between the two parts
 
     // Earth Negotiations Bulletin (ENB, IISD) summary report of each official
     // meeting, by meeting key (checked 2026-11-03). A square with a report is a link.
@@ -203,7 +228,7 @@
       stage.appendChild(box);
     }
     off.forEach(function (m) { square(m, m.start <= adopt ? 'before' : 'after', m.ord); });
-    other.forEach(function (m) { square(m, 'other', m.ord); });
+    // the online and intersessional meetings are no longer shown (Emil, 2026-11-03)
     if (!mt.has_cop) {
       square({ cls: 'cop', label: 'COP-1', years: 'January 2027', tip: 'COP-1: January 2027, New York' },
              'after', N - 1, true);
@@ -215,7 +240,6 @@
     if (leg) {
       var stageOf = {};
       off.forEach(function (m) { stageOf[m.cls] = Math.min(stageOf[m.cls] || 9, m.start <= adopt ? 1 : 2); });
-      other.forEach(function (m) { stageOf[m.cls] = Math.min(stageOf[m.cls] || 9, 3); });
       if (!stageOf.cop) stageOf.cop = 2;
       ['igc', 'prepcom', 'cop', 'dialogue', 'intersess', 'informal'].forEach(function (c) {
         if (!stageOf[c]) return;
@@ -335,20 +359,48 @@
     }
   });
 
-  // ---- Package cards: counts and bar widths ---------------------------------------
+  // ---- Package cards: names, and a small bar chart per package --------------------
+  // The cards show no counts (Emil, 2026-11-03). Each package's explainer gets a
+  // column chart of its statements at each IGC, from cross.pairs
+  // 'section_level1|meeting' (IGCs with no statements on any package are left out).
   var pkgNames = {};
+  var PKG_MATCH = { mgr: /genetic/i, abmt: /area-based/i, eia: /impact/i, cb: /capacity/i };
   part('packages', function () {
-    var pk = D.packages || [];
-    var mx = 1;
-    pk.forEach(function (p) { mx = Math.max(mx, p.n); });
-    pk.forEach(function (p) {
-      var card = $('.gl-pkg[data-k="' + p.key + '"]');
-      if (!card) return;
-      pkgNames[p.key] = $('.gl-pkg-name', card).textContent;
-      var c = $('.gl-count', card);
-      c.setAttribute('data-to', p.n);
-      c.textContent = fmt(p.n);
-      $('.gl-pkg-fill', card).style.width = Math.round(p.n / mx * 100) + '%';
+    $$('.gl-pkg').forEach(function (card) {
+      var k = card.getAttribute('data-k');
+      pkgNames[k] = $('.gl-pkg-name', card).textContent;
+      if (PKG_COLS[k]) card.style.setProperty('--pk', PKG_COLS[k]);   // same colours as the globe
+    });
+    var box = $('.gl-pkg-igcs'), pr = D.cross && D.cross.pairs && D.cross.pairs['section_level1|meeting'];
+    if (!box || !pr) return;
+    var A = pr.a.labels, B = pr.b.labels, cls = pr.b.cls || [];
+    var rowOf = {};
+    Object.keys(PKG_MATCH).forEach(function (k) {
+      for (var i = 0; i < A.length; i++) if (PKG_MATCH[k].test(A[i])) { rowOf[k] = i; break; }
+    });
+    var cnt = {};                                       // cnt[package][meeting index]
+    Object.keys(rowOf).forEach(function (k) { cnt[k] = {}; });
+    pr.cells.forEach(function (c) {
+      Object.keys(rowOf).forEach(function (k) { if (rowOf[k] === c[0]) cnt[k][c[1]] = c[2]; });
+    });
+    var cols = [];                                      // IGCs in the order of the data
+    B.forEach(function (lab, j) {
+      if (cls[j] !== 'igc') return;
+      var any = Object.keys(cnt).some(function (k) { return cnt[k][j] > 0; });
+      if (any) cols.push(j);
+    });
+    Object.keys(cnt).forEach(function (k) {
+      var mx = 1;
+      cols.forEach(function (j) { mx = Math.max(mx, cnt[k][j] || 0); });
+      var h = '<div class="gl-pkg-igc" data-k="' + k + '" style="--pk:' + (PKG_COLS[k] || '') + '"><div class="gl-pkg-igc-t">Statements at each IGC</div><div class="gl-pkg-igc-cols">';
+      cols.forEach(function (j) {
+        var v = cnt[k][j] || 0;
+        h += '<div class="gl-pkg-igc-col" aria-label="' + esc(B[j]) + ': ' + fmt(v) + ' statements">' +
+          '<span class="gl-pkg-igc-v">' + fmt(v) + '</span>' +
+          '<span class="gl-pkg-igc-bar" style="height:' + Math.round(v / mx * 96) + 'px"></span>' +
+          '<span class="gl-pkg-igc-lbl">' + esc(B[j]) + '</span></div>';
+      });
+      box.insertAdjacentHTML('beforeend', h + '</div></div>');
     });
   });
 
@@ -526,14 +578,19 @@
     var box = $('#gl-card');
     if (!box) return;
     if (!r) { box.innerHTML = '<div class="gl-card-empty">Click a country on the globe to see its ratification status, how many statements it made during the negotiations, and on which topics it was most active. Toggle country blocs off to see only statements made in a national capacity.</div>'; return; }
+    var head = '<div class="gl-card-head">' +
+      (r.flag && r.iso2 ? '<img class="gl-card-flag" src="flags/' + esc(r.iso2) + '.svg" alt="">' : '') +
+      '<div class="gl-card-name">' + esc(r.name) + '</div></div>' +
+      '<div class="gl-card-meta">' + ratLine(r) + '</div>';
+    if (r.none) {                                        // a state with no statements in the data
+      box.innerHTML = head + '<div class="gl-card-nostat">No statements recorded in our field notes.</div>';
+      return;
+    }
     var grp = window.GLANCE && window.GLANCE.scope === 'grp';
     var gs = r.groups || [], nVia = 0;
     gs.forEach(function (g) { nVia += g[1]; });
     var via = gs.map(function (g) { return esc(g[0]); }).join(', ');
-    box.innerHTML = '<div class="gl-card-head">' +
-      (r.flag && r.iso2 ? '<img class="gl-card-flag" src="flags/' + esc(r.iso2) + '.svg" alt="">' : '') +
-      '<div class="gl-card-name">' + esc(r.name) + '</div></div>' +
-      '<div class="gl-card-meta">' + ratLine(r) + '</div>' +
+    box.innerHTML = head +
       '<div class="gl-card-stats"><div class="gl-card-stat"><span class="gl-card-num">' + fmt(r.n || 0) + '</span>' +
         '<span class="gl-card-lbl">in national capacity</span></div>' +
       (grp

@@ -223,8 +223,8 @@ function glQuality() {
       maxLog.grp = Math.max(maxLog.grp, Math.log((r.ng || r.n || 0) + 1));
     });
     // "Count": 'nat' national capacity only, 'grp' including group statements.
-    // A country with no statements in the current count is drawn and treated as
-    // a country without data (no hover, no click).
+    // A country with no statements in the current count is drawn grey but can
+    // still be hovered and clicked (name and card; 2026-11-03).
     var scope = 'grp';                                  // country blocs on by default
     var on = root.querySelector('.gl-g-scope .is-active');
     if (on && on.getAttribute('data-scope') === 'nat') scope = 'nat';
@@ -361,7 +361,7 @@ function glQuality() {
       var ll = proj.invert([x, y]);
       if (!ll || !visible(ll)) return null;
       for (var i = 0; i < feats.length; i++) {
-        if (feats[i].__r && val(feats[i].__r) && d3.geoContains(feats[i], ll)) return feats[i].__r;
+        if (feats[i].__r && d3.geoContains(feats[i], ll)) return feats[i].__r;   // also states with no statements
       }
       return null;
     }
@@ -385,7 +385,7 @@ function glQuality() {
 
     function showTip(r, x, y) {
       if (!r) { tipEl.style.display = 'none'; return; }
-      var t = '<b>' + r.name + '</b><br>' + val(r).toLocaleString('en-GB') + ' statements';
+      var t = '<b>' + r.name + '</b><br>' + (r.none ? 'No statements' : val(r).toLocaleString('en-GB') + ' statements');
       tipEl.innerHTML = t;
       tipEl.style.display = 'block';
       tipEl.style.left = x + 'px';
@@ -484,8 +484,6 @@ function glQuality() {
         GL.scope = scope;
         root.querySelectorAll('.gl-g-scope button').forEach(function (o) { o.classList.toggle('is-active', o === b); });
         if (section) section.classList.toggle('is-grp', scope === 'grp');
-        if (sel && !val(sel)) { sel = null; zoomOut(); }        // not counted in this view
-        if (hover && !val(hover)) hover = null;
         if (GL.renderCard) GL.renderCard(sel);
         kick();
       });
@@ -588,9 +586,11 @@ function glQuality() {
         p.classList.toggle('is-active', on);
         p.setAttribute('aria-pressed', on ? 'true' : 'false');
       });
-      sec.querySelectorAll('.gl-pkg-text').forEach(function (p) { p.classList.toggle('is-active', p.getAttribute('data-k') === key); });
+      sec.querySelectorAll('.gl-pkg-text, .gl-pkg-igc').forEach(function (p) { p.classList.toggle('is-active', p.getAttribute('data-k') === key); });
       var h = sec.querySelector('.gl-pkg-h'), name = pkg.querySelector('.gl-pkg-name');
       if (h && name && key) h.textContent = name.textContent;
+      var on = key && sec.querySelector('.gl-pkg[data-k="' + key + '"]');
+      if (on) sec.style.setProperty('--pk', on.style.getPropertyValue('--pk'));   // the panel's line in its colour
     }
     if (closing) {
       flipMove(cards, function () { mark(null); sec.classList.remove('is-open'); if (slotR && grid) slotR.appendChild(grid); });
@@ -698,129 +698,86 @@ function glQuality() {
   }
 
   // ---- Pinned sections ----------------------------------------------------------
-  // A .gl-pin is a tall block whose .gl-pin-stick sticks to the top of the
-  // screen. What it shows is worked out from the scroll position alone (p, 0 to
-  // 1 through the block) on every scroll and resize: no timers and no stored
-  // history, so it cannot get stuck, and scrolling back runs it in reverse.
-  function pinProgress(pin) {
-    if (!anim) return 1;
-    var r = pin.getBoundingClientRect();
-    if (r.height === 0) return null;
-    var total = r.height - window.innerHeight;
-    if (total <= 0) return 1;
-    return c01(-r.top / total);
-  }
-
-  // ---- The negotiations at a glance ----------------------------------------------
-  // Four stages, each switched on by a scroll trigger (fractions of the pinned
-  // scroll); the moves between them are CSS transitions, so scrolling back runs
-  // them in reverse:
-  //   0: the Agreement alone, big;
-  //   1: it moves into a row and all IGCs appear on its left;
-  //   2: the PrepComs (and COP-1) appear on its right;
-  //   3: every online and intersessional meeting joins the row in date order,
-  //      same size, and the row zooms out to make room (labels fade, hover
-  //      still gives the name and dates).
-  // stick: the Agreement zooms to full size; it then stays alone for a scroll step;
-  // at 0.32 the IGCs and PrepComs come in together (stage 2); at 0.66 the others
-  var MO_S = [0.3, 0.3, 0.66];
-  var SLOT = 80, SLOT3 = 58, GAP = 26;                // px per meeting at full size
-  var AG_ROW = 0.62, AG_ROW3 = 0.44;                  // Agreement size in the row, as a share of its full size
-                                                      // (stage 3: fixed, so it stays big while the meetings shrink)
+  // ---- The Agreement and the official meetings (not pinned, 2026-11-03) ----------
+  // Part one shows the Agreement big in its slot. A short scroll on (MO_GO px past
+  // the middle of the screen) sends it gliding down into its place in the row of
+  // meetings in part two (0.8 s, on its own). From 0.3 s into the glide, once the row
+  // is on screen, the IGCs (left) and PrepComs and COP-1 (right) pop in one after the
+  // other; scrolling back up past the slot hides them and it glides back up.
+  var SLOT = 80, GAP = 26;                            // px per meeting at full size
+  var AG_ROW = 0.62;                                  // Agreement size in the row, as a share of its full size
   var SQ_MID = 26;                                    // half the square: its centre within the .gl-meet box
+  var MO_GO = 140, MO_BACK = 60;                      // px scrolled past the slot to send it down / bring it back
+  var MO_GLIDE = 800;                                 // ms the glide takes (the CSS transition)
+  var MO_POP = 300;                                   // ms into the glide when the meetings start to come in
 
-  function moParts(stage) {
-    if (stage.__mo) return stage.__mo;
+  function moParts(sec, stage) {
+    if (sec.__mo) return sec.__mo;
     var sq = Array.prototype.slice.call(stage.querySelectorAll('.gl-meet'));
     sq.sort(function (x, y) { return +x.getAttribute('data-pos') - +y.getAttribute('data-pos'); });
-    stage.__mo = {
-      agr: stage.querySelector('.gl-mo-agr'),
+    sec.__mo = {
+      agr: sec.querySelector('.gl-mo-agr'),
+      slot: sec.querySelector('.gl-mo-slot'),
       sq: sq,
       agrPos: +stage.getAttribute('data-agr') || 0,
-      stage: -1
+      shown: null
     };
-    return stage.__mo;
+    return sec.__mo;
   }
 
-  function moShown(b, s) {
-    var side = b.getAttribute('data-side');
-    if (side === 'before') return s >= 1;
-    if (side === 'after') return s >= 2;
-    return s >= 3;
-  }
-
-  function moUpdate(pin) {
-    var stage = pin.querySelector('.gl-mo-stage');
+  function moUpdate(sec) {
+    var stage = sec.querySelector('.gl-mo-stage');
     if (!stage) return;
-    var p = pinProgress(pin);
-    if (p === null) return;
     var W = stage.clientWidth, H = stage.clientHeight;
     if (!W || !H) return;
-    var P = moParts(stage);
-    if (!P.agr) return;
-    var s = p >= MO_S[2] ? 3 : p >= MO_S[1] ? 2 : p >= MO_S[0] ? 1 : 0;
-    pin.classList.toggle('is-s1', s >= 1);
-    pin.classList.toggle('is-s2', s >= 2);
-    pin.classList.toggle('is-s3', s >= 3);
-
-    var vis = P.sq.map(function (b) { return moShown(b, s); });
-    var nVis = vis.filter(Boolean).length;
+    var P = moParts(sec, stage);
+    if (!P.agr || !P.slot) return;
     var AW = P.agr.offsetWidth || 240, AH = P.agr.offsetHeight || 314;
     var IW = P.sq.length ? P.sq[0].offsetWidth : 72;
-    var rowY = H / 2;
-    var fit = Math.min(1, (W - 16) / AW, (H - 8) / AH); // the Agreement never leaves the stage
-    // alone, it may use the room the later sentences keep free: centred between
-    // the first sentence and the bottom of the stage, up to 1.3 times its size
-    var t1 = pin.querySelector('.gl-mo-t1'), top = 0;
-    if (t1) top = Math.min(0, t1.getBoundingClientRect().bottom - stage.getBoundingClientRect().top + 28);
-    var agY = s > 0 ? rowY : (top + H) / 2;
-    var u = 1, sag = Math.min(1.3, (W - 16) / AW, (H - top - 12) / AH), slot = 0, gap = 0;
-    // before the section sticks the Agreement waits smaller; the moment it sticks it
-    // zooms to its full size (CSS transition), so the reader stops here
-    if (s === 0 && p <= 0.002) sag *= 0.55;
-    if (s > 0) {
-      var sl = s >= 3 ? SLOT3 : SLOT;
-      if (s >= 3) {
-        sag = Math.min(fit, AG_ROW3, 0.16 * W / AW);     // narrow screens: no more than a sixth of the row
-        u = Math.min(1, Math.max(0.1, (W - 8 - AW * sag - 2 * GAP) / (nVis * sl)));
-      } else {
-        u = Math.min(1, (W - 8) / (nVis * sl + AW * AG_ROW + 2 * GAP));
-        sag = Math.min(fit, AG_ROW * u);
-      }
-      slot = sl * u;
-      gap = GAP * u;
-    }
-    var agW = AW * sag;
+    var n = P.sq.length, rowY = H / 2;
 
-    // walk the row in date order; hidden meetings take no room and wait,
-    // shrunk, at the spot where they will appear
-    var total = agW + (s > 0 ? 2 * gap : 0);
-    vis.forEach(function (v) { if (v) total += slot; });
-    var x = (W - total) / 2, agX = null, xs = [];
-    P.sq.forEach(function (b, i) {
-      if (agX === null && +b.getAttribute('data-pos') > P.agrPos) {
-        agX = x + (s > 0 ? gap : 0) + agW / 2;
-        x += agW + (s > 0 ? 2 * gap : 0);
-      }
-      if (vis[i]) { xs.push(x + slot / 2); x += slot; } else xs.push(x);
+    // the row with every official meeting: the Agreement's final place
+    var u = Math.min(1, (W - 8) / (n * SLOT + AW * AG_ROW + 2 * GAP));
+    var sB = Math.min(1, (W - 16) / AW, (H - 8) / AH, AG_ROW * u);
+    var slot = SLOT * u, gap = GAP * u, agW = AW * sB;
+    var x = (W - (agW + 2 * gap + n * slot)) / 2, agX = null, xs = [];
+    P.sq.forEach(function (b) {
+      if (agX === null && +b.getAttribute('data-pos') > P.agrPos) { agX = x + gap + agW / 2; x += agW + 2 * gap; }
+      xs.push(x + slot / 2); x += slot;
     });
-    if (agX === null) agX = x + (s > 0 ? gap : 0) + agW / 2;
+    if (agX === null) agX = x + gap + agW / 2;
 
-    // a new stage: the meetings that just appeared pop in one after the other
-    if (P.stage !== s) {
-      var k = 0, step = s >= 3 ? 22 : 70;
-      P.sq.forEach(function (b, i) {
-        var isNew = vis[i] && b.classList.contains('is-hid');
-        b.style.transitionDelay = isNew ? (k++ * step) + 'ms' : '0ms';
-      });
-      P.stage = s;
+    // start (slot in part one) and end (row in part two), in the section's coordinates
+    var rs = sec.getBoundingClientRect(), ra = P.slot.getBoundingClientRect(), rt = stage.getBoundingClientRect();
+    var ax = ra.left - rs.left + ra.width / 2, ay = ra.top - rs.top + ra.height / 2;
+    var sA = Math.min(1.6, ra.height / AH, (ra.width || W) / AW);
+    var ghost = P.slot.querySelector('.gl-mo-ghost');
+    if (ghost) { ghost.style.width = Math.round(AW * sA) + 'px'; ghost.style.height = Math.round(AH * sA) + 'px'; }
+    var bx = rt.left - rs.left + agX, by = rt.top - rs.top + rowY;
+    // a short scroll past the slot sends it down: it glides to the row on its own
+    // (CSS transition, 0.8 s) rather than following the scroll; back up, it returns
+    var yA = ra.top + ra.height / 2, mid = window.innerHeight / 2, past = mid - yA;
+    if (!anim) P.down = true;
+    else if (!P.down && past > MO_GO) { P.down = true; P.tDown = Date.now(); setTimeout(update, MO_POP + 20); }
+    else if (P.down && past < MO_BACK) P.down = false;
+    var cx = P.down ? bx : ax, cy = P.down ? by : ay, sc = P.down ? sB : sA;
+    P.agr.style.transform = 'translate(' + (cx - AW / 2).toFixed(1) + 'px,' + (cy - AH / 2).toFixed(1) + 'px) scale(' + sc.toFixed(3) + ')';
+    sec.classList.toggle('is-down', !!P.down);
+
+    // the meetings start coming in while it is still gliding (MO_POP), once the row is on screen
+    var rowOn = rt.top + rowY < window.innerHeight * 0.95;
+    var shown = !anim || !!(P.down && Date.now() - P.tDown >= MO_POP && rowOn);
+    if (P.down && !rowOn) setTimeout(update, 200);   // may land off screen: look again shortly
+    sec.classList.toggle('is-in', shown);
+    if (P.shown !== shown) {                          // they pop in one after the other
+      var k = 0;
+      P.sq.forEach(function (b) { b.style.transitionDelay = shown ? (k++ * 60) + 'ms' : '0ms'; });
+      P.shown = shown;
     }
-
-    P.agr.style.transform = 'translate(' + (agX - AW / 2).toFixed(1) + 'px,' + (agY - AH / 2).toFixed(1) + 'px) scale(' + sag.toFixed(3) + ')';
     P.sq.forEach(function (b, i) {
-      var sc = vis[i] ? u : 0.3 * u;
-      b.style.transform = 'translate(' + (xs[i] - IW / 2).toFixed(1) + 'px,' + (rowY - SQ_MID).toFixed(1) + 'px) scale(' + sc.toFixed(3) + ')';
-      b.classList.toggle('is-hid', !vis[i]);
+      var s = shown ? u : 0.3 * u;
+      b.style.transform = 'translate(' + (xs[i] - IW / 2).toFixed(1) + 'px,' + (rowY - SQ_MID).toFixed(1) + 'px) scale(' + s.toFixed(3) + ')';
+      b.classList.toggle('is-hid', !shown);
     });
   }
 
@@ -910,70 +867,9 @@ function glQuality() {
     draw(performance.now());
   }
 
-  // ---- One step per scroll gesture in the meeting overview -----------------------
-  // While the section is pinned, each new wheel, trackpad or key gesture moves exactly
-  // one step (MO_STOPS: Agreement alone, official meetings, all meetings) and glides
-  // there; the fading rest of that gesture (trackpad momentum) is swallowed, so one
-  // fast scroll cannot run several steps, but separate quick flicks each move a step. Coming in fast from above stops at the first step, from below at the
-  // last. After the last step (and above the first) the page scrolls normally; the
-  // tail of the flick that reached the last step is still swallowed. Touch
-  // and the scrollbar are not gated (phones: to do).
-  var MO_STOPS = [0.12, 0.5, 0.84];                    // fractions of the pinned scroll
-  function moGate(pin) {
-    if (!anim) return;
-    var lock = false, keyT = 0;
-    function span() { return Math.max(1, pin.offsetHeight - window.innerHeight); }
-    function goY(y) {
-      window.scrollTo({ top: Math.round(y), behavior: 'smooth' });
-    }
-    function go(i) { goY(pin.getBoundingClientRect().top + window.pageYOffset + MO_STOPS[i] * span()); }
-    // what a gesture in direction dir (1 down, -1 up) does here; true if handled
-    function step(dir) {
-      var r = pin.getBoundingClientRect(), H = window.innerHeight;
-      var stuck = r.top <= 2 && r.bottom >= H - 2;
-      if (!stuck) {
-        if (dir > 0 && r.top > 2 && r.top < H * 0.6) { go(0); return true; }
-        if (dir < 0 && r.bottom < H - 2 && r.bottom > H * 0.4) { go(MO_STOPS.length - 1); return true; }
-        return false;
-      }
-      var p = c01(-r.top / span()), i;
-      if (dir > 0) {
-        for (i = 0; i < MO_STOPS.length; i++) if (MO_STOPS[i] > p + 0.02) { go(i); return true; }
-        return false;                                   // past the last step: normal scrolling resumes
-      }
-      else { for (i = MO_STOPS.length - 1; i >= 0; i--) if (MO_STOPS[i] < p - 0.02) { go(i); return true; } }
-      return false;
-    }
-    // Telling flicks apart: the leftover momentum of a flick only fades, so a new
-    // flick shows as a pause (over 150ms), a change of direction or a sudden jump in
-    // speed. Only the fading tail of a flick that already moved a step is swallowed.
-    var lastAbs = 0, lastT = 0, lastDir = 0, stepT = 0;
-    window.addEventListener('wheel', function (e) {
-      if (e.ctrlKey) return;                              // pinch zoom
-      var dir = e.deltaY > 0 ? 1 : e.deltaY < 0 ? -1 : 0;
-      if (!dir) return;
-      var now = Date.now(), a = Math.abs(e.deltaY);
-      var fresh = now - lastT > 150 || dir !== lastDir || (a > lastAbs * 1.6 && a > 8 && now - stepT > 200);
-      lastAbs = a; lastT = now; lastDir = dir;
-      if (lock && !fresh) { e.preventDefault(); return; } // the fading tail of a flick that moved a step
-      lock = false;
-      if (step(dir)) { e.preventDefault(); lock = true; stepT = now; }
-    }, { passive: false });
-    window.addEventListener('keydown', function (e) {
-      var t = e.target, tag = t && t.tagName;
-      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA' || (t && t.isContentEditable)) return;
-      var dir = 0;
-      if (e.key === 'ArrowDown' || e.key === 'PageDown' || (e.key === ' ' && !e.shiftKey)) dir = 1;
-      else if (e.key === 'ArrowUp' || e.key === 'PageUp' || (e.key === ' ' && e.shiftKey)) dir = -1;
-      if (!dir) return;
-      if (Date.now() - keyT < 120) { e.preventDefault(); return; }   // key repeat: at most about 8 steps a second
-      if (step(dir)) { e.preventDefault(); keyT = Date.now(); }
-    });
-  }
-
   // ---- Wiring ----------------------------------------------------------------------
-  var moPin = null;
-  function update() { if (moPin) moUpdate(moPin); }
+  var moSec = null;
+  function update() { if (moSec) moUpdate(moSec); }
   var ticking = false;
   function schedule() {
     if (ticking) return;
@@ -982,13 +878,12 @@ function glQuality() {
   }
   function init() {
     pubsMore();
-    moPin = document.querySelector('.gl-shell .gl-mo');
+    moSec = document.querySelector('.gl-shell .gl-mo');
     var room = document.querySelector('.gl-shell #gl-room');
     if (room) roomAnim(room);
-    if (moPin) {
-      var st = moPin.querySelector('.gl-mo-stage');
+    if (moSec) {
+      var st = moSec.querySelector('.gl-mo-stage');
       if (st) moTip(st);
-      moGate(moPin);
     }
     update();
     document.addEventListener('scroll', schedule, { passive: true, capture: true });
