@@ -687,6 +687,8 @@ a { color: #006AB4; }
 .gl-shell .gl-mo-a { padding-bottom: 40px; }   /* the two parts sit close, so the glide is short */
 .gl-shell .gl-mo-b { padding-top: 48px; }
 .gl-shell .gl-mo-t { margin: 0; max-width: 820px; }
+.gl-shell .gl-mo-sub { margin: -8px 0 0; max-width: 820px; }   /* the ENB line under the second sentence */
+.gl-shell .gl-mo-t1 { align-self: center; text-align: center; }   /* part one is centred on the Agreement (2026-11-03) */
 .gl-shell .gl-mo-slot { width: 100%; height: clamp(340px, 56vh, 480px); position: relative; }
 /* dashed outline left where the Agreement floats from (size set by glance.js) */
 .gl-shell .gl-mo-ghost { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); border: 1.5px dashed #8299b1; border-radius: 2px; opacity: 0; transition: opacity 0.4s ease; pointer-events: none; }
@@ -697,8 +699,10 @@ a { color: #006AB4; }
 .gl-anim .gl-shell .gl-mo.is-down .gl-mo-a .gl-mo-note { opacity: 0; }   /* goes as the Agreement leaves */
 /* part two's sentence and hint come in with the meetings, so the floating Agreement never covers text */
 .gl-anim .gl-shell .gl-mo-b .gl-mo-t,
+.gl-anim .gl-shell .gl-mo-b .gl-mo-sub,
 .gl-anim .gl-shell .gl-mo-b .gl-mo-note { opacity: 0; transform: translateY(10px); transition: opacity 0.5s ease, transform 0.5s ease; }
 .gl-anim .gl-shell .gl-mo.is-in .gl-mo-b .gl-mo-t,
+.gl-anim .gl-shell .gl-mo.is-in .gl-mo-b .gl-mo-sub,
 .gl-anim .gl-shell .gl-mo.is-in .gl-mo-b .gl-mo-note { opacity: 1; transform: none; }
 .gl-shell .gl-mo-stage { position: relative; width: 100%; height: clamp(210px, 28vh, 260px); }
 .gl-shell .gl-mo-stage > * { position: absolute; left: 0; top: 0; }
