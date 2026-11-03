@@ -1,0 +1,9 @@
+# Not part of the public page
+CLAUDE.md
+.DS_Store
+
+# RStudio project files (local only)
+*.Rproj
+.Rproj.user/
+.Rhistory
+.RData

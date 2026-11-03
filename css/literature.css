@@ -1,0 +1,46 @@
+/* Literature page (literature.html). Builds on glance.css. */
+.lit-shell { min-height: 100vh; }
+.lit-shell .lit-top { padding: 20px 24px; border-bottom: 1px solid #eceef0; }
+.lit-shell .lit-back { font-size: 14px; color: #006AB4; text-decoration: none; }
+.lit-shell .lit-back:hover { text-decoration: underline; }
+.lit-shell .lit-head { max-width: 900px; margin: 0 auto; padding: 64px 24px 24px; display: flex; flex-direction: column; gap: 16px; }
+.lit-shell .lit-head .gl-lead { max-width: 720px; }
+.lit-shell .lit-body { max-width: 900px; margin: 0 auto; padding: 0 24px 96px; }
+.lit-shell .lit-bar {
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px;
+  padding: 12px 0; border-bottom: 1px solid #e8eaec; scroll-margin-top: 12px;
+}
+.lit-shell .lit-count { font-size: 14px; color: #4a5560; }
+.lit-shell .lit-sort { display: inline-flex; align-items: center; gap: 10px; font-size: 13px; color: #8a929a; }
+.lit-shell .lit-sort select {
+  min-height: 36px; border: 1px solid #dfe4ea; border-radius: 3px; background: #ffffff; color: #002F62; font-size: 14px; padding: 0 10px;
+}
+.lit-shell .lit-list { list-style: none; margin: 0; padding: 0; }
+.lit-shell .lit-item { padding: 18px 0; border-bottom: 1px solid #eceef0; display: flex; flex-direction: column; gap: 6px; }
+.lit-shell .lit-title { font-size: 16.5px; font-weight: 500; line-height: 1.4; color: #002F62; }
+.lit-shell .lit-title a { color: #002F62; text-decoration: none; }
+.lit-shell .lit-title a:hover { color: #006AB4; text-decoration: underline; }
+.lit-shell .lit-authors {
+  font-family: "Open Sans", system-ui, sans-serif; font-size: 14px; color: #363c42; line-height: 1.5;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.lit-shell .lit-ref { font-size: 13px; color: #6b737b; display: flex; flex-wrap: wrap; align-items: center; gap: 2px 0; }
+.lit-shell .lit-sep { color: #b8c0c8; padding: 0 6px; }
+.lit-shell .lit-tag { margin-left: 10px; padding: 1px 7px; border-radius: 3px; background: #eef4fb; border: 1px solid #c5dff5; font-size: 11.5px; color: #1c3d5e; }
+.lit-shell .lit-doi { margin-left: 10px; font-size: 12.5px; font-weight: 600; color: #006AB4; text-decoration: none; }
+.lit-shell .lit-doi:hover { text-decoration: underline; }
+.lit-shell .lit-extra { font-size: 13px; color: #4a5560; }
+.lit-shell .lit-extra-lbl { color: #8a929a; }
+.lit-shell .lit-pages { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; padding-top: 28px; }
+.lit-shell .lit-pages button {
+  min-width: 36px; height: 36px; padding: 0 10px; border: 1px solid #dfe4ea; border-radius: 3px; background: #ffffff;
+  color: #002F62; cursor: pointer; font-size: 14px;
+}
+.lit-shell .lit-pages button.is-active { background: #002F62; border-color: #002F62; color: #ffffff; }
+.lit-shell .lit-pages button:disabled { opacity: 0.4; cursor: default; }
+.lit-shell .lit-gap { align-self: center; color: #8a929a; padding: 0 4px; }
+.lit-shell .lit-abstract {
+  font-family: "Open Sans", system-ui, sans-serif; line-height: 1.55; cursor: pointer;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.lit-shell .lit-abstract.is-open { display: block; cursor: default; }

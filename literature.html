@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BBNJ literature</title>
+<meta name="description" content="A curated list of research on the BBNJ Agreement and its negotiations.">
+<!--
+  Curated BBNJ literature. The list comes from data/literature_data.js, made by
+  data_cleaning.R in the folder above this one from bbnj_lit_database.xlsx.
+-->
+<link rel="stylesheet" href="css/fonts.css">
+<link rel="stylesheet" href="css/glance.css">
+<link rel="stylesheet" href="css/literature.css">
+</head>
+<body>
+<main class="gl-shell lit-shell">
+
+  <header class="lit-top">
+    <a class="lit-back" href="index.html">&larr; BBNJ negotiations at a glance</a>
+  </header>
+
+  <section class="lit-head">
+    <h1 class="gl-head">BBNJ literature</h1>
+    <p class="gl-lead">[Explainer text: what this list is, how it was put together, and how often it is updated.]</p>
+  </section>
+
+  <section class="lit-body">
+    <div class="lit-bar">
+      <span class="lit-count" id="lit-count"></span>
+      <label class="lit-sort"><span>Sort by</span>
+        <select id="lit-sort">
+          <option value="year-desc">Year, newest first</option>
+          <option value="year-asc">Year, oldest first</option>
+          <option value="title">Title</option>
+          <option value="authors">Authors</option>
+        </select>
+      </label>
+    </div>
+    <ol class="lit-list" id="lit-list"></ol>
+    <nav class="lit-pages" id="lit-pages" aria-label="Pages"></nav>
+    <div class="gl-banner lit-missing" hidden>The list <code>data/literature_data.js</code> is missing. Run data_cleaning.R.</div>
+  </section>
+
+</main>
+<script src="data/literature_data.js"></script>
+<script src="js/literature.js"></script>
+</body>
+</html>
