@@ -24,7 +24,7 @@
     intersess: 'Intersessional meetings', informal: 'Other meetings'
   };
   // globe only: four clearly different hues (green, blue, orange, magenta)
-  var PKG_COLS = { mgr: '#45a774', abmt: '#4683c4', eia: '#d9965a', cb: '#a26a9e' };
+  var PKG_COLS = { mgr: '#d9965a', abmt: '#4683c4', eia: '#45a774', cb: '#a26a9e' };   // MGR orange, EIA green (swapped 2026-11-03)
   var CROSS_COLS = ['#5cc79a', '#f0b27f', '#002F62', '#9486c8', '#5ba4ae', '#3670a8', '#009EE3', '#c8b79a'];
   var CROSS_GREY = '#b8c0c8';
   // Negotiation room: states in the inner rows, everyone else outside
