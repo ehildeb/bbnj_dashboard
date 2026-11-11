@@ -183,9 +183,9 @@ function glQuality() {
 // for the map get a dot (point from the lookup table, or the centre of their
 // largest island when the shape is under a few pixels).
 //   - drag to turn; it glides on a little after letting go;
-//   - zoom with the +/- buttons or a trackpad pinch (ctrl + wheel); the plain
-//     mouse wheel is left to the page so nobody gets stuck on the globe. Every
-//     zoom eases towards a target (kT), smooth like the glide after a drag;
+//   - zoom with the mouse wheel, the +/- buttons or a trackpad pinch (ctrl +
+//     wheel); the wheel always zooms (never scrolls the page) over the globe.
+//     Every zoom eases towards a target (kT), smooth like the glide after a drag;
 //   - click a country: the globe flies there and zooms in and the card beside
 //     it shows the country (build.js: GLANCE.renderCard); clicking the same
 //     country again deselects it and zooms back out;
@@ -465,12 +465,18 @@ function glQuality() {
     canvas.addEventListener('pointerup', up);
     canvas.addEventListener('pointercancel', up);
     canvas.addEventListener('pointerleave', function () { if (hover) { hover = null; kick(); } showTip(null); });
-    // trackpad pinch arrives as ctrl + wheel; the plain wheel scrolls the page
+    // mouse wheel and trackpad pinch (ctrl + wheel) always zoom the globe; the
+    // page does not scroll while the pointer is over it
     canvas.addEventListener('wheel', function (e) {
-      if (!e.ctrlKey) return;
+      var dy = e.deltaY;
+      if (e.deltaMode === 1) dy *= 33;                       // lines (Firefox) to pixels
+      else if (e.deltaMode === 2) dy *= size || 400;          // pages to pixels
       e.preventDefault();
+      if (!dy) return;
       if (anim) { kT = k; anim = null; }
-      kT = Math.max(KMIN, Math.min(KMAX, kT * Math.exp(-e.deltaY * 0.01)));
+      // pinch deltas are small, so they get a stronger factor; one wheel notch is about x1.2
+      var f = e.ctrlKey ? 0.01 : 0.0018;
+      kT = Math.max(KMIN, Math.min(KMAX, kT * Math.exp(-dy * f)));
       kick();
     }, { passive: false });
 
