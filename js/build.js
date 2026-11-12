@@ -395,7 +395,9 @@
       var h = '<div class="gl-pkg-igc" data-k="' + k + '" style="--pk:' + (PKG_COLS[k] || '') + '"><div class="gl-pkg-igc-t">Statements at each IGC</div><div class="gl-pkg-igc-cols">';
       cols.forEach(function (j) {
         var v = cnt[k][j] || 0;
-        h += '<div class="gl-pkg-igc-col" aria-label="' + esc(B[j]) + ': ' + fmt(v) + ' statements">' +
+        // the IGC with the most statements is slightly highlighted (first one on a tie)
+        var top = v === mx && v > 0 && !h.includes('is-top');
+        h += '<div class="gl-pkg-igc-col' + (top ? ' is-top' : '') + '" aria-label="' + esc(B[j]) + ': ' + fmt(v) + ' statements">' +
           '<span class="gl-pkg-igc-v">' + fmt(v) + '</span>' +
           '<span class="gl-pkg-igc-bar" style="height:' + Math.round(v / mx * 96) + 'px"></span>' +
           '<span class="gl-pkg-igc-lbl">' + esc(B[j]) + '</span></div>';

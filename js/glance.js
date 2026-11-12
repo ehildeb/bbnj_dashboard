@@ -32,10 +32,11 @@ function glQuality() {
 // colour, the high seas (geo/highseas-mid.js, Marine Regions) and land
 // (geo/land-mid.js) on top. Both are simplified copies (see geo/README.txt)
 // so a frame draws quickly.
-// The globe turns with the mouse pointer anywhere over the hero (left/right
-// turns it, up/down tilts it); on touch screens a sideways swipe does the same.
-// It does NOT spin by itself. The rotation eases towards the pointer and is
-// drawn at most once per animation frame; nothing runs while it is still.
+// Drag to turn it, like the actors globe: the surface follows the pointer and
+// glides on a little after letting go. No zoom (no wheel, pinch or buttons).
+// On touch screens vertical swipes still scroll the page (touch-action: pan-y),
+// so a sideways swipe turns it. It does NOT spin by itself; drawn at most once
+// per animation frame, nothing runs while it is still.
 (function () {
   'use strict';
   var d3 = window.d3, topo = window.topojson;
@@ -48,14 +49,11 @@ function glQuality() {
     grat: 'rgba(255,255,255,0.22)', edge: '#c9d6e3'
   };
   var BASE = [30, -12];                  // start: centred on the Atlantic, 12 degrees north
-  var RANGE_LON = 160, RANGE_LAT = 50;   // degrees across the full width / height of the hero
-  var EASE_MS = 140;                     // how quickly the globe catches up with the pointer
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   function setup(canvas) {
     if (canvas.__glGlobe) return;
     canvas.__glGlobe = true;
-    var hero = canvas.closest('.gl-hero') || canvas;
     var ctx = canvas.getContext('2d');
     if (!ctx) return;
     // precision 0: no adaptive resampling (the shapes are dense enough), much faster
@@ -64,8 +62,8 @@ function glQuality() {
     var grat = d3.geoGraticule10();
     var sphere = { type: 'Sphere' };
     var hs = null, land = null, hsLow = null, landLow = null, size = 0, dpr = 1, shade = null;
-    var cur = [BASE[0], BASE[1]], tgt = [BASE[0], BASE[1]];
-    var raf = 0, last = null, q = glQuality();
+    var rot = [BASE[0], BASE[1]], vel = [0, 0];
+    var raf = 0, q = glQuality();
 
     function resize() {
       var w = canvas.clientWidth;
@@ -93,8 +91,12 @@ function glQuality() {
       // file the whole sphere is high seas blue
       ctx.beginPath(); path(sphere); ctx.fillStyle = h ? COL.nat : COL.abnj; ctx.fill();
       if (h) {
+        // 'evenodd': the island EEZs are holes in the high seas shapes. With the
+        // default 'nonzero' rule a hole was now and then filled in when the
+        // outer shape was cut at the rim of the globe (a ring turned the
+        // wrong way), so the island EEZs flickered while the globe turned
         ctx.beginPath(); path(h);
-        ctx.fillStyle = COL.abnj; ctx.fill();
+        ctx.fillStyle = COL.abnj; ctx.fill('evenodd');
         // a thin outline in the same colour keeps narrow strips of high seas
         // at least a pixel wide, so they do not flicker while the globe turns
         ctx.strokeStyle = COL.abnj; ctx.lineWidth = 0.8; ctx.lineJoin = 'round'; ctx.stroke();
@@ -108,7 +110,7 @@ function glQuality() {
       }
       if (l) {
         ctx.beginPath(); path(l);
-        ctx.fillStyle = COL.land; ctx.fill();
+        ctx.fillStyle = COL.land; ctx.fill('evenodd');      // same for lakes
         ctx.strokeStyle = COL.landLine; ctx.lineWidth = 0.5; ctx.stroke();
       }
       // soft light from the upper left, darker towards the rim (made once per size)
@@ -124,34 +126,52 @@ function glQuality() {
       if (land && !coarse && q.time(performance.now() - t0)) resize();
     }
 
-    // One frame: move part of the way to the target, draw, stop when there
-    function frame(ts) {
+    // One frame: glide on after a drag (slowing down), draw, stop when still
+    function frame() {
       raf = 0;
-      var dt = last === null ? 16 : Math.min(ts - last, 64);
-      last = ts;
-      var k = reduce ? 1 : 1 - Math.exp(-dt / EASE_MS);
-      cur[0] += (tgt[0] - cur[0]) * k;
-      cur[1] += (tgt[1] - cur[1]) * k;
-      var done = Math.abs(tgt[0] - cur[0]) < 0.02 && Math.abs(tgt[1] - cur[1]) < 0.02;
-      if (done) { cur[0] = tgt[0]; cur[1] = tgt[1]; }
-      proj.rotate([cur[0], cur[1], 0]);
-      draw(!done);
-      if (!done) raf = window.requestAnimationFrame(frame);
-      else last = null;
+      var more = false;
+      if (!drag && (Math.abs(vel[0]) > 0.01 || Math.abs(vel[1]) > 0.01)) {
+        rot = [rot[0] + vel[0], Math.max(-80, Math.min(80, rot[1] + vel[1]))];
+        vel = [vel[0] * 0.92, vel[1] * 0.92];
+        more = true;
+      }
+      proj.rotate([rot[0], rot[1], 0]);
+      draw(more || drag);
+      if (more) raf = window.requestAnimationFrame(frame);
     }
     function kick() { if (!raf) raf = window.requestAnimationFrame(frame); }
 
-    // Pointer position over the hero (0 to 1) sets the target rotation
-    hero.addEventListener('pointermove', function (e) {
-      var r = hero.getBoundingClientRect();
-      if (!r.width || !r.height) return;
-      var x = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
-      var y = Math.min(1, Math.max(0, (e.clientY - r.top) / r.height));
-      // the surface moves with the pointer (pointer right: globe turns right)
-      tgt[0] = BASE[0] + (x - 0.5) * RANGE_LON;
-      tgt[1] = BASE[1] - (y - 0.5) * RANGE_LAT;
+    // ---- pointer: drag and glide (one pointer only; no zoom)
+    var drag = null, last = null;
+    canvas.style.cursor = 'grab';
+    canvas.addEventListener('pointerdown', function (e) {
+      if (drag !== null) return;
+      drag = e.pointerId;
+      try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+      vel = [0, 0];
+      last = [e.clientX, e.clientY, performance.now()];
+      canvas.classList.add('is-drag');
+    });
+    canvas.addEventListener('pointermove', function (e) {
+      if (e.pointerId !== drag) return;
+      var now = performance.now(), dx = e.clientX - last[0], dy = e.clientY - last[1];
+      var deg = 180 / Math.PI / proj.scale();                // the surface follows the pointer
+      rot = [rot[0] + dx * deg, Math.max(-80, Math.min(80, rot[1] - dy * deg))];
+      var dt = Math.max(8, now - last[2]);
+      vel = [dx * deg * 16 / dt, -dy * deg * 16 / dt];
+      last = [e.clientX, e.clientY, now];
       kick();
-    }, { passive: true });
+    });
+    function up(e) {
+      if (e.pointerId !== drag) return;
+      drag = null;
+      canvas.classList.remove('is-drag');
+      // glide on only if the pointer was still moving when let go
+      if (reduce || e.type === 'pointercancel' || performance.now() - last[2] >= 80) vel = [0, 0];
+      kick();                                                 // final frame in full detail
+    }
+    canvas.addEventListener('pointerup', up);
+    canvas.addEventListener('pointercancel', up);
 
     function refresh() { if (resize()) draw(); }
     window.addEventListener('resize', refresh);
@@ -896,6 +916,47 @@ function glQuality() {
     window.addEventListener('resize', schedule);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(schedule);
     window.addEventListener('load', schedule);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+
+
+// ---- Menu -----------------------------------------------------------------------
+// The button opens and closes the panel; a click on a link, outside the panel or
+// Escape closes it. While scrolling, the section in the middle of the screen is
+// marked in the list (is-current).
+(function () {
+  'use strict';
+  function init() {
+    var nav = document.querySelector('.gl-shell .gl-menu');
+    if (!nav) return;
+    var btn = nav.querySelector('.gl-menu-btn'), panel = nav.querySelector('.gl-menu-panel');
+    var links = Array.prototype.slice.call(nav.querySelectorAll('.gl-menu-list a'));
+    function set(open) {
+      nav.classList.toggle('is-open', open);
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      panel.hidden = !open;
+      if (open) mark();
+    }
+    btn.addEventListener('click', function (e) { e.stopPropagation(); set(panel.hidden); });
+    panel.addEventListener('click', function (e) { if (e.target.closest('a')) set(false); });
+    document.addEventListener('click', function (e) { if (!panel.hidden && !nav.contains(e.target)) set(false); });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !panel.hidden) { set(false); btn.focus(); }
+    });
+    // current section: the last one whose top is above the middle of the screen
+    var secs = links.map(function (a) { return document.getElementById(a.getAttribute('href').slice(1)); });
+    var tick = false;
+    function mark() {
+      tick = false;
+      var mid = window.innerHeight / 2, cur = -1;
+      secs.forEach(function (sec, i) { if (sec && sec.getBoundingClientRect().top <= mid) cur = i; });
+      links.forEach(function (a, i) { a.classList.toggle('is-current', i === Math.max(0, cur)); });
+    }
+    window.addEventListener('scroll', function () {
+      if (!tick && !panel.hidden) { tick = true; window.requestAnimationFrame(mark); }
+    }, { passive: true });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();

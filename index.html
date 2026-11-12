@@ -21,22 +21,48 @@
 
 <main class="gl-shell">
 
-  <!-- Title with the globe, cut off at the right edge -->
-  <section class="gl-hero">
+  <!-- Menu (2026-11-12): a fixed button top right; the panel lists the main section titles
+       (headings only, Emil 2026-11-12) and links to the literature page. Opened and closed by glance.js (menu block);
+       the current section is marked while scrolling. -->
+  <nav class="gl-menu" aria-label="Page sections">
+    <button type="button" class="gl-menu-btn" aria-expanded="false" aria-controls="gl-menu-panel">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path class="gl-menu-i1" d="M4 7h16"/><path class="gl-menu-i2" d="M4 12h16"/><path class="gl-menu-i3" d="M4 17h16"/></svg>
+      <span>Menu</span>
+    </button>
+    <div class="gl-menu-panel" id="gl-menu-panel" hidden>
+      <ol class="gl-menu-list">
+        <li><a href="#gl-top">Welcome</a></li>
+        <li><a href="#gl-agreement">The BBNJ Agreement</a></li>
+        <li><a href="#gl-mo">The negotiation process</a></li>
+        <li><a href="#gl-next">What happens next?</a></li>
+        <li><a href="#gl-who">Who are we?</a></li>
+      </ol>
+      <a class="gl-menu-lit" href="literature.html">BBNJ literature collection<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+    </div>
+  </nav>
+
+  <!-- Title with the globe (drag to turn), cut off at the right edge. Back here
+       on 2026-11-12 after a short time in the Agreement section. Text kept small
+       so the section is not too tall. -->
+  <section class="gl-hero" id="gl-top">
     <!-- the globe sits in its own cell, positioned inside it, so it never sets the
          height of the section (it is cut off at the right, top and bottom instead) -->
     <div class="gl-hero-globe-cell">
       <div class="gl-hero-globe">
-        <canvas class="gl-hero-canvas" role="img" aria-label="Globe with the high seas shaded"></canvas>
+        <canvas class="gl-hero-canvas" role="img" aria-label="Globe with the high seas shaded. Drag to turn it."></canvas>
       </div>
     </div>
     <div class="gl-hero-text">
-      <!-- Click pop-ups: .gl-pop (button + box), opened and closed by glance.js -->
       <h1 class="gl-title gl-reveal">Welcome to the BBNJ negotiations at a glance</h1>
-      <!-- .gl-pop-hover: opens on hover (and on click or tap, for phones) -->
-      <p class="gl-sub gl-reveal"><span class="gl-pop gl-pop-hover"><button type="button" class="gl-pop-btn" aria-expanded="false">The BBNJ Agreement</button><span class="gl-pop-box" role="note">Biodiversity beyond national jurisdiction (BBNJ) Agreement. Also known as the High Seas Treaty or, formally, the Agreement under the United Nations Convention on the Law of the Sea on the Conservation and Sustainable Use of Marine Biological Diversity of Areas beyond National Jurisdiction.</span></span> has been hailed as [&hellip;]</p>
-      <p class="gl-sub gl-reveal">It was adopted on 19 June 2023, entered into force on 17 January 2026, and will host its first Conference of the Parties (COP) in January 2027.</p>
-      <div class="gl-hero-key gl-reveal">
+      <p class="gl-sub gl-stand gl-reveal">The process leading up to the BBNJ Agreement is long and complex, and keeping tabs on everything can be a challenge.</p>
+      <p class="gl-sub gl-reveal">We have created an overview based on our own <span class="gl-pop gl-pop-hover"><button type="button" class="gl-pop-btn" aria-expanded="false">field note data</button><span class="gl-pop-box" role="note"><a href="#gl-who">Scroll down</a> to learn more about who we are and how we collect our data.</span></span>, giving you a bird&rsquo;s-eye view of the whole process from its first Intergovernmental Conference (IGC) in 2018 to the last Preparatory Commission (PrepCom) in 2026.</p>
+      <p class="gl-sub gl-reveal">Scroll your way downwards and click around to learn more about specific items and actors.</p>
+    </div>
+    <!-- globe legend and drag hint: at the bottom of the section, just above the
+       section break (2026-11-12) -->
+    <div class="gl-hero-globe-note gl-reveal">
+      <p class="gl-globe-hint"><svg class="gl-globe-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>Drag the globe to turn it</p>
+      <div class="gl-hero-key">
         <span class="gl-chart-key"><span class="gl-hero-sw gl-hero-sw-abnj"></span>High seas: areas beyond national jurisdiction</span>
         <span class="gl-chart-key"><span class="gl-hero-sw gl-hero-sw-nat"></span>National waters: exclusive economic zones</span>
       </div>
@@ -46,12 +72,25 @@
     </div>
   </section>
 
-  <!-- The BBNJ process: a short introduction, left-aligned across the full width.
-       The numbers sentence was taken out on 2026-11-03 (rounding code stays in build.js). -->
-  <section class="gl-screen gl-tint gl-intro"><div class="gl-wide">
-    <h2 class="gl-head gl-reveal">The BBNJ process</h2>
-    <p class="gl-lead gl-reveal gl-full">The negotiations leading up to the BBNJ Agreement and its first COP are complex, and keeping tabs on everything can be a challenge.</p>
-    <p class="gl-lead gl-reveal gl-full">Here we have created an overview based on our own <span class="gl-pop gl-pop-hover"><button type="button" class="gl-pop-btn" aria-expanded="false">field note data</button><span class="gl-pop-box" role="note"><a href="#gl-who">Scroll down</a> to learn more about who we are and how we collect our data.</span></span> from the negotiations, giving you a bird&rsquo;s-eye view of the whole process from its first Intergovernmental Conference (IGC) in 2018 to the last Preparatory Commission (PrepCom) in 2026. Scroll your way downwards and click around to learn more about specific items and actors.</p>
+  <!-- The BBNJ Agreement: a short introduction, left-aligned across the full width
+       (2026-11-12). First sentence suggested by Claude, approved by Emil. -->
+  <section class="gl-screen gl-tint gl-agree" id="gl-agreement"><div class="gl-wide">
+    <h2 class="gl-head gl-reveal">The BBNJ Agreement</h2>
+    <p class="gl-lead gl-reveal gl-full"><span class="gl-pop gl-pop-hover"><button type="button" class="gl-pop-btn" aria-expanded="false">The BBNJ Agreement</button><span class="gl-pop-box" role="note">Biodiversity beyond national jurisdiction (BBNJ) Agreement. Also known as the High Seas Treaty or, formally, the Agreement under the United Nations Convention on the Law of the Sea on the Conservation and Sustainable Use of Marine Biological Diversity of Areas beyond National Jurisdiction.</span></span> is the first treaty to protect marine biodiversity on the high seas as a whole, with shared rules for protected areas, environmental impact assessments, capacity building and the fair sharing of benefits and data from marine genetic resources.</p>
+    <p class="gl-lead gl-reveal gl-full">Roughly two-thirds of the world&rsquo;s ocean surface is considered high seas. That means that the BBNJ Agreement covers about <b class="gl-hs-n">43%</b> of the total surface of Earth:</p>
+    <!-- Earth's surface in one bar, in the globe's colours (2026-11-12). Rounded
+         shares: high seas about 43%, national waters about 28% (ocean 71% minus
+         high seas), land about 29%. The segments grow in when scrolled into view. -->
+    <div class="gl-surf gl-reveal gl-full" role="img" aria-label="Earth's surface: high seas about 43%, national waters about 28%, land about 29%">
+      <div class="gl-surf-bar">
+        <span class="gl-surf-seg gl-surf-hs" style="--w:43%"></span><span class="gl-surf-seg gl-surf-nat" style="--w:28%"></span><span class="gl-surf-seg gl-surf-land" style="--w:29%"></span>
+      </div>
+      <div class="gl-surf-lbls" aria-hidden="true">
+        <span style="--w:43%"><b>~43%</b>High seas</span><span style="--w:28%"><b>~28%</b>National waters</span><span style="--w:29%"><b>~29%</b>Land</span>
+      </div>
+    </div>
+    <p class="gl-lead gl-reveal gl-full">The BBNJ Agreement entered into force on 17&nbsp;January 2026, and its first Conference of the Parties (COP) will take place in New York from 11 to 22&nbsp;January 2027.</p>
+    <p class="gl-lead gl-reveal gl-full">But how did we get here?</p>
   </div></section>
 
   <!-- The Agreement and the official meetings (2026-11-03: not pinned). Part one
@@ -60,6 +99,7 @@
        The Agreement sits in .gl-mo itself so it can travel between the parts. -->
   <section class="gl-mo" id="gl-mo">
     <div class="gl-mo-part gl-mo-a"><div class="gl-inner">
+      <h2 class="gl-head gl-reveal">The negotiation process</h2>
       <p class="gl-big gl-mo-t gl-mo-t1">The BBNJ Agreement was adopted on 19 June 2023.</p>
       <div class="gl-mo-slot"><div class="gl-mo-ghost"></div></div>
       <div class="gl-note gl-mo-note"><a class="gl-mo-note-a" href="https://www.un.org/bbnjagreement/en/bbnj-agreement/text-bbnj-agreement" target="_blank" rel="noopener">Click on Agreement to visit the full text<svg class="gl-ext" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/></svg></a></div>
@@ -73,7 +113,7 @@
   </section>
 
   <!-- Statements over time ("It's a complex process"; moved above the IGCs 2026-11-03) -->
-  <section class="gl-screen gl-chart-screen"><div class="gl-inner gl-left">
+  <section class="gl-screen gl-chart-screen" id="gl-statements"><div class="gl-inner gl-left">
     <p class="gl-big gl-reveal">It&rsquo;s a complex process with many moving parts. In our data, we count <span class="gl-count" data-gl="n_statements">0</span> statements delivered across plenaries, working groups, and informal sessions:</p>
     <div class="gl-home gl-reveal" id="gl-growth">
       <div class="gl-home-legend">
@@ -88,12 +128,14 @@
 
   <!-- IGCs and the package elements. Start: text left, cards right. Click a card:
        the cards move under the text (left) and its sentence shows on the right
-       (glance.js). Names and one sentence each are written here. -->
-  <section class="gl-screen gl-tint gl-pkg-sec"><div class="gl-split">
+       (glance.js). Names and two sentences each are written here (texts suggested by
+       Claude on 2026-11-12, based on the Pew issue brief linked in the credits). -->
+  <section class="gl-screen gl-tint gl-pkg-sec" id="gl-igcs"><div class="gl-split">
     <div class="gl-split-text">
       <p class="gl-big gl-reveal">The <span data-gl-word="n_igc">seven</span> meetings leading up to the adoption were Intergovernmental Conferences (IGCs). Here, the text and its central package elements were negotiated.</p>
       <p class="gl-small gl-reveal gl-pkg-hint">Click a package element to read about it.</p>
       <div class="gl-pkg-slot-l"></div>
+      <a class="gl-pkg-more gl-reveal" href="https://www.pew.org/en/research-and-analysis/issue-briefs/2024/08/inside-the-new-high-seas-treaty" target="_blank" rel="noopener">Read more<span class="gl-pkg-more-n">The Pew Charitable Trusts</span><svg class="gl-ext" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/></svg></a>
     </div>
     <div class="gl-split-vis">
       <div class="gl-pkg-slot-r">
@@ -115,10 +157,10 @@
       <div class="gl-pkg-panel" aria-live="polite">
         <h3 class="gl-pkg-h"></h3>
         <div class="gl-pkg-texts">
-          <p class="gl-pkg-text" data-k="mgr">[One sentence on marine genetic resources, including benefit sharing.]</p>
-          <p class="gl-pkg-text" data-k="abmt">[One sentence on area-based management tools, including marine protected areas.]</p>
-          <p class="gl-pkg-text" data-k="eia">[One sentence on environmental impact assessments.]</p>
-          <p class="gl-pkg-text" data-k="cb">[One sentence on capacity-building and the transfer of marine technology.]</p>
+          <p class="gl-pkg-text" data-k="mgr">Marine genetic resources are the genetic material of life on the high seas and the digital sequence information drawn from it. They can be valuable for medicine, food and industry. The Agreement does not restrict access but requires transparency about collection and use. Benefits in the form of money and knowledge are to be shared fairly and equitably, particularly with developing countries.</p>
+          <p class="gl-pkg-text" data-k="abmt">Area-based management tools such as marine protected areas can be used to protect specific parts of the high seas. The Agreement sets out a legal process for establishing them: a Party proposes an area, scientists and stakeholders review the proposal and the COP decides. The aim is a well-connected network of protected areas that contributes to the global target of protecting 30% of the ocean by 2030.</p>
+          <p class="gl-pkg-text" data-k="eia">Planned activities on the high seas have to be assessed for possible harm to the marine environment before they go ahead. The reports are made public and the State responsible decides whether an activity proceeds. An activity should only go ahead if significant harm can be prevented or managed. New uses such as high seas aquaculture or geoengineering are also covered.</p>
+          <p class="gl-pkg-text" data-k="cb">Capacity building and the transfer of marine technology are meant to help developing countries implement the Agreement and take part in it. Examples include sharing data and setting up technical and research programmes. The topic has its own chapter but also runs through the other three elements. A dedicated committee will monitor and review progress.</p>
         </div>
         <!-- one small bar chart per package: its statements at each IGC (build.js) -->
         <div class="gl-pkg-igcs"></div>
@@ -127,7 +169,7 @@
   </div></section>
 
   <!-- PrepComs: text left, bars right (bars built by js/build.js) -->
-  <section class="gl-screen"><div class="gl-split">
+  <section class="gl-screen" id="gl-prepcoms"><div class="gl-split">
     <div class="gl-split-text">
       <p class="gl-big gl-reveal">There have also been <span data-gl-word="n_prepcom">three</span> Preparatory Commissions (PrepComs) after its adoption to negotiate the institutional infrastructure of the Agreement.</p>
     </div>
@@ -140,7 +182,7 @@
 
   <!-- The negotiation room: one dot per actor, states inside, everyone else outside
        (js/build.js lays it out from the counts in the data; the dots pop in when it comes into view) -->
-  <section class="gl-screen gl-tint gl-room-sec"><div class="gl-split">
+  <section class="gl-screen gl-tint gl-room-sec" id="gl-room-sec"><div class="gl-split">
     <div class="gl-split-text gl-reveal">
       <p class="gl-big">More than 120 states delivered statements in the negotiations, and over 180 were represented through country blocs.</p>
       <p class="gl-lead">In addition, over <span data-gl-text="n_nonstate_floor">70</span> nongovernmental and international actors took part.</p>
@@ -154,7 +196,7 @@
   <!-- Ratification and the actors globe: globe left (legend under it), sentence,
        controls and country card right. Sized so globe and the whole card fit on one
        screen. .gl-globe wraps the section so glance.js finds the controls. -->
-  <section class="gl-screen gl-actors is-grp"><div class="gl-globe gl-act">
+  <section class="gl-screen gl-actors is-grp" id="gl-ratification"><div class="gl-globe gl-act">
     <div class="gl-split gl-split-rev">
       <div class="gl-split-vis gl-act-left">
       <div class="gl-g-wrap">
@@ -187,7 +229,7 @@
        build.js (QUESTIONS, part 'cross') and does nothing without this section. -->
 
   <!-- Next up, publications, literature -->
-  <section class="gl-screen gl-tint gl-next"><div class="gl-wide">
+  <section class="gl-screen gl-tint gl-next" id="gl-next"><div class="gl-wide">
     <h2 class="gl-head gl-reveal">What happens next?</h2>
     <p class="gl-lead gl-reveal gl-full">Next on the agenda is the first COP in New York in January. [More on what will happen at the COP].</p>
     <p class="gl-lead gl-reveal gl-full">We will be there to continue collecting our data.</p>
@@ -222,11 +264,11 @@
     <!-- Literature card: a screenshot of the list (img/literature.jpg, made from
          literature.html; retake it if that page changes a lot) -->
     <a class="gl-lit-card gl-reveal" href="literature.html">
-      <span class="gl-lit-shot"><img src="img/literature.jpg" alt="Preview of the BBNJ literature list" loading="lazy"></span>
+      <span class="gl-lit-shot"><img src="img/literature.jpg" alt="Preview of the BBNJ literature collection" loading="lazy"></span>
       <span class="gl-lit-info">
-        <span class="gl-lit-t">BBNJ literature</span>
+        <span class="gl-lit-t">BBNJ literature collection</span>
         <span class="gl-lit-n" id="gl-lit-n"></span>
-        <span class="gl-lit-d">Research on the BBNJ Agreement and its negotiations, sortable by year, title and authors.</span>
+        <span class="gl-lit-d">Research on the BBNJ Agreement and its negotiations, searchable and filterable by package or theme, region, type and year.</span>
         <span class="gl-lit-go">Open the list &rarr;</span>
       </span>
     </a>
@@ -276,6 +318,7 @@
         <li>Data: MARIPOLDATA and TwinPolitics field notes, 2018 to <span data-gl-date="last_date">2 April 2026</span>. Data from 2018 to 2024: Austrian Social Science Data Archive, <a href="https://doi.org/10.11587/0XXZ0V" target="_blank" rel="noopener">doi.org/10.11587/0XXZ0V</a>.</li>
         <li>Signatures and ratifications: High Seas Alliance, <a href="https://highseasalliance.org/treaty-ratification/table-of-countries/" target="_blank" rel="noopener">Signature and Ratification Progress Table</a>.</li>
         <li>High seas area on title globe: Flanders Marine Institute (2024). Maritime Boundaries Geodatabase: High Seas, version 2. Available online at <a href="https://www.marineregions.org/" target="_blank" rel="noopener">marineregions.org</a>. <a href="https://doi.org/10.14284/696" target="_blank" rel="noopener">doi.org/10.14284/696</a>. Licensed under CC BY 4.0; shapes simplified for this page.</li>
+        <li>Package element texts: based on The Pew Charitable Trusts (2024). Inside the New High Seas Treaty. Issue brief, <a href="https://www.pew.org/en/research-and-analysis/issue-briefs/2024/08/inside-the-new-high-seas-treaty" target="_blank" rel="noopener">pew.org</a>.</li>
         <li>All country names are UN short names.</li>
       </ul>
     </details>
