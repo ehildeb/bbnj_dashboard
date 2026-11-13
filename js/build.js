@@ -97,6 +97,8 @@
     var u = Math.pow(10, Math.floor(Math.log(n) / Math.LN10));
     return Math.floor(n / u) * u;
   }
+  // Down to the nearest 5 below n, for "more than" and "over": 126 to 125, 125 to 120
+  function below5(n) { return n > 5 ? Math.floor((n - 1) / 5) * 5 : n; }
   function isoDays(s) { var p = s.split('-'); return Date.UTC(+p[0], +p[1] - 1, +p[2]) / 864e5; }
   function longDate(s) { var p = s.split('-'); return (+p[2]) + ' ' + MONTHS[+p[1] - 1] + ' ' + p[0]; }
   function part(name, f) {
@@ -112,7 +114,10 @@
     n_topics: M.n_topics, n_official: M.n_official, n_other: M.n_other,
     n_igc: M.n_igc, n_prepcom: M.n_prepcom, n_before: M.n_before, n_after: M.n_after,
     n_observations: M.n_observations, hours_floor: floorNice(M.hours || 0),
-    n_nonstate_floor: floorNice(nonState),
+    n_nonstate_floor: below5(nonState),
+    // states that spoke in their own name, and all states reached (own name or via a bloc)
+    n_states_own_floor: below5((D.countries || []).filter(function (c) { return c.n > 0; }).length),
+    n_states_all_floor: below5((D.countries || []).filter(function (c) { return c.ng > 0; }).length),
     n_packages: (D.packages || []).length, first_year: M.first_year,
     n_actors_round: roundDown(M.n_actors), n_topics_round: roundDown(M.n_topics),
     n_meetings_round: roundDown(M.n_meetings)
@@ -357,6 +362,154 @@
           '<span class="gl-room-sw" style="background:' + ROOM[kk].col + '"></span>' + esc(ROOM[kk].name)));
       });
     }
+  });
+
+  // ---- Most active states and blocs: bubble chart (2026-11-13) ----------------------
+  // top_active: up to 15 states and blocs ranked by speaking time (data_cleaning.R,
+  // web_top_active()). x: statements, y: hours of speaking time, bubble area: hours.
+  // Linear axes that start near the data, not at zero, so the cluster of states gets
+  // more room (a log version was tried and dropped, Emil 2026-11-13).
+  // Labels go right of the bubble, or left, above or below when that spot is taken.
+  // The bubbles grow in once the chart scrolls into view; hover dims the others.
+  part('most active', function () {
+    var box = $('#gl-active'), T = D.top_active;
+    if (!box || !T || !T.length) { var sec = box && box.closest('.gl-active'); if (sec) sec.style.display = 'none'; return; }
+    var NS = 'http://www.w3.org/2000/svg', W = 1036, H = 480, m = { l: 64, r: 24, t: 14, b: 46 };
+    var NAMES = { 'United Kingdom of Great Britain and Northern Ireland': 'United Kingdom',
+                  'United States of America': 'United States', 'Russian Federation': 'Russia' };
+    function name(t) { return NAMES[t.name] || t.name; }
+    function S(tag, at, par) {
+      var e = document.createElementNS(NS, tag);
+      for (var k in at) e.setAttribute(k, at[k]);
+      if (par) par.appendChild(e);
+      return e;
+    }
+    var nMin = Infinity, nMax = 0, hMin = Infinity, hMax = 0;
+    T.forEach(function (t) { nMin = Math.min(nMin, t.n); nMax = Math.max(nMax, t.n); hMin = Math.min(hMin, t.hours); hMax = Math.max(hMax, t.hours); });
+    function step(span) {                                 // a round tick step, about 5 to 7 ticks
+      var raw = span / 6, u = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10)), f = raw / u;
+      return (f < 1.5 ? 1 : f < 3.5 ? 2.5 : f < 7.5 ? 5 : 10) * u;
+    }
+    var xs = step(nMax - nMin), ys = step(hMax - hMin);
+    var x0 = Math.max(0, Math.floor((nMin - (nMax - nMin) * 0.06) / (xs / 2)) * (xs / 2));
+    var x1 = Math.ceil((nMax + (nMax - nMin) * 0.05) / (xs / 2)) * (xs / 2);
+    var y0 = Math.max(0, Math.floor((hMin - (hMax - hMin) * 0.08) / (ys / 2)) * (ys / 2));
+    var y1 = Math.ceil((hMax + (hMax - hMin) * 0.06) / (ys / 2)) * (ys / 2);
+    function X(v) { return m.l + (v - x0) / (x1 - x0) * (W - m.l - m.r); }
+    function Y(v) { return H - m.b - (v - y0) / (y1 - y0) * (H - m.t - m.b); }
+    var XT = [], YT = [], v;
+    for (v = Math.ceil(x0 / xs) * xs; v <= x1; v += xs) XT.push(v);
+    for (v = Math.ceil(y0 / ys) * ys; v <= y1; v += ys) YT.push(v);
+    var svg = S('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img',
+      'aria-label': 'Bubble chart of the ' + T.length + ' states and blocs with the most speaking time: ' +
+        T.map(function (t) { return name(t) + ' ' + t.hours + ' hours, ' + t.n + ' statements'; }).join('; ') });
+    box.appendChild(svg);
+    XT.forEach(function (v) {
+      S('line', { x1: X(v), x2: X(v), y1: m.t, y2: H - m.b, 'class': 'gl-act-grid' }, svg);
+      S('text', { x: X(v), y: H - m.b + 18, 'class': 'ax', 'text-anchor': 'middle' }, svg).textContent = fmt(v);
+    });
+    YT.forEach(function (v) {
+      S('line', { x1: m.l, x2: W - m.r, y1: Y(v), y2: Y(v), 'class': 'gl-act-grid' }, svg);
+      S('text', { x: m.l - 10, y: Y(v) + 4, 'class': 'ax', 'text-anchor': 'end' }, svg).textContent = fmt(v) + ' h';
+    });
+    S('text', { x: W - m.r, y: H - 8, 'class': 'axt', 'text-anchor': 'end' }, svg).textContent = 'Total statements';
+    S('text', { x: 14, y: H / 2, 'class': 'axt', 'text-anchor': 'middle', transform: 'rotate(-90 14 ' + H / 2 + ')' }, svg).textContent = 'Total hours of speaking time';
+
+    var kr = 2.8;                                          // radius = kr * sqrt(hours)
+    var B = T.map(function (t) { return { t: t, x: X(t.n), y: Y(t.hours), r: kr * Math.sqrt(t.hours) }; });
+    // label spots: right, left, above, below; first one that hits no bubble, no label, no edge
+    var boxes = [];
+    // true when another bubble is nearer to the label than its own (the label would
+    // read as belonging to that one)
+    function closer(a, own) {
+      function dist(c) {
+        var nx = Math.max(a.x, Math.min(c.x, a.x + a.w)), ny = Math.max(a.y, Math.min(c.y, a.y + a.h));
+        return Math.sqrt((nx - c.x) * (nx - c.x) + (ny - c.y) * (ny - c.y)) - c.r;
+      }
+      var d0 = dist(own);
+      for (var i = 0; i < B.length; i++) if (B[i] !== own && dist(B[i]) < d0 - 2) return true;
+      return false;
+    }
+    function hit(a) {                                      // how badly a label box collides (0: free)
+      var bad = 0;
+      if (a.x < m.l || a.x + a.w > W - 2 || a.y < 0 || a.y + a.h > H - m.b) bad += 1000;
+      for (var i = 0; i < B.length; i++) {
+        var c = B[i], nx = Math.max(a.x, Math.min(c.x, a.x + a.w)), ny = Math.max(a.y, Math.min(c.y, a.y + a.h));
+        var d2 = (nx - c.x) * (nx - c.x) + (ny - c.y) * (ny - c.y);
+        if (d2 < (c.r + 1) * (c.r + 1)) bad += 10 + (c.r + 1) - Math.sqrt(d2);
+      }
+      for (var j = 0; j < boxes.length; j++) {
+        var o = boxes[j], ox = Math.min(a.x + a.w, o.x + o.w) - Math.max(a.x, o.x), oy = Math.min(a.y + a.h, o.y + o.h) - Math.max(a.y, o.y);
+        if (ox > 0 && oy > 0) bad += 200 + ox * oy;
+      }
+      return bad;
+    }
+    B.slice().sort(function (a, b) { return b.r - a.r; }).forEach(function (b) {
+      var w = name(b.t).length * 7.6, h = 16, g = 5, d = b.r * 0.72;
+      var spots = [
+        { x: b.x + b.r + g, y: b.y - h / 2, a: 'start' }, { x: b.x - b.r - g - w, y: b.y - h / 2, a: 'end' },
+        { x: b.x - w / 2, y: b.y - b.r - g - h, a: 'middle' }, { x: b.x - w / 2, y: b.y + b.r + g, a: 'middle' },
+        { x: b.x + d + g, y: b.y - d - h, a: 'start' }, { x: b.x + d + g, y: b.y + d, a: 'start' },
+        { x: b.x - d - g - w, y: b.y - d - h, a: 'end' }, { x: b.x - d - g - w, y: b.y + d, a: 'end' }];
+      var s = spots[0], best = Infinity;
+      // hand-placed where the automatic choice reads wrong in the current data
+      // (by name; ignored when the name is not in the chart)
+      var fixed = { 'Norway': 6, 'Singapore': 2, 'Iceland': 6, 'New Zealand': 3 }[name(b.t)];
+      if (fixed !== undefined) best = -1, s = spots[fixed];
+      for (var i = 0; i < spots.length && best >= 0; i++) {
+        var bx = { x: spots[i].x, y: spots[i].y, w: w, h: h };
+        var sc = hit(bx) + i * 0.5 + (closer(bx, b) ? 60 : 0);   // ties: earlier spot wins
+        if (sc < best) { best = sc; s = spots[i]; }
+      }
+      boxes.push({ x: s.x, y: s.y, w: w, h: h });
+      b.lx = s.a === 'start' ? s.x : s.a === 'end' ? s.x + w : s.x + w / 2;
+      b.ly = s.y + 12; b.la = s.a;
+    });
+
+    var tip = el('div', 'gl-act-tip');
+    box.appendChild(tip);
+    // draw the smaller bubbles last, so they sit on top
+    B.slice().sort(function (a, b) { return b.r - a.r; }).forEach(function (b) {
+      var g = S('g', { 'class': 'gl-act-b' }, svg);
+      b.c = S('circle', { cx: b.x, cy: b.y, r: b.r, fill: b.t.kind === 'bloc' ? '#002F62' : '#2f6fae', 'fill-opacity': 0.9 }, g);
+      b.l = S('text', { x: b.lx, y: b.ly, 'text-anchor': b.la }, g);
+      b.l.textContent = name(b.t);
+      g.addEventListener('mousemove', function (ev) {
+        var r = box.getBoundingClientRect(), t = b.t;
+        tip.innerHTML = '<b>' + esc(name(t)) + '</b><br>' + t.hours.toFixed(1) + ' hours of speaking time in total<br>' +
+          fmt(t.n) + ' statements in total';
+        var x = ev.clientX - r.left + 16, y = ev.clientY - r.top + 16;
+        if (x + 240 > r.width) x -= 260;
+        tip.style.left = x + 'px'; tip.style.top = y + 'px'; tip.style.opacity = 1;
+        svg.classList.add('is-dim'); g.classList.add('is-on');
+      });
+      g.addEventListener('mouseleave', function () { tip.style.opacity = 0; svg.classList.remove('is-dim'); g.classList.remove('is-on'); });
+    });
+
+    // grow in: largest first, one after the other (only with animations on)
+    // same test as glance.js uses for `gl-anim` (build.js runs before glance.js)
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce || !window.IntersectionObserver) return;
+    B.forEach(function (b) { b.c.setAttribute('r', 0); b.l.style.opacity = 0; });
+    var order = B.slice().sort(function (a, b) { return b.r - a.r; });
+    function grow() {
+      var t0 = performance.now();
+      (function frame(now) {
+        var more = false;
+        order.forEach(function (b, i) {
+          var k = Math.max(0, Math.min(1, ((now - t0) / 1000 - i * 0.08) / 0.7));
+          var e = k === 1 ? 1 : 1 + 2.2 * Math.pow(k - 1, 3) + 1.2 * Math.pow(k - 1, 2);   // a little overshoot
+          b.c.setAttribute('r', Math.max(0, b.r * e));
+          b.l.style.opacity = k < 0.6 ? 0 : (k - 0.6) / 0.4;
+          if (k < 1) more = true;
+        });
+        if (more) window.requestAnimationFrame(frame);
+      })(t0);
+    }
+    var io = new IntersectionObserver(function (es) {
+      if (es[0].isIntersecting) { io.disconnect(); grow(); }
+    }, { threshold: 0.35 });
+    io.observe(box);
   });
 
   // ---- Package cards: names, and a small bar chart per package --------------------

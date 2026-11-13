@@ -537,15 +537,14 @@ a { color: #006AB4; }
 .gl-shell .gl-pkg-igc-t { font-size: 13px; color: #6b737b; margin-bottom: 10px; }
 .gl-shell .gl-pkg-igc-cols { display: flex; align-items: flex-end; gap: 10px; }
 .gl-shell .gl-pkg-igc-col { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 6px; }
-.gl-shell .gl-pkg-igc-bar { display: block; width: 100%; max-width: 40px; min-height: 2px; background: var(--pk, #5cc79a); opacity: 0.55;   /* the busiest IGC slightly highlighted, the rest paler (Emil, 2026-11-12) */ border-radius: 2px 2px 0 0; transform-origin: bottom; }
+.gl-shell .gl-pkg-igc-bar { display: block; width: 100%; max-width: 40px; min-height: 2px; background: var(--pk, #5cc79a); opacity: 0.72;   /* the busiest IGC slightly highlighted, the rest a little paler (Emil, 2026-11-12; softer 2026-11-13) */ border-radius: 2px 2px 0 0; transform-origin: bottom; }
 .gl-shell .gl-pkg-igc-lbl { font-size: 11px; color: #6b737b; white-space: nowrap; }
 /* the number of statements shows above a bar on hover */
 .gl-shell .gl-pkg-igc-col { cursor: default; }
 .gl-shell .gl-pkg-igc-v { font-size: 12px; font-weight: 500; color: #002F62; opacity: 0; transition: opacity 0.15s ease; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .gl-shell .gl-pkg-igc-col:hover .gl-pkg-igc-v { opacity: 1; }
 .gl-shell .gl-pkg-igc-col.is-top .gl-pkg-igc-bar { opacity: 1; }
-.gl-shell .gl-pkg-igc-col.is-top .gl-pkg-igc-v { opacity: 1; }
-.gl-shell .gl-pkg-igc-col.is-top .gl-pkg-igc-lbl { color: #002F62; font-weight: 600; }
+.gl-shell .gl-pkg-igc-col.is-top .gl-pkg-igc-lbl { color: #363c42; font-weight: 500; }   /* count only on hover, like the others (Emil, 2026-11-13) */
 .gl-shell .gl-pkg-igc-col:hover .gl-pkg-igc-bar { filter: brightness(0.9); }
 .gl-anim .gl-shell .gl-pkg-igc.is-active .gl-pkg-igc-bar { animation: gl-grow 0.6s cubic-bezier(0.2, 0.8, 0.3, 1) both; }
 @keyframes gl-grow { from { transform: scaleY(0); } to { transform: none; } }
@@ -832,6 +831,28 @@ a { color: #006AB4; }
 .gl-shell .gl-room-canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; }
 .gl-shell .gl-room-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 20px; font-size: 13px; color: #4a5560; max-width: 760px; }
 .gl-shell .gl-room-sw { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+
+/* ---- Most active states and blocs (bubble chart, 2026-11-13) -------------------- */
+.gl-shell .gl-active { max-width: 1100px; margin: 120px auto 0; display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
+.gl-shell .gl-active-sub { margin: 0; max-width: 760px; }
+.gl-shell .gl-active-key { display: flex; gap: 20px; font-size: 13px; color: #4a5560; }
+.gl-shell .gl-active-sw { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+.gl-shell .gl-active-chart { position: relative; width: 100%; }
+.gl-shell .gl-active-chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.gl-shell .gl-active-chart .ax { font-size: 12px; fill: #6b737b; }
+.gl-shell .gl-active-chart .axt { font-size: 12.5px; fill: #4a5560; }
+.gl-shell .gl-active-chart .gl-act-grid { stroke: #e3e8ed; }
+.gl-shell .gl-act-b { cursor: default; transition: opacity 0.2s ease; }
+.gl-shell .gl-act-b circle { stroke: #ffffff; stroke-width: 1.5; }
+.gl-shell .gl-act-b text { font-size: 13px; font-weight: 500; fill: #002F62; pointer-events: none; }
+.gl-shell .gl-active-chart svg.is-dim .gl-act-b { opacity: 0.25; }
+.gl-shell .gl-active-chart svg.is-dim .gl-act-b.is-on { opacity: 1; }
+.gl-shell .gl-act-tip {
+  position: absolute; pointer-events: none; z-index: 5; opacity: 0; transition: opacity 0.12s ease;
+  background: #002F62; color: #ffffff; font-size: 13px; line-height: 1.45; padding: 8px 10px; border-radius: 3px; white-space: nowrap;
+}
+.gl-shell .gl-act-tip b { font-weight: 600; }
+.gl-shell .gl-active-note { margin: 4px 0 0; font-size: 13px; color: #8a929a; max-width: 760px; }
 
 /* ---- Country card: ratification -------------------------------------------------- */
 .gl-shell .gl-card-meta { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }

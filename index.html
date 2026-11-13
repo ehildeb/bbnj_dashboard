@@ -76,8 +76,7 @@
        (2026-11-12). First sentence suggested by Claude, approved by Emil. -->
   <section class="gl-screen gl-tint gl-agree" id="gl-agreement"><div class="gl-wide">
     <h2 class="gl-head gl-reveal">The BBNJ Agreement</h2>
-    <p class="gl-lead gl-reveal gl-full"><span class="gl-pop gl-pop-hover"><button type="button" class="gl-pop-btn" aria-expanded="false">The BBNJ Agreement</button><span class="gl-pop-box" role="note">Biodiversity beyond national jurisdiction (BBNJ) Agreement. Also known as the High Seas Treaty or, formally, the Agreement under the United Nations Convention on the Law of the Sea on the Conservation and Sustainable Use of Marine Biological Diversity of Areas beyond National Jurisdiction.</span></span> is the first treaty to protect marine biodiversity on the high seas as a whole, with shared rules for protected areas, environmental impact assessments, capacity building and the fair sharing of benefits and data from marine genetic resources.</p>
-    <p class="gl-lead gl-reveal gl-full">Roughly two-thirds of the world&rsquo;s ocean surface is considered high seas. That means that the BBNJ Agreement covers about <b class="gl-hs-n">43%</b> of the total surface of Earth:</p>
+    <p class="gl-lead gl-reveal gl-full"><span class="gl-pop gl-pop-hover"><button type="button" class="gl-pop-btn" aria-expanded="false">The BBNJ Agreement</button><span class="gl-pop-box" role="note">Biodiversity beyond national jurisdiction (BBNJ) Agreement. Also known as the High Seas Treaty or, formally, the Agreement under the United Nations Convention on the Law of the Sea on the Conservation and Sustainable Use of Marine Biological Diversity of Areas beyond National Jurisdiction.</span></span> is the first treaty to protect marine biodiversity on the high seas as a whole, with shared rules for protected areas, environmental impact assessments, capacity building and the fair sharing of benefits and data from marine genetic resources. Roughly two-thirds of the world&rsquo;s ocean surface is considered high seas. That means that the BBNJ Agreement covers about <b class="gl-hs-n">43%</b> of the total surface of Earth:</p>
     <!-- Earth's surface in one bar, in the globe's colours (2026-11-12). Rounded
          shares: high seas about 43%, national waters about 28% (ocean 71% minus
          high seas), land about 29%. The segments grow in when scrolled into view. -->
@@ -184,13 +183,25 @@
        (js/build.js lays it out from the counts in the data; the dots pop in when it comes into view) -->
   <section class="gl-screen gl-tint gl-room-sec" id="gl-room-sec"><div class="gl-split">
     <div class="gl-split-text gl-reveal">
-      <p class="gl-big">More than 120 states delivered statements in the negotiations, and over 180 were represented through country blocs.</p>
+      <p class="gl-big">More than <span data-gl-text="n_states_own_floor">120</span> states delivered statements in the negotiations, and over <span data-gl-text="n_states_all_floor">180</span> were represented through country blocs.</p>
       <p class="gl-lead">In addition, over <span data-gl-text="n_nonstate_floor">70</span> nongovernmental and international actors took part.</p>
       <div class="gl-room-legend" id="gl-room-legend"></div>
     </div>
     <div class="gl-split-vis">
       <div class="gl-room" id="gl-room" role="img" aria-label="Negotiation room: one dot per actor, states in the inner rows, other actors in the outer rows"></div>
     </div>
+  </div>
+  <!-- Most active states and blocs (2026-11-13): bubble chart, speaking time up the
+       side and as bubble size, statements along the bottom. Built by js/build.js from
+       top_active in glance_data.js (data_cleaning.R, web_top_active()). -->
+  <div class="gl-active gl-reveal">
+    <p class="gl-big">The most active states and blocs across all meetings</p>
+    <div class="gl-active-key">
+      <span class="gl-chart-key"><span class="gl-active-sw" style="background:#2f6fae"></span>State</span>
+      <span class="gl-chart-key"><span class="gl-active-sw" style="background:#002F62"></span>Bloc</span>
+    </div>
+    <div class="gl-active-chart" id="gl-active"></div>
+    <p class="gl-active-note">Hover an actor to highlight it.</p>
   </div></section>
 
   <!-- Ratification and the actors globe: globe left (legend under it), sentence,
