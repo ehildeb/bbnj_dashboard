@@ -14,6 +14,10 @@
     if (m) m.hidden = false;
     return;
   }
+  // under the explainer: when the Scopus search was last run (LIT_DATA.search_date,
+  // LIT_SEARCH_DATE in data_cleaning.R)
+  var upd = document.getElementById('lit-updated');
+  if (upd && L && L.search_date) { upd.textContent = 'Last run ' + L.search_date; upd.hidden = false; }
   // Copy button for the search string under the explainer
   var cp = document.querySelector('.lit-copy');
   if (cp) cp.addEventListener('click', function () {
@@ -133,7 +137,7 @@
     h += '<div class="lit-ref">' + ref.join('<span class="lit-sep" aria-hidden="true">&middot;</span>') + '</div>';
     var meta = [];
     if (p.themes) meta.push('<span class="lit-k">Package or theme:</span> ' + esc(p.themes.join('; ')));
-    if (p.region) meta.push('<span class="lit-k">Region:</span> ' + esc(p.region));
+    if (p.region) meta.push('<span class="lit-k">Region of first author:</span> ' + esc(p.region));
     if (meta.length) h += '<div class="lit-meta">' + meta.join('<span class="lit-sep" aria-hidden="true">&middot;</span>') + '</div>';
     if (p.abstract) {
       var open = hit(p.abstract) || hit(p.keywords), id = 'lit-a' + n;

@@ -28,7 +28,8 @@
     <p class="gl-lead">The entries were collected via Scopus using a tailored search string. Each entry has been reviewed by our researchers and manually assigned to the relevant packages and themes of the BBNJ Agreement.</p>
     <!-- the search string, folded away; Copy puts it on the clipboard (js/literature.js) -->
     <details class="lit-query">
-      <summary>Show the search string</summary>
+      <!-- the search date sits on the same line, after the link (Emil, 2026-11-13) -->
+      <summary><span class="lit-query-l">Show the search string</span><span class="lit-updated" id="lit-updated" hidden></span></summary>
       <div class="lit-query-box">
         <code id="lit-query">TITLE-ABS-KEY ( "BBNJ" OR "biodiversity beyond national jurisdiction" OR ( "marine biodiversity" AND "ABNJ" ) OR ( "marine biodiversity" AND "areas beyond national jurisdiction" ) OR ( "marine biological diversity" AND "ABNJ" ) OR ( "marine biological diversity" AND "areas beyond national jurisdiction" ) OR "conservation and sustainable use of biological diversity in areas beyond national jurisdiction" OR "conservation and sustainable use of biodiversity in areas beyond national jurisdiction" OR ( biodiversity AND "beyond national jurisdiction*" ) OR ( "biological diversity" AND "beyond national jurisdiction*" ) OR ( biodiversity AND "ABNJ" ) OR ( "biological diversity" AND "ABNJ" ) )</code>
         <button type="button" class="lit-copy" data-copy="lit-query">Copy</button>
@@ -44,7 +45,7 @@
       </label>
       <div class="lit-selects">
         <label><span class="lit-lbl">Package or theme</span><select id="lit-theme"><option value="">All</option></select></label>
-        <label><span class="lit-lbl">Region</span><select id="lit-region"><option value="">All</option></select></label>
+        <label><span class="lit-lbl">Region of first author</span><select id="lit-region"><option value="">All</option></select></label>
         <label><span class="lit-lbl">Type</span><select id="lit-type"><option value="">All</option></select></label>
         <label><span class="lit-lbl">From</span><select id="lit-from"></select></label>
         <label><span class="lit-lbl">To</span><select id="lit-to"></select></label>

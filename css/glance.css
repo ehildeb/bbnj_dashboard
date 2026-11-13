@@ -833,7 +833,7 @@ a { color: #006AB4; }
 .gl-shell .gl-room-sw { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
 
 /* ---- Most active states and blocs (bubble chart, 2026-11-13) -------------------- */
-.gl-shell .gl-active { max-width: 1100px; margin: 120px auto 0; display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
+.gl-shell .gl-active { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
 .gl-shell .gl-active-sub { margin: 0; max-width: 760px; }
 .gl-shell .gl-active-key { display: flex; gap: 20px; font-size: 13px; color: #4a5560; }
 .gl-shell .gl-active-sw { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
@@ -903,7 +903,7 @@ html:not(.gl-anim) .gl-shell .gl-mo-slot { display: none; }   /* no float: the A
 
 /* ---- Menu (2026-11-12) ---------------------------------------------------------------
    Fixed button top right; a small panel with the sections and the literature link. */
-@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }   /* menu jumps glide */
+/* in-page links glide with js (glance.js, last block); no CSS scroll-behavior, it fights the js */
 .gl-shell .gl-menu { position: fixed; top: 16px; right: 16px; z-index: 60; }
 .gl-shell .gl-menu-btn {
   display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px;
@@ -941,3 +941,67 @@ html:not(.gl-anim) .gl-shell .gl-mo-slot { display: none; }   /* no float: the A
   .gl-shell .gl-menu-btn span { display: none; }   /* icon only on phones */
   .gl-shell .gl-menu-btn { padding: 9px; }
 }
+
+/* ---- Who are we (sketch A, 2026-11-13) --------------------------------------------- */
+.gl-shell .gl-who-grid { width: 100%; display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 56px; align-items: start; }
+.gl-shell .gl-who-text { display: flex; flex-direction: column; gap: 20px; }
+.gl-shell .gl-who-text .gl-lead { margin: 0; }
+.gl-shell .gl-who-link {
+  display: flex; flex-direction: column; gap: 6px; padding: 18px 20px;
+  background: #ffffff; border: 1px solid #e1e6eb; border-radius: 3px; text-decoration: none;
+}
+.gl-shell .gl-who-link:hover { border-color: #006AB4; }
+.gl-shell .gl-who-link + .gl-who-link { margin-top: -8px; }
+.gl-shell .gl-who-k { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: #8a929a; }
+.gl-shell .gl-who-t { font-size: 16px; font-weight: 500; color: #002F62; line-height: 1.35; }
+.gl-shell .gl-who-u { font-size: 13px; color: #006AB4; }
+.gl-shell .gl-who-facts { display: flex; flex-direction: column; gap: 12px; }
+.gl-shell .gl-who-proj {
+  display: flex; align-items: center; gap: 18px; padding: 18px 20px;
+  background: #ffffff; border: 1px solid #e1e6eb; border-radius: 3px; text-decoration: none;
+}
+.gl-shell .gl-who-proj:hover { border-color: #006AB4; }
+.gl-shell .gl-who-proj img { width: 64px; height: 64px; object-fit: contain; flex-shrink: 0; }
+.gl-shell .gl-who-pn { display: block; font-size: 18px; font-weight: 600; color: #002F62; }
+.gl-shell .gl-who-py { display: block; font-size: 14px; color: #6b737b; margin-top: 2px; }
+.gl-shell .gl-who-nums { display: grid; grid-template-columns: 1fr 1fr; margin-top: 4px; background: #ffffff; border: 1px solid #e1e6eb; border-radius: 3px; }
+.gl-shell .gl-who-n { display: flex; flex-direction: column; gap: 4px; padding: 18px 20px; }
+.gl-shell .gl-who-n + .gl-who-n { border-left: 1px solid #e1e6eb; }
+.gl-shell .gl-who-v { font-size: clamp(28px, 2.6vw, 36px); font-weight: 500; color: #002F62; letter-spacing: -0.02em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.gl-shell .gl-who-l { font-size: 13.5px; color: #4a5560; line-height: 1.4; }
+.gl-shell .gl-who-logos { width: 100%; margin-top: 24px; padding-top: 24px; border-top: 1px solid #e1e6eb; justify-content: flex-start; }
+.gl-shell .gl-who-fund { font-size: 13px; color: #8a929a; }
+@media (max-width: 900px) {
+  .gl-shell .gl-who-grid { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+}
+
+/* ---- Literature: publications and the collection card side by side (2026-11-13) ---- */
+.gl-shell .gl-lit-two { width: 100%; display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 40px; align-items: start; }
+.gl-shell .gl-lit-col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.gl-shell .gl-lit-k { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: #8a929a; }
+.gl-shell .gl-lit-two .gl-pubs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.gl-shell .gl-lit-two .gl-pubs:not(.is-all) .gl-pub:nth-child(n+7) { display: none; }   /* first six, then the button */
+.gl-shell .gl-lit-two .gl-pubs-foot { justify-content: flex-start; }
+.gl-shell .gl-lit-two .gl-lit-card { grid-template-columns: minmax(0, 1fr); width: 100%; max-width: none; margin-top: 0; }   /* flush with the top of the publications */
+.gl-shell .gl-lit-two .gl-lit-shot { height: 280px; border-right: 0; border-bottom: 1px solid #b8c4d0; }
+.gl-shell .gl-lit-two .gl-lit-shot img { width: 150%; max-width: none; height: auto; }   /* zoomed into the top left (filters and first entries) so it stays readable in the narrow column */
+@media (max-width: 900px) {
+  .gl-shell .gl-lit-two { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 560px) {
+  .gl-shell .gl-lit-two .gl-pubs { grid-template-columns: minmax(0, 1fr); }
+}
+/* the collection card a little heavier than the publication cards (Emil, 2026-11-13) */
+.gl-shell .gl-lit-two .gl-lit-info { padding: 28px 30px 30px; }
+.gl-shell .gl-lit-two .gl-lit-t { font-size: clamp(24px, 2.2vw, 28px); }
+.gl-shell .gl-lit-two .gl-lit-card { border-color: #b8c4d0; }
+/* who are we: the methods paper card sits under the numbers on the right */
+.gl-shell .gl-who-facts .gl-who-link { margin-top: 0; }
+
+/* 'Last updated' lines (2026-11-13) */
+.gl-shell .gl-updated { margin: -4px 0 0; font-size: 13px; color: #8a929a; }
+.gl-shell .gl-updated:empty { display: none; }
+/* literature: collection card with its title and text on top, the picture below */
+.gl-shell .gl-lit-two .gl-lit-card { display: flex; flex-direction: column-reverse; }
+.gl-shell .gl-lit-two .gl-lit-shot { border-bottom: 0; border-top: 1px solid #b8c4d0; }
+.gl-shell .gl-lit-two .gl-lit-shot::after { display: none; }

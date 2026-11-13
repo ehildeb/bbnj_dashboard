@@ -119,6 +119,7 @@
     n_states_own_floor: below5((D.countries || []).filter(function (c) { return c.n > 0; }).length),
     n_states_all_floor: below5((D.countries || []).filter(function (c) { return c.ng > 0; }).length),
     n_packages: (D.packages || []).length, first_year: M.first_year,
+    last_year: (M.last_date || '').slice(0, 4),
     n_actors_round: roundDown(M.n_actors), n_topics_round: roundDown(M.n_topics),
     n_meetings_round: roundDown(M.n_meetings)
   };
@@ -163,6 +164,8 @@
     function who(n, eu) { return fmt(n) + (n === 1 ? ' state' : ' states') + (eu ? ' and the EU' : ''); }
     p.textContent = 'To date, ' + who(R.states_signed, R.eu_signed) + ' have signed the Agreement, and ' +
       who(R.states_ratified, R.eu_ratified) + ' have ratified it.';
+    var u = $('#gl-rat-updated');                         // when the list was taken from the UN
+    if (u) { if (R.as_of) u.textContent = 'Last updated: ' + R.as_of + ' (UN Treaty Collection)'; else u.hidden = true; }
   });
 
   // ---- The negotiations at a glance: the Agreement and the meetings ------------
@@ -476,8 +479,8 @@
       b.l.textContent = name(b.t);
       g.addEventListener('mousemove', function (ev) {
         var r = box.getBoundingClientRect(), t = b.t;
-        tip.innerHTML = '<b>' + esc(name(t)) + '</b><br>' + t.hours.toFixed(1) + ' hours of speaking time in total<br>' +
-          fmt(t.n) + ' statements in total';
+        tip.innerHTML = '<b>' + esc(name(t)) + '</b><br>' + t.hours.toFixed(1) + ' hours of speaking time<br>' +
+          fmt(t.n) + ' statements';
         var x = ev.clientX - r.left + 16, y = ev.clientY - r.top + 16;
         if (x + 240 > r.width) x -= 260;
         tip.style.left = x + 'px'; tip.style.top = y + 'px'; tip.style.opacity = 1;
@@ -486,12 +489,12 @@
       g.addEventListener('mouseleave', function () { tip.style.opacity = 0; svg.classList.remove('is-dim'); g.classList.remove('is-on'); });
     });
 
-    // grow in: largest first, one after the other (only with animations on)
+    // grow in: smallest first, the EU last, one after the other (only with animations on)
     // same test as glance.js uses for `gl-anim` (build.js runs before glance.js)
     var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduce || !window.IntersectionObserver) return;
     B.forEach(function (b) { b.c.setAttribute('r', 0); b.l.style.opacity = 0; });
-    var order = B.slice().sort(function (a, b) { return b.r - a.r; });
+    var order = B.slice().sort(function (a, b) { return a.r - b.r; });
     function grow() {
       var t0 = performance.now();
       (function frame(now) {
@@ -506,9 +509,10 @@
         if (more) window.requestAnimationFrame(frame);
       })(t0);
     }
+    // start once most of the chart is on screen, so the growth is seen
     var io = new IntersectionObserver(function (es) {
-      if (es[0].isIntersecting) { io.disconnect(); grow(); }
-    }, { threshold: 0.35 });
+      if (es[0].isIntersecting) { io.disconnect(); setTimeout(grow, 150); }
+    }, { threshold: 0.6 });
     io.observe(box);
   });
 
@@ -744,7 +748,10 @@
     var grp = window.GLANCE && window.GLANCE.scope === 'grp';
     var gs = r.groups || [], nVia = 0;
     gs.forEach(function (g) { nVia += g[1]; });
-    var via = gs.map(function (g) { return esc(g[0]); }).join(', ');
+    // Only the United Kingdom gets a note behind the EU: it left on 31 January 2020
+    var via = gs.map(function (g) {
+      return esc(g[0]) + (r.iso3 === 'GBR' && g[0] === 'EU' ? ' (member until 31 January 2020)' : '');
+    }).join(', ');
     box.innerHTML = head +
       '<div class="gl-card-stats"><div class="gl-card-stat"><span class="gl-card-num">' + fmt(r.n || 0) + '</span>' +
         '<span class="gl-card-lbl">in national capacity</span></div>' +

@@ -22,7 +22,7 @@
   transform: rotate(-45deg); transition: transform 0.15s ease; margin-right: 2px;
 }
 .lit-shell .lit-query[open] summary::before { transform: rotate(45deg); }
-.lit-shell .lit-query summary:hover { text-decoration: underline; text-underline-offset: 2px; }
+.lit-shell .lit-query summary:hover .lit-query-l { text-decoration: underline; text-underline-offset: 2px; }
 .lit-shell .lit-query-box {
   position: relative; margin-top: 12px; padding: 14px 16px 14px; padding-right: 76px;
   background: #f4f6f8; border-left: 2px solid #cfd7df; border-radius: 0 3px 3px 0;
@@ -129,3 +129,7 @@
 .lit-shell .lit-pages button.is-active { background: #002F62; border-color: #002F62; color: #ffffff; }
 .lit-shell .lit-pages button:disabled { opacity: 0.4; cursor: default; }
 .lit-shell .lit-gap { align-self: center; color: #8a929a; padding: 0 4px; }
+
+/* 'Last updated' under the explainer (2026-11-13) */
+.lit-shell .lit-updated { margin-left: 14px; padding-left: 14px; border-left: 1px solid #cfd7df; font-size: 13px; font-weight: 400; color: #8a929a; }
+.lit-shell .lit-updated[hidden] { display: none; }

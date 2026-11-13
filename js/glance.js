@@ -961,3 +961,43 @@ function glQuality() {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();
+
+
+// ---- In-page links glide ------------------------------------------------------------
+// Links to #ids on the page (menu, "at the bottom of this page") scroll smoothly. The
+// browser's own smooth scrolling covers a long page in a blink, so it read as a jump:
+// here the time grows with the distance (0.6 to 1.8 s), easing in and out. With
+// "reduce motion" switched on it jumps straight there.
+(function () {
+  'use strict';
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var raf = 0;
+  function glide(y1) {
+    if (raf) window.cancelAnimationFrame(raf);
+    var y0 = window.pageYOffset, d = y1 - y0;
+    if (reduce || Math.abs(d) < 2) { window.scrollTo(0, y1); return; }
+    var dur = Math.max(600, Math.min(1800, 400 + Math.abs(d) * 0.12)), t0 = null;
+    function step(now) {
+      if (t0 === null) t0 = now;
+      var k = Math.min(1, (now - t0) / dur);
+      var e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+      window.scrollTo(0, y0 + d * e);
+      raf = k < 1 ? window.requestAnimationFrame(step) : 0;
+    }
+    raf = window.requestAnimationFrame(step);
+  }
+  document.addEventListener('click', function (e) {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey) return;
+    var a = e.target && e.target.closest ? e.target.closest('a[href^="#"]') : null;
+    if (!a) return;
+    var id = a.getAttribute('href').slice(1), el = id && document.getElementById(id);
+    if (!el) return;
+    e.preventDefault();
+    glide(el.getBoundingClientRect().top + window.pageYOffset);
+    if (window.history && window.history.replaceState) window.history.replaceState(null, '', '#' + id);
+  });
+  // a wheel or touch stops the glide, so the reader is never fought
+  ['wheel', 'touchstart'].forEach(function (ev) {
+    window.addEventListener(ev, function () { if (raf) { window.cancelAnimationFrame(raf); raf = 0; } }, { passive: true });
+  });
+})();
