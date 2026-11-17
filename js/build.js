@@ -367,156 +367,239 @@
     }
   });
 
-  // ---- Most active states and the EU: bubble chart (2026-11-13, blocs out 2026-11-16) --
-  // top_active: up to 15 states and blocs ranked by speaking time (data_cleaning.R,
-  // web_top_active()). x: statements, y: hours of speaking time, bubble area: hours.
-  // Linear axes that start near the data, not at zero, so the cluster of states gets
-  // more room (a log version was tried and dropped, Emil 2026-11-13).
-  // Labels go right of the bubble, or left, above or below when that spot is taken.
-  // The bubbles grow in once the chart scrolls into view; hover dims the others.
+  // ---- Most active actors: bubble chart with a toggle (2026-11-13; toggle 2026-11-17) --
+  // Three lists from data_cleaning.R, each the top 10 by speaking time:
+  //   states and the EU (top_active, web_top_active(): other blocs left out, Emil 2026-11-17)
+  //   international organisations (top_nonstate.intl: UN bodies and agencies, UN
+  //     environmental treaties, IGOs)
+  //   non-governmental actors (top_nonstate.nongov: NGOs incl. the High Seas Alliance,
+  //     scientific institutes, businesses)
+  // x: statements, y: hours of speaking time, bubble area: hours. Linear axes that start
+  // near the data, not at zero (a log version was tried and dropped, Emil 2026-11-13);
+  // the axes rescale on every tab. Labels go right of the bubble, or left, above or
+  // below when that spot is taken. The bubbles grow in once the chart scrolls into view
+  // and again on every tab switch; hover dims the others.
   part('most active', function () {
-    // States and the EU only (Emil, 2026-11-16): the EU takes part as a party, other blocs
-    // (CLAM, PSIDS) are left out. FOR NOW done here, so the chart shows 13, not 15: on the Mac
-    // move this rule into web_top_active() in data_cleaning.R (top 15, blocs out, EU in) and
-    // drop this filter.
-    var box = $('#gl-active'), T = (D.top_active || []).filter(function (t) { return t.kind === 'state' || t.name === 'EU'; });
-    if (!box || !T || !T.length) { var sec = box && box.closest('.gl-active'); if (sec) sec.style.display = 'none'; return; }
+    var box = $('#gl-active'), sec = box && box.closest('.gl-active');
+    var NS_ = D.top_nonstate || {};
+    // IGC and PrepCom statements only (data_cleaning.R; Emil, 2026-11-17)
+    var SETS = {
+      state:  { list: D.top_active || [], what: 'states and the EU' },
+      intl:   { list: NS_.intl || [],     what: 'international organisations' },
+      nongov: { list: NS_.nongov || [],   what: 'non-governmental actors' }
+    };
+    if (!box || !SETS.state.list.length) { if (sec) sec.style.display = 'none'; return; }
+    // colours and key labels by kind (international in purple, non-governmental in the
+    // green of the negotiation room dots; one shade per type)
+    var KINDS = {
+      state: { col: '#2f6fae', name: 'State' },
+      bloc:  { col: '#002F62', name: 'EU' },          // the only bloc in the list (others left out in data_cleaning.R)
+      un:    { col: '#a58bd8', name: 'UN body, agency or treaty' },          // purples: clearly apart from
+      igo:   { col: '#5a3d9a', name: 'Intergovernmental organisation' },     // the state blues (Emil, 2026-11-17)
+      ngo:   { col: '#3fae7d', name: 'NGO' },
+      sci:   { col: '#9ad9bb', name: 'Scientific institute' },
+      bus:   { col: '#1f7a52', name: 'Business' }
+    };
     var NS = 'http://www.w3.org/2000/svg', W = 1036, H = 480, m = { l: 64, r: 24, t: 14, b: 46 };
     var NAMES = { 'United Kingdom of Great Britain and Northern Ireland': 'United Kingdom',
                   'United States of America': 'United States', 'Russian Federation': 'Russia' };
     function name(t) { return NAMES[t.name] || t.name; }
+    // full name for hover and screen readers (non-state actors: acronym on the chart, 2026-11-17)
+    function full(t) { return t.full || name(t); }
     function S(tag, at, par) {
       var e = document.createElementNS(NS, tag);
       for (var k in at) e.setAttribute(k, at[k]);
       if (par) par.appendChild(e);
       return e;
     }
-    var nMin = Infinity, nMax = 0, hMin = Infinity, hMax = 0;
-    T.forEach(function (t) { nMin = Math.min(nMin, t.n); nMax = Math.max(nMax, t.n); hMin = Math.min(hMin, t.hours); hMax = Math.max(hMax, t.hours); });
     function step(span) {                                 // a round tick step, about 5 to 7 ticks
-      var raw = span / 6, u = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10)), f = raw / u;
+      var raw = Math.max(span, 1e-9) / 6, u = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10)), f = raw / u;
       return (f < 1.5 ? 1 : f < 3.5 ? 2.5 : f < 7.5 ? 5 : 10) * u;
     }
-    var xs = step(nMax - nMin), ys = step(hMax - hMin);
-    var x0 = Math.max(0, Math.floor((nMin - (nMax - nMin) * 0.06) / (xs / 2)) * (xs / 2));
-    var x1 = Math.ceil((nMax + (nMax - nMin) * 0.05) / (xs / 2)) * (xs / 2);
-    var y0 = Math.max(0, Math.floor((hMin - (hMax - hMin) * 0.08) / (ys / 2)) * (ys / 2));
-    var y1 = Math.ceil((hMax + (hMax - hMin) * 0.06) / (ys / 2)) * (ys / 2);
-    function X(v) { return m.l + (v - x0) / (x1 - x0) * (W - m.l - m.r); }
-    function Y(v) { return H - m.b - (v - y0) / (y1 - y0) * (H - m.t - m.b); }
-    var XT = [], YT = [], v;
-    for (v = Math.ceil(x0 / xs) * xs; v <= x1; v += xs) XT.push(v);
-    for (v = Math.ceil(y0 / ys) * ys; v <= y1; v += ys) YT.push(v);
-    var svg = S('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img',
-      'aria-label': 'Bubble chart of the ' + T.length + ' states and blocs with the most speaking time: ' +
-        T.map(function (t) { return name(t) + ' ' + t.hours + ' hours, ' + t.n + ' statements'; }).join('; ') });
-    box.appendChild(svg);
-    XT.forEach(function (v) {
-      S('line', { x1: X(v), x2: X(v), y1: m.t, y2: H - m.b, 'class': 'gl-act-grid' }, svg);
-      S('text', { x: X(v), y: H - m.b + 18, 'class': 'ax', 'text-anchor': 'middle' }, svg).textContent = fmt(v);
-    });
-    YT.forEach(function (v) {
-      S('line', { x1: m.l, x2: W - m.r, y1: Y(v), y2: Y(v), 'class': 'gl-act-grid' }, svg);
-      S('text', { x: m.l - 10, y: Y(v) + 4, 'class': 'ax', 'text-anchor': 'end' }, svg).textContent = fmt(v) + ' h';
-    });
-    S('text', { x: W - m.r, y: H - 8, 'class': 'axt', 'text-anchor': 'end' }, svg).textContent = 'Total statements';
-    S('text', { x: 14, y: H / 2, 'class': 'axt', 'text-anchor': 'middle', transform: 'rotate(-90 14 ' + H / 2 + ')' }, svg).textContent = 'Total hours of speaking time';
-
-    var kr = 2.8;                                          // radius = kr * sqrt(hours)
-    var B = T.map(function (t) { return { t: t, x: X(t.n), y: Y(t.hours), r: kr * Math.sqrt(t.hours) }; });
-    // label spots: right, left, above, below; first one that hits no bubble, no label, no edge
-    var boxes = [];
-    // true when another bubble is nearer to the label than its own (the label would
-    // read as belonging to that one)
-    function closer(a, own) {
-      function dist(c) {
-        var nx = Math.max(a.x, Math.min(c.x, a.x + a.w)), ny = Math.max(a.y, Math.min(c.y, a.y + a.h));
-        return Math.sqrt((nx - c.x) * (nx - c.x) + (ny - c.y) * (ny - c.y)) - c.r;
-      }
-      var d0 = dist(own);
-      for (var i = 0; i < B.length; i++) if (B[i] !== own && dist(B[i]) < d0 - 2) return true;
-      return false;
-    }
-    function hit(a) {                                      // how badly a label box collides (0: free)
-      var bad = 0;
-      if (a.x < m.l || a.x + a.w > W - 2 || a.y < 0 || a.y + a.h > H - m.b) bad += 1000;
-      for (var i = 0; i < B.length; i++) {
-        var c = B[i], nx = Math.max(a.x, Math.min(c.x, a.x + a.w)), ny = Math.max(a.y, Math.min(c.y, a.y + a.h));
-        var d2 = (nx - c.x) * (nx - c.x) + (ny - c.y) * (ny - c.y);
-        if (d2 < (c.r + 1) * (c.r + 1)) bad += 10 + (c.r + 1) - Math.sqrt(d2);
-      }
-      for (var j = 0; j < boxes.length; j++) {
-        var o = boxes[j], ox = Math.min(a.x + a.w, o.x + o.w) - Math.max(a.x, o.x), oy = Math.min(a.y + a.h, o.y + o.h) - Math.max(a.y, o.y);
-        if (ox > 0 && oy > 0) bad += 200 + ox * oy;
-      }
-      return bad;
-    }
-    B.slice().sort(function (a, b) { return b.r - a.r; }).forEach(function (b) {
-      var w = name(b.t).length * 7.6, h = 16, g = 5, d = b.r * 0.72;
-      var spots = [
-        { x: b.x + b.r + g, y: b.y - h / 2, a: 'start' }, { x: b.x - b.r - g - w, y: b.y - h / 2, a: 'end' },
-        { x: b.x - w / 2, y: b.y - b.r - g - h, a: 'middle' }, { x: b.x - w / 2, y: b.y + b.r + g, a: 'middle' },
-        { x: b.x + d + g, y: b.y - d - h, a: 'start' }, { x: b.x + d + g, y: b.y + d, a: 'start' },
-        { x: b.x - d - g - w, y: b.y - d - h, a: 'end' }, { x: b.x - d - g - w, y: b.y + d, a: 'end' }];
-      var s = spots[0], best = Infinity;
-      // hand-placed where the automatic choice reads wrong in the current data
-      // (by name; ignored when the name is not in the chart)
-      var fixed = { 'Norway': 6, 'Singapore': 2, 'Iceland': 6, 'New Zealand': 3 }[name(b.t)];
-      if (fixed !== undefined) best = -1, s = spots[fixed];
-      for (var i = 0; i < spots.length && best >= 0; i++) {
-        var bx = { x: spots[i].x, y: spots[i].y, w: w, h: h };
-        var sc = hit(bx) + i * 0.5 + (closer(bx, b) ? 60 : 0);   // ties: earlier spot wins
-        if (sc < best) { best = sc; s = spots[i]; }
-      }
-      boxes.push({ x: s.x, y: s.y, w: w, h: h });
-      b.lx = s.a === 'start' ? s.x : s.a === 'end' ? s.x + w : s.x + w / 2;
-      b.ly = s.y + 12; b.la = s.a;
-    });
-
+    var keyBox = $('#gl-active-key'), euNote = $('#gl-active-eu'), nsNote = $('#gl-active-ns');
     var tip = el('div', 'gl-act-tip');
-    box.appendChild(tip);
-    // draw the smaller bubbles last, so they sit on top
-    B.slice().sort(function (a, b) { return b.r - a.r; }).forEach(function (b) {
-      var g = S('g', { 'class': 'gl-act-b' }, svg);
-      b.c = S('circle', { cx: b.x, cy: b.y, r: b.r, fill: b.t.name === 'EU' ? '#002F62' : '#2f6fae', 'fill-opacity': 0.9 }, g);
-      b.l = S('text', { x: b.lx, y: b.ly, 'text-anchor': b.la }, g);
-      b.l.textContent = name(b.t);
-      g.addEventListener('mousemove', function (ev) {
-        var r = box.getBoundingClientRect(), t = b.t;
-        tip.innerHTML = '<b>' + esc(name(t)) + '</b><br>' + t.hours.toFixed(1) + ' hours of speaking time<br>' +
-          fmt(t.n) + ' statements';
-        var x = ev.clientX - r.left + 16, y = ev.clientY - r.top + 16;
-        if (x + 240 > r.width) x -= 260;
-        tip.style.left = x + 'px'; tip.style.top = y + 'px'; tip.style.opacity = 1;
-        svg.classList.add('is-dim'); g.classList.add('is-on');
-      });
-      g.addEventListener('mouseleave', function () { tip.style.opacity = 0; svg.classList.remove('is-dim'); g.classList.remove('is-on'); });
-    });
-
-    // grow in: smallest first, the EU last, one after the other (only with animations on)
-    // same test as glance.js uses for `gl-anim` (build.js runs before glance.js)
     var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduce || !window.IntersectionObserver) return;
-    B.forEach(function (b) { b.c.setAttribute('r', 0); b.l.style.opacity = 0; });
-    var order = B.slice().sort(function (a, b) { return a.r - b.r; });
+    var animate = !reduce && !!window.IntersectionObserver, seen = false, cur = null, B = [];
+
+    function draw(k) {
+      var T = SETS[k].list;
+      cur = k;
+      var old = $('svg', box);
+      if (old) box.removeChild(old);
+      if (!tip.parentNode) box.appendChild(tip);
+      tip.style.opacity = 0;
+      // key: only the kinds in this list, in the order of KINDS
+      var have = {};
+      T.forEach(function (t) { have[t.kind] = true; });
+      keyBox.innerHTML = '';
+      Object.keys(KINDS).forEach(function (kk) {
+        if (!have[kk]) return;
+        keyBox.appendChild(el('span', 'gl-chart-key',
+          '<span class="gl-active-sw" style="background:' + KINDS[kk].col + '"></span>' + esc(KINDS[kk].name)));
+      });
+      if (euNote) euNote.style.display = k === 'state' ? '' : 'none';
+      if (nsNote) nsNote.style.display = k === 'state' ? 'none' : '';
+      if (!T.length) { B = []; return; }
+
+      var nMin = Infinity, nMax = 0, hMin = Infinity, hMax = 0;
+      T.forEach(function (t) { nMin = Math.min(nMin, t.n); nMax = Math.max(nMax, t.n); hMin = Math.min(hMin, t.hours); hMax = Math.max(hMax, t.hours); });
+      // linear axes on every tab (a log scale for the non-governmental tab was tried and
+      // dropped, Emil 2026-11-17)
+      var xs = step(nMax - nMin), ys = step(hMax - hMin), XT = [], YT = [], v;
+      var x0 = Math.max(0, Math.floor((nMin - (nMax - nMin) * 0.06) / (xs / 2)) * (xs / 2));
+      var x1 = Math.ceil((nMax + (nMax - nMin) * 0.05) / (xs / 2)) * (xs / 2);
+      var y0 = Math.max(0, Math.floor((hMin - (hMax - hMin) * 0.08) / (ys / 2)) * (ys / 2));
+      var y1 = Math.ceil((hMax + (hMax - hMin) * 0.06) / (ys / 2)) * (ys / 2);
+      if (x1 <= x0) x1 = x0 + xs;
+      if (y1 <= y0) y1 = y0 + ys;
+      function X(q) { return m.l + (q - x0) / (x1 - x0) * (W - m.l - m.r); }
+      function Y(q) { return H - m.b - (q - y0) / (y1 - y0) * (H - m.t - m.b); }
+      for (v = Math.ceil(x0 / xs) * xs; v <= x1 + 1e-9; v += xs) XT.push(v);
+      for (v = Math.ceil(y0 / ys) * ys; v <= y1 + 1e-9; v += ys) YT.push(v);
+      var svg = S('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img',
+        'aria-label': 'Bubble chart of the ' + T.length + ' ' + SETS[k].what + ' with the most speaking time: ' +
+          T.map(function (t) { return full(t) + ' ' + t.hours + ' hours, ' + t.n + ' statements'; }).join('; ') });
+      box.insertBefore(svg, tip);
+      // hours that are not whole numbers keep one decimal (2.5 h, 0.5 h)
+      function fh(v) { return (Math.abs(v - Math.round(v)) > 1e-9 ? v.toFixed(1) : fmt(v)) + ' h'; }
+      XT.forEach(function (v) {
+        S('line', { x1: X(v), x2: X(v), y1: m.t, y2: H - m.b, 'class': 'gl-act-grid' }, svg);
+        S('text', { x: X(v), y: H - m.b + 18, 'class': 'ax', 'text-anchor': 'middle' }, svg).textContent = fmt(v);
+      });
+      YT.forEach(function (v) {
+        S('line', { x1: m.l, x2: W - m.r, y1: Y(v), y2: Y(v), 'class': 'gl-act-grid' }, svg);
+        S('text', { x: m.l - 10, y: Y(v) + 4, 'class': 'ax', 'text-anchor': 'end' }, svg).textContent = fh(v);
+      });
+      S('text', { x: W - m.r, y: H - 8, 'class': 'axt', 'text-anchor': 'end' }, svg).textContent = 'Total statements';
+      S('text', { x: 14, y: H / 2, 'class': 'axt', 'text-anchor': 'middle', transform: 'rotate(-90 14 ' + H / 2 + ')' }, svg).textContent = 'Total hours of speaking time';
+
+      // radius = kr * sqrt(hours); the biggest bubble is about as big in every tab
+      var kr = 2.8 * Math.sqrt(62.8 / Math.max(hMax, 1));
+      kr = Math.min(kr, 6.5);
+      B = T.map(function (t) { return { t: t, x: X(t.n), y: Y(t.hours), r: kr * Math.sqrt(t.hours) }; });
+      // label spots: right, left, above, below; first one that hits no bubble, no label, no edge
+      var boxes = [];
+      // true when another bubble is nearer to the label than its own (the label would
+      // read as belonging to that one)
+      function closer(a, own) {
+        function dist(c) {
+          var nx = Math.max(a.x, Math.min(c.x, a.x + a.w)), ny = Math.max(a.y, Math.min(c.y, a.y + a.h));
+          return Math.sqrt((nx - c.x) * (nx - c.x) + (ny - c.y) * (ny - c.y)) - c.r;
+        }
+        var d0 = dist(own);
+        for (var i = 0; i < B.length; i++) if (B[i] !== own && dist(B[i]) < d0 - 2) return true;
+        return false;
+      }
+      function hit(a) {                                    // how badly a label box collides (0: free)
+        var bad = 0;
+        if (a.x < 2 || a.x + a.w > W - 2 || a.y < 0 || a.y + a.h > H - m.b) bad += 1e6;   // never outside the chart (long names, 2026-11-17)
+        else if (a.x < m.l) bad += 50;                    // over the hour labels: allowed, but avoided
+        for (var i = 0; i < B.length; i++) {
+          var c = B[i], nx = Math.max(a.x, Math.min(c.x, a.x + a.w)), ny = Math.max(a.y, Math.min(c.y, a.y + a.h));
+          var d2 = (nx - c.x) * (nx - c.x) + (ny - c.y) * (ny - c.y);
+          if (d2 < (c.r + 1) * (c.r + 1)) bad += 10 + (c.r + 1) - Math.sqrt(d2);
+        }
+        for (var j = 0; j < boxes.length; j++) {
+          var o = boxes[j], ox = Math.min(a.x + a.w, o.x + o.w) - Math.max(a.x, o.x), oy = Math.min(a.y + a.h, o.y + o.h) - Math.max(a.y, o.y);
+          if (ox > 0 && oy > 0) bad += 200 + ox * oy;
+        }
+        return bad;
+      }
+      B.slice().sort(function (a, b) { return b.r - a.r; }).forEach(function (b) {
+        var w = name(b.t).length * 7.6, h = 16, g = 5, d = b.r * 0.72;
+        var spots = [
+          { x: b.x + b.r + g, y: b.y - h / 2, a: 'start' }, { x: b.x - b.r - g - w, y: b.y - h / 2, a: 'end' },
+          { x: b.x - w / 2, y: b.y - b.r - g - h, a: 'middle' }, { x: b.x - w / 2, y: b.y + b.r + g, a: 'middle' },
+          { x: b.x + d + g, y: b.y - d - h, a: 'start' }, { x: b.x + d + g, y: b.y + d, a: 'start' },
+          { x: b.x - d - g - w, y: b.y - d - h, a: 'end' }, { x: b.x - d - g - w, y: b.y + d, a: 'end' }];
+        // further up and to the right, joined by a thin line: only used when every close
+        // spot is taken (the corner of the non-governmental tab, 2026-11-17)
+        for (var f = 1; f <= 10; f++)
+          spots.push({ x: b.x + b.r + 18 + f * 6, y: b.y - h / 2 - f * 20, a: 'start', far: true, cost: 25 + f * 4 });
+        var s = spots[0], best = Infinity;
+        // hand-placed where the automatic choice reads wrong in the current data
+        // (by name; ignored when the name is not in the chart)
+        var fixed = { 'Norway': 6, 'Singapore': 2, 'Iceland': 6, 'New Zealand': 3 }[name(b.t)];
+        if (fixed !== undefined) best = -1, s = spots[fixed];
+        for (var i = 0; i < spots.length && best >= 0; i++) {
+          var bx = { x: spots[i].x, y: spots[i].y, w: w, h: h };
+          var sc = hit(bx) + (spots[i].cost || i * 0.5) + (!spots[i].far && closer(bx, b) ? 60 : 0);   // ties: earlier spot wins
+          if (sc < best) { best = sc; s = spots[i]; }
+        }
+        boxes.push({ x: s.x, y: s.y, w: w, h: h });
+        b.lx = s.a === 'start' ? s.x : s.a === 'end' ? s.x + w : s.x + w / 2;
+        b.ly = s.y + 12; b.la = s.a; b.far = !!s.far;
+      });
+
+      // draw the smaller bubbles last, so they sit on top
+      B.slice().sort(function (a, b) { return b.r - a.r; }).forEach(function (b) {
+        var g = S('g', { 'class': 'gl-act-b' }, svg);
+        b.c = S('circle', { cx: b.x, cy: b.y, r: b.r, fill: (KINDS[b.t.kind] || KINDS.state).col, 'fill-opacity': 0.9 }, g);
+        if (b.far) {                                       // leader line from the bubble to its label
+          var ang = Math.atan2(b.ly - 4 - b.y, b.lx - 3 - b.x);
+          b.ln = S('line', { x1: b.x + b.r * Math.cos(ang), y1: b.y + b.r * Math.sin(ang), x2: b.lx - 3, y2: b.ly - 4, 'class': 'gl-act-lead' }, g);
+        }
+        b.l = S('text', { x: b.lx, y: b.ly, 'text-anchor': b.la }, g);
+        b.l.textContent = name(b.t);
+        g.addEventListener('mousemove', function (ev) {
+          var r = box.getBoundingClientRect(), t = b.t;
+          tip.innerHTML = '<b>' + esc(full(t)) + '</b><br>' + t.hours.toFixed(1) + ' hours of speaking time<br>' +
+            fmt(t.n) + (t.n === 1 ? ' statement' : ' statements');
+          var x = ev.clientX - r.left + 16, y = ev.clientY - r.top + 16, tw = tip.offsetWidth || 240;
+          if (x + tw > r.width) x = Math.max(0, ev.clientX - r.left - tw - 16);   // flip left by its real width (long names)
+          tip.style.left = x + 'px'; tip.style.top = y + 'px'; tip.style.opacity = 1;
+          svg.classList.add('is-dim'); g.classList.add('is-on');
+        });
+        g.addEventListener('mouseleave', function () { tip.style.opacity = 0; svg.classList.remove('is-dim'); g.classList.remove('is-on'); });
+      });
+      // before the chart is first seen the bubbles wait at size 0 (grown in by the observer)
+      if (animate && !seen) B.forEach(function (b) { b.c.setAttribute('r', 0); b.l.style.opacity = 0; if (b.ln) b.ln.style.opacity = 0; });
+    }
+
+    // grow in: smallest first, the largest last, one after the other
+    var growId = 0;
     function grow() {
-      var t0 = performance.now();
+      if (!animate) return;
+      var id = ++growId, t0 = performance.now(), order = B.slice().sort(function (a, b) { return a.r - b.r; });
+      order.forEach(function (b) { b.c.setAttribute('r', 0); b.l.style.opacity = 0; if (b.ln) b.ln.style.opacity = 0; });
       (function frame(now) {
+        if (id !== growId) return;                         // a newer tab took over
         var more = false;
         order.forEach(function (b, i) {
           var k = Math.max(0, Math.min(1, ((now - t0) / 1000 - i * 0.08) / 0.7));
           var e = k === 1 ? 1 : 1 + 2.2 * Math.pow(k - 1, 3) + 1.2 * Math.pow(k - 1, 2);   // a little overshoot
           b.c.setAttribute('r', Math.max(0, b.r * e));
           b.l.style.opacity = k < 0.6 ? 0 : (k - 0.6) / 0.4;
+          if (b.ln) b.ln.style.opacity = b.l.style.opacity;
           if (k < 1) more = true;
         });
         if (more) window.requestAnimationFrame(frame);
       })(t0);
     }
+
+    // the toggle: tabs without data are hidden
+    var tabs = $$('.gl-active-tabs button');
+    tabs.forEach(function (b) {
+      var k = b.getAttribute('data-set');
+      if (!SETS[k] || !SETS[k].list.length) { b.style.display = 'none'; return; }
+      b.addEventListener('click', function () {
+        if (k === cur) return;
+        tabs.forEach(function (o) {
+          var on = o === b;
+          o.classList.toggle('is-active', on);
+          o.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+        draw(k);
+        if (seen) grow();
+      });
+    });
+    draw('state');
+
+    if (!animate) { seen = true; return; }
     // start once a quarter of the chart is on screen (was 0.6: the bubbles stayed
     // empty if the reader stopped higher up; Emil, 2026-11-16)
     var io = new IntersectionObserver(function (es) {
-      if (es[0].isIntersecting) { io.disconnect(); setTimeout(grow, 150); }
+      if (es[0].isIntersecting) { io.disconnect(); seen = true; setTimeout(grow, 150); }
     }, { threshold: 0.25 });
     io.observe(box);
   });

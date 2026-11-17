@@ -858,6 +858,7 @@ a { color: #006AB4; }
 .gl-shell .gl-act-b { cursor: default; transition: opacity 0.2s ease; }
 .gl-shell .gl-act-b circle { stroke: #ffffff; stroke-width: 1.5; }
 .gl-shell .gl-act-b text { font-size: 13px; font-weight: 500; fill: #002F62; pointer-events: none; }
+.gl-shell .gl-act-b .gl-act-lead { stroke: #9aa6b2; stroke-width: 1; pointer-events: none; }   /* label leader line, 2026-11-17 */
 .gl-shell .gl-active-chart svg.is-dim .gl-act-b { opacity: 0.25; }
 .gl-shell .gl-active-chart svg.is-dim .gl-act-b.is-on { opacity: 1; }
 .gl-shell .gl-act-tip {
@@ -866,6 +867,10 @@ a { color: #006AB4; }
 }
 .gl-shell .gl-act-tip b { font-weight: 600; }
 .gl-shell .gl-active-note { margin: 4px 0 0; font-size: 13px; color: #8a929a; max-width: 760px; }
+/* toggle above the chart (2026-11-17): same look as the country blocs toggle, not absolute */
+.gl-shell .gl-active-tabs { position: static; flex-wrap: wrap; }
+.gl-shell .gl-active-keys { display: inline-flex; flex-wrap: wrap; gap: 8px 20px; }
+.gl-shell .gl-active-key { flex-wrap: wrap; align-items: center; }
 
 /* ---- Country card: ratification -------------------------------------------------- */
 .gl-shell .gl-card-meta { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
