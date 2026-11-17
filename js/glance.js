@@ -693,21 +693,42 @@ function glQuality() {
     });
   }
   if (anim) {
+    // Reveal by section (Emil, 2026-11-16): when a section comes into view, all its
+    // .gl-reveal elements fade in one after the other (STEP apart), so nothing in it
+    // stays hidden because the reader has not scrolled far enough. Leaving below
+    // resets the section so it plays again; leaving above shows everything.
+    var STEP = 0.12, MAX_DELAY = 0.8;
+    var revealsOf = function (sec) { return Array.prototype.slice.call(sec.querySelectorAll('.gl-reveal')); };
+    var showSection = function (sec) {
+      var i = 0;
+      revealsOf(sec).forEach(function (el) {
+        if (el.classList.contains('is-in')) return;
+        var d = Math.min(i * STEP, MAX_DELAY); i++;
+        el.style.transitionDelay = d + 's';
+        el.classList.add('is-in');
+        window.setTimeout(function () { countUp(el); }, d * 1000);
+        window.setTimeout(function () { el.style.transitionDelay = ''; }, d * 1000 + 800);
+      });
+    };
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (en) {
-        var el = en.target, r = en.boundingClientRect;
+        var sec = en.target, r = en.boundingClientRect;
         if (r.width === 0 && r.height === 0) return;
-        if (en.isIntersecting) { el.classList.add('is-in'); countUp(el); return; }
+        if (en.isIntersecting) { showSection(sec); return; }
         var h = en.rootBounds ? en.rootBounds.height : window.innerHeight;
-        if (r.top > h / 2) { el.classList.remove('is-in'); resetCounts(el); }
-        else { el.classList.add('is-in'); finishCounts(el); }
+        revealsOf(sec).forEach(function (el) {
+          el.style.transitionDelay = '';
+          if (r.top > h / 2) { el.classList.remove('is-in'); resetCounts(el); }
+          else { el.classList.add('is-in'); finishCounts(el); }
+        });
       });
     }, { threshold: 0, rootMargin: '0px 0px -12% 0px' });
     var scanReveal = function () {
       document.querySelectorAll('.gl-shell .gl-reveal').forEach(function (el) {
-        if (el.__glObserved) return;
-        el.__glObserved = true;
-        io.observe(el);
+        var sec = el.closest('section, footer') || el;
+        if (sec.__glObserved) return;
+        sec.__glObserved = true;
+        io.observe(sec);
       });
     };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scanReveal);
@@ -1000,4 +1021,36 @@ function glQuality() {
   ['wheel', 'touchstart'].forEach(function (ev) {
     window.addEventListener(ev, function () { if (raf) { window.cancelAnimationFrame(raf); raf = 0; } }, { passive: true });
   });
+})();
+
+
+// ---- COP and the Agreement's bodies ------------------------------------------------
+// Click a body in the hub to show its text in the panel and mark its spoke. Clicking the
+// open body again goes back to the COP. Texts live in index.html (.gl-cop-info).
+(function () {
+  'use strict';
+  try {
+    var box = document.querySelector('.gl-shell .gl-cop');
+    if (!box) return;
+    var nodes = box.querySelectorAll('.gl-cop-node');
+    var infos = box.querySelectorAll('.gl-cop-info');
+    var spokes = box.querySelectorAll('.gl-cop-spoke');
+    var cur = 'cop';
+    function show(k) {
+      cur = k;
+      Array.prototype.forEach.call(nodes, function (n) {
+        var on = n.getAttribute('data-k') === k;
+        n.classList.toggle('is-active', on);
+        n.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+      Array.prototype.forEach.call(infos, function (p) { p.hidden = p.getAttribute('data-k') !== k; });
+      Array.prototype.forEach.call(spokes, function (l) { l.classList.toggle('is-on', l.getAttribute('data-k') === k); });
+    }
+    Array.prototype.forEach.call(nodes, function (n) {
+      n.addEventListener('click', function () {
+        var k = n.getAttribute('data-k');
+        show(k === cur && k !== 'cop' ? 'cop' : k);
+      });
+    });
+  } catch (err) { if (window.console) console.error('COP block', err); }
 })();

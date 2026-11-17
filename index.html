@@ -45,6 +45,17 @@
   <!-- Title with the globe (drag to turn), cut off at the right edge. Back here
        on 2026-11-12 after a short time in the Agreement section. Text kept small
        so the section is not too tall. -->
+  <!-- Credit line with small logos: a thin bar at the page's top left corner, on the
+     same row as the Menu button (supervisor's text, 2026-11-16) -->
+  <header class="gl-credit-top">
+    <div class="gl-credit-logos">
+      <img src="img/logos/erc.png" alt="European Research Council">
+      <img src="img/logos/twinpolitics.png" alt="TwinPolitics">
+      <img src="img/logos/univie.jpg" alt="University of Vienna">
+    </div>
+    <p>This dashboard was created by Emil W. Hildebrand as part of the ERC-funded project <a href="https://twinpolitics.eu/" target="_blank" rel="noopener">TwinPolitics</a> led by Prof. Alice Vadrot and hosted by the University of Vienna.</p>
+  </header>
+
   <section class="gl-hero" id="gl-top">
     <!-- the globe sits in its own cell, positioned inside it, so it never sets the
          height of the section (it is cut off at the right, top and bottom instead) -->
@@ -193,14 +204,15 @@
     </div>
   </div></section>
 
-  <!-- Most active states and blocs (2026-11-13): bubble chart, speaking time up the
+  <!-- Most active states and the EU (2026-11-13; other blocs left out 2026-11-16): bubble chart, speaking time up the
        side and as bubble size, statements along the bottom. Built by js/build.js from
        top_active in glance_data.js (data_cleaning.R, web_top_active()). -->
   <section class="gl-screen gl-active-sec" id="gl-active-sec"><div class="gl-active">
-    <p class="gl-big gl-reveal">The most active states and blocs across all meetings</p>
+    <p class="gl-big gl-reveal">The most active states and the EU across all meetings</p>
     <div class="gl-active-key">
       <span class="gl-chart-key"><span class="gl-active-sw" style="background:#2f6fae"></span>State</span>
-      <span class="gl-chart-key"><span class="gl-active-sw" style="background:#002F62"></span>Bloc</span>
+      <span class="gl-chart-key"><span class="gl-active-sw" style="background:#002F62"></span>EU</span>
+      <span class="gl-active-eu">The EU takes part in the negotiations as a party in its own right.</span>
     </div>
     <div class="gl-active-chart" id="gl-active"></div>
     <p class="gl-active-note">Hover an actor to highlight it.</p>
@@ -243,10 +255,30 @@
        build.js (QUESTIONS, part 'cross') and does nothing without this section. -->
 
   <!-- Next up, publications, literature -->
+  <!-- What happens next: the first COP and the Agreement's bodies (2026-11-16). Hub and
+       spokes: the COP in the middle, the bodies around it; clicking one shows what it does
+       (glance.js, COP block). Texts drafted by Claude from the Agreement, for Emil to check.
+       Each body has its own colour; orange and plum are the MGR and CB&TMT package colours. -->
   <section class="gl-screen gl-next" id="gl-next"><div class="gl-wide">
     <h2 class="gl-head gl-reveal">What happens next?</h2>
-    <p class="gl-lead gl-reveal gl-full">Next on the agenda is the first COP in New York in January. [More on what will happen at the COP].</p>
-    <p class="gl-lead gl-reveal gl-full">We will be there to continue collecting our data.</p>
+    <p class="gl-lead gl-reveal gl-full">Next on the agenda is the first Conference of the Parties (COP) in New York in January 2027. The COP is the governing body of the Agreement and is the space where the Parties will take decisions on its implementation. At its first meeting the COP is set to decide how the Agreement&rsquo;s bodies will work, building on the preparations of the three PrepComs.</p>
+    <!-- COP diagram taken off the page for now (2026-11-16); saved in
+         ../backups/261116/cop_diagram/ (see README.txt there). The CSS and the JS block stay. -->
+    <!-- For the supervisor (2026-11-16): the diagram's texts as a list beside the placeholder -->
+    <div class="gl-cop-draft gl-reveal">
+      <div class="gl-placeholder">COP bodies diagram</div>
+      <ul class="gl-cop-draft-list">
+        <li>Conference of the Parties (COP) (Article 47): The governing body of the Agreement, where Parties meet at regular intervals to make key decisions, keep the Agreement under review, and set up further bodies if needed.</li>
+        <li>Scientific and Technical Body (Article 49): A body of experts nominated by the Parties and elected by the COP, giving scientific and technical advice, for example on proposals for protected areas and on standards for environmental impact assessments.</li>
+        <li>Access and benefit-sharing committee (Article 15): A committee developing guidelines for sharing the benefits from marine genetic resources, and advising the COP on matters related to access and benefit-sharing.</li>
+        <li>Capacity-building and transfer of marine technology committee (Article 46): A committee helping to assess the needs of developing States in capacity-building and marine technology, and reviewing the capacity-building initiatives under the Agreement.</li>
+        <li>Finance Committee on financial resources (Article 52): A committee responsible for financial matters under the Agreement, including funding and benefit-sharing.</li>
+        <li>Implementation and Compliance Committee (Article 55): A committee supporting Parties implementing the Agreement, as well as promoting compliance by the Parties.</li>
+        <li>Secretariat (Article 50): The main bureaucracy of the Agreement, facilitating meetings, running day-to-day tasks, and preparing documents.</li>
+        <li>Clearing-house mechanism (Article 51): The central open-access online platform where Parties share information, for example on marine genetic resources, protected areas, impact assessments and capacity-building.</li>
+      </ul>
+    </div>
+    <p class="gl-lead gl-reveal gl-full">We will be on-site in New York to report from the COP and to continue collecting our data.</p>
   </div></section>
 
   <!-- Literature: our publications and the literature collection, its own section
@@ -308,7 +340,7 @@
     <h2 class="gl-head gl-reveal">Who are we?</h2>
     <div class="gl-who-grid">
       <div class="gl-who-text">
-        <p class="gl-lead gl-reveal">We are researchers of the MARIPOLDATA and TwinPolitics projects, funded by the European Research Council and led by Dr. Alice Vadrot. We study multilateral negotiations on biodiversity, deep-sea mining and plastics in areas beyond national jurisdiction.</p>
+        <p class="gl-lead gl-reveal">We are researchers of the <a href="https://www.maripoldata.eu/" target="_blank" rel="noopener">MARIPOLDATA</a> (2018 to 2024) and <a href="https://twinpolitics.eu/" target="_blank" rel="noopener">TwinPolitics</a> (2024 to 2029) projects, funded by the European Research Council and led by Prof. Dr. Alice Vadrot. We are based at the Department of Political Science, University of Vienna (Vienna, Austria) and part of the <a href="https://envpol.univie.ac.at/" target="_blank" rel="noopener">Environmental Politics Research Group</a>. We study multilateral negotiations on biodiversity, deep-sea mining and plastics in areas beyond national jurisdiction.</p>
         <p class="gl-lead gl-reveal">The data from 2018 to 2024 is available online for download through the <a href="https://doi.org/10.11587/0XXZ0V" target="_blank" rel="noopener">Austrian Social Science Data Archive</a>. A full data set including data from BBNJ, the International Seabed Authority (ISA), the Convention on Biological Diversity (CBD) and the Intergovernmental Negotiating Committee for a global Plastics treaty (INC) will be made available in the future as part of the TwinPolitics project.</p>
         <a class="gl-who-link gl-reveal" href="https://doi.org/10.11587/0XXZ0V" target="_blank" rel="noopener">
           <span class="gl-who-k">Download the data</span>
@@ -319,7 +351,7 @@
       <div class="gl-who-facts gl-reveal">
         <a class="gl-who-proj" href="https://www.maripoldata.eu/" target="_blank" rel="noopener">
           <img src="img/logos/maripoldata.png" alt="MARIPOLDATA logo">
-          <span><span class="gl-who-pn">MARIPOLDATA</span><span class="gl-who-py">2018 to 2025</span></span>
+          <span><span class="gl-who-pn">MARIPOLDATA</span><span class="gl-who-py">2018 to 2024</span></span>
         </a>
         <a class="gl-who-proj" href="https://twinpolitics.eu/" target="_blank" rel="noopener">
           <img src="img/logos/twinpolitics.png" alt="TwinPolitics logo">
@@ -345,10 +377,12 @@
 
   <!-- Ending: funding, sources, credits (external links dropped 2026-11-03) -->
   <footer class="gl-foot-wrap"><div class="gl-foot-inner">
+    <!-- Acknowledgements (supervisor feedback, 2026-11-16): placeholder until Emil has the names -->
+    <p class="gl-fund gl-ack">[Acknowledgements: ...]</p>
     <p class="gl-fund">The TwinPolitics and MARIPOLDATA projects have received funding from the European Research Council (ERC) under the European Union&rsquo;s Horizon Europe and Horizon 2020 research and innovation programmes (grant agreements No 101124903 &ndash; TwinPolitics &ndash; ERC-2023-CoG and No 804599 &ndash; MARIPOLDATA &ndash; ERC-2018-STG).</p>
     <p class="gl-fund">Views and opinions expressed are however those of the author(s) only and do not necessarily reflect those of the European Union or the European Research Council. Neither the European Union nor the granting authority can be held responsible for them.</p>
     <details class="gl-sources">
-      <summary>Sources and credits</summary>
+      <summary>Sources</summary>
       <ul>
         <li>Data: MARIPOLDATA and TwinPolitics field notes, 2018 to <span data-gl-text="last_year">2026</span>. Data from 2018 to 2024: Austrian Social Science Data Archive, <a href="https://doi.org/10.11587/0XXZ0V" target="_blank" rel="noopener">doi.org/10.11587/0XXZ0V</a>.</li>
         <li>Signatures and ratifications: United Nations Treaty Collection, <a href="https://treaties.un.org/Pages/ViewDetails.aspx?src=TREATY&amp;mtdsg_no=XXI-10&amp;chapter=21&amp;clang=_en" target="_blank" rel="noopener">Chapter XXI, 10</a>, accessed 2 November 2026.</li>

@@ -367,7 +367,7 @@
     }
   });
 
-  // ---- Most active states and blocs: bubble chart (2026-11-13) ----------------------
+  // ---- Most active states and the EU: bubble chart (2026-11-13, blocs out 2026-11-16) --
   // top_active: up to 15 states and blocs ranked by speaking time (data_cleaning.R,
   // web_top_active()). x: statements, y: hours of speaking time, bubble area: hours.
   // Linear axes that start near the data, not at zero, so the cluster of states gets
@@ -375,7 +375,11 @@
   // Labels go right of the bubble, or left, above or below when that spot is taken.
   // The bubbles grow in once the chart scrolls into view; hover dims the others.
   part('most active', function () {
-    var box = $('#gl-active'), T = D.top_active;
+    // States and the EU only (Emil, 2026-11-16): the EU takes part as a party, other blocs
+    // (CLAM, PSIDS) are left out. FOR NOW done here, so the chart shows 13, not 15: on the Mac
+    // move this rule into web_top_active() in data_cleaning.R (top 15, blocs out, EU in) and
+    // drop this filter.
+    var box = $('#gl-active'), T = (D.top_active || []).filter(function (t) { return t.kind === 'state' || t.name === 'EU'; });
     if (!box || !T || !T.length) { var sec = box && box.closest('.gl-active'); if (sec) sec.style.display = 'none'; return; }
     var NS = 'http://www.w3.org/2000/svg', W = 1036, H = 480, m = { l: 64, r: 24, t: 14, b: 46 };
     var NAMES = { 'United Kingdom of Great Britain and Northern Ireland': 'United Kingdom',
@@ -474,7 +478,7 @@
     // draw the smaller bubbles last, so they sit on top
     B.slice().sort(function (a, b) { return b.r - a.r; }).forEach(function (b) {
       var g = S('g', { 'class': 'gl-act-b' }, svg);
-      b.c = S('circle', { cx: b.x, cy: b.y, r: b.r, fill: b.t.kind === 'bloc' ? '#002F62' : '#2f6fae', 'fill-opacity': 0.9 }, g);
+      b.c = S('circle', { cx: b.x, cy: b.y, r: b.r, fill: b.t.name === 'EU' ? '#002F62' : '#2f6fae', 'fill-opacity': 0.9 }, g);
       b.l = S('text', { x: b.lx, y: b.ly, 'text-anchor': b.la }, g);
       b.l.textContent = name(b.t);
       g.addEventListener('mousemove', function (ev) {
@@ -509,10 +513,11 @@
         if (more) window.requestAnimationFrame(frame);
       })(t0);
     }
-    // start once most of the chart is on screen, so the growth is seen
+    // start once a quarter of the chart is on screen (was 0.6: the bubbles stayed
+    // empty if the reader stopped higher up; Emil, 2026-11-16)
     var io = new IntersectionObserver(function (es) {
       if (es[0].isIntersecting) { io.disconnect(); setTimeout(grow, 150); }
-    }, { threshold: 0.6 });
+    }, { threshold: 0.25 });
     io.observe(box);
   });
 
