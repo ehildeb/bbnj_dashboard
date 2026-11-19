@@ -9,7 +9,6 @@
   BBNJ negotiations at a glance. A static page: no server, nothing loaded from
   the internet. All text is written here. Numbers come from data/glance_data.js,
   made by data_cleaning.R in the folder above this one (see README.md).
-  Placeholders still to fill are in square brackets.
 -->
 <link rel="stylesheet" href="css/fonts.css">
 <link rel="stylesheet" href="css/glance.css">
@@ -21,9 +20,8 @@
 
 <main class="gl-shell">
 
-  <!-- Menu (2026-11-12): a fixed button top right; the panel lists the main section titles
-       (headings only, Emil 2026-11-12) and links to the literature page. Opened and closed by glance.js (menu block);
-       the current section is marked while scrolling. -->
+  <!-- Menu: a fixed button top right; the panel lists the main sections and links to
+       the literature page (glance.js, menu block) -->
   <nav class="gl-menu" aria-label="Page sections">
     <button type="button" class="gl-menu-btn" aria-expanded="false" aria-controls="gl-menu-panel">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path class="gl-menu-i1" d="M4 7h16"/><path class="gl-menu-i2" d="M4 12h16"/><path class="gl-menu-i3" d="M4 17h16"/></svg>
@@ -43,11 +41,7 @@
     </div>
   </nav>
 
-  <!-- Title with the globe (drag to turn), cut off at the right edge. Back here
-       on 2026-11-12 after a short time in the Agreement section. Text kept small
-       so the section is not too tall. -->
-  <!-- Credit line with small logos: a thin bar at the page's top left corner, on the
-     same row as the Menu button (supervisor's text, 2026-11-16) -->
+  <!-- Credit line with small logos, top left, on the same row as the menu button -->
   <header class="gl-credit-top">
     <div class="gl-credit-logos">
       <img src="img/logos/erc.png" alt="European Research Council">
@@ -58,8 +52,8 @@
   </header>
 
   <section class="gl-hero" id="gl-top">
-    <!-- the globe sits in its own cell, positioned inside it, so it never sets the
-         height of the section (it is cut off at the right, top and bottom instead) -->
+    <!-- the globe sits in its own cell so it never sets the height of the section
+         (it is cut off at the right, top and bottom instead) -->
     <div class="gl-hero-globe-cell">
       <div class="gl-hero-globe">
         <canvas class="gl-hero-canvas" role="img" aria-label="Globe with the high seas shaded. Drag to turn it."></canvas>
@@ -71,8 +65,7 @@
       <p class="gl-sub gl-reveal">We have created an overview based on our own <span class="gl-pop gl-pop-hover"><button type="button" class="gl-pop-btn" aria-expanded="false">field note data</button><span class="gl-pop-box" role="note">Learn more about the TwinPolitics and MARIPOLDATA projects and how we collect our data <a href="#gl-who">at the bottom of this page</a>.</span></span>, giving you a bird&rsquo;s-eye view of the whole process from its first Intergovernmental Conference (IGC) in 2018 to the last Preparatory Commission (PrepCom) in 2026.</p>
       <p class="gl-sub gl-reveal">Scroll your way downwards and click around to learn more about specific items and actors.</p>
     </div>
-    <!-- globe legend and drag hint: at the bottom of the section, just above the
-       section break (2026-11-12) -->
+    <!-- globe legend and drag hint, at the bottom of the section -->
     <div class="gl-hero-globe-note gl-reveal">
       <p class="gl-globe-hint"><svg class="gl-globe-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>Drag the globe to turn it</p>
       <div class="gl-hero-key">
@@ -85,14 +78,12 @@
     </div>
   </section>
 
-  <!-- The BBNJ Agreement: a short introduction, left-aligned across the full width
-       (2026-11-12). First sentence suggested by Claude, approved by Emil. -->
+  <!-- The BBNJ Agreement: a short introduction -->
   <section class="gl-screen gl-tint gl-agree" id="gl-agreement"><div class="gl-wide">
     <h2 class="gl-head gl-reveal">The BBNJ Agreement</h2>
     <p class="gl-lead gl-reveal"><span class="gl-pop gl-pop-hover"><button type="button" class="gl-pop-btn" aria-expanded="false">The BBNJ Agreement</button><span class="gl-pop-box" role="note">Biodiversity beyond national jurisdiction (BBNJ) Agreement. Also known as the High Seas Treaty or, formally, the Agreement under the United Nations Convention on the Law of the Sea on the Conservation and Sustainable Use of Marine Biological Diversity of Areas beyond National Jurisdiction.</span></span> is the first treaty to protect marine biodiversity on the high seas as a whole, with shared rules for protected areas, environmental impact assessments, capacity building and the fair sharing of benefits and data from marine genetic resources. Roughly two-thirds of the world&rsquo;s ocean surface is considered high seas. That means that the BBNJ Agreement covers about <b class="gl-hs-n">43%</b> of the Earth&rsquo;s surface:</p>
-    <!-- Earth's surface in one bar, in the globe's colours (2026-11-12). Rounded
-         shares: high seas about 43%, national waters about 28% (ocean 71% minus
-         high seas), land about 29%. The segments grow in when scrolled into view. -->
+    <!-- Earth's surface in one bar, in the globe's colours. Rounded shares: high seas
+         about 43%, national waters about 28% (ocean 71% minus high seas), land about 29%. -->
     <div class="gl-surf gl-reveal gl-full" role="img" aria-label="Earth's surface: high seas about 43%, national waters about 28%, land about 29%">
       <div class="gl-surf-bar">
         <span class="gl-surf-seg gl-surf-hs" style="--w:43%"></span><span class="gl-surf-seg gl-surf-nat" style="--w:28%"></span><span class="gl-surf-seg gl-surf-land" style="--w:29%"></span>
@@ -105,17 +96,16 @@
     <p class="gl-lead gl-reveal">But how did we get here?</p>
   </div></section>
 
-  <!-- Photo banner 1 (2026-11-18; photos in img/photos, web copies of img/*.jpg made smaller and without EXIF/GPS data): full width, caption
-       bar at the bottom. Swap the placeholder div for <img src="img/photos/photo1.webp" alt="...">. -->
+  <!-- Photo banner (web copies in img/photos, without EXIF/GPS data) -->
   <figure class="gl-photo gl-photo-1 gl-photo-inset">
     <img class="gl-photo-img" src="img/photos/photo1_room.jpg" srcset="img/photos/photo1_room.jpg 1600w, img/photos/photo1_room_2800.jpg 2800w" sizes="(max-width: 1148px) 100vw, 1100px" alt="Delegates at their desks in a large UN conference room, seen from the back, with the dais and two screens at the front" loading="lazy" style="object-position: center 62%">
     <figcaption class="gl-photo-cap"><span>The negotiation room at the opening of PrepCom-3, New York, March 2026</span><a class="gl-photo-credit" href="https://enb.iisd.org/marine-biodiversity-beyond-national-jurisdiction-bbnj-cop-prepcom3-23mar2026" target="_blank" rel="noopener">Photo by IISD/ENB | Marc Calabretta</a></figcaption>
   </figure>
 
-  <!-- The Agreement and the official meetings (2026-11-03: not pinned). Part one
-       shows the Agreement big; scrolling on, it floats down into the row of
-       meetings in part two, and the meetings pop in around it (glance.js moUpdate).
-       The Agreement sits in .gl-mo itself so it can travel between the parts. -->
+  <!-- The Agreement and the official meetings. Part one shows the Agreement big;
+       scrolling on, it glides into the row of meetings in part two and the meetings
+       pop in around it (glance.js, moUpdate). The Agreement sits in .gl-mo itself so
+       it can travel between the parts. -->
   <section class="gl-mo" id="gl-mo">
     <div class="gl-mo-part gl-mo-a"><div class="gl-inner">
       <h2 class="gl-head gl-reveal">The negotiation process</h2>
@@ -131,11 +121,11 @@
     </div></div>
   </section>
 
-  <!-- Statements over time ("It's a complex process"; moved above the IGCs 2026-11-03) -->
+  <!-- Statements over time (growth chart built by build.js) -->
   <section class="gl-screen gl-chart-screen" id="gl-statements"><div class="gl-inner gl-left">
     <p class="gl-big gl-reveal">It&rsquo;s a complex process with many moving parts. In our data, we count <span class="gl-count" data-gl="n_statements">0</span> statements delivered across plenaries, working groups, and informal sessions:</p>
-    <div class="gl-home gl-reveal" id="gl-growth">
-      <div class="gl-home-legend">
+    <div class="gl-gr gl-reveal" id="gl-growth">
+      <div class="gl-gr-legend">
         <span><span class="gl-key gl-key-line"></span>Statements so far</span>
         <span><span class="gl-key gl-key-igc"></span>IGCs</span>
         <span><span class="gl-key gl-key-prepcom"></span>PrepComs</span>
@@ -146,9 +136,8 @@
   </div></section>
 
   <!-- IGCs and the package elements. Start: text left, cards right. Click a card:
-       the cards move under the text (left) and its sentence shows on the right
-       (glance.js). Names and two sentences each are written here (texts suggested by
-       Claude on 2026-11-12, based on the Pew issue brief linked in the credits). -->
+       the cards move under the text and its explainer shows on the right (glance.js).
+       Texts based on the Pew issue brief linked in the sources. -->
   <section class="gl-screen gl-tint gl-pkg-sec" id="gl-igcs"><div class="gl-split">
     <div class="gl-split-text">
       <p class="gl-big gl-reveal">During the seven Intergovernmental Conferences (IGCs) leading up to the adoption, states negotiated the Agreement text and its central package elements:</p>
@@ -181,13 +170,13 @@
           <p class="gl-pkg-text" data-k="eia">Planned activities on the high seas have to be assessed for possible harm to the marine environment before they go ahead. The reports are made public and the State responsible decides whether an activity proceeds. An activity should only go ahead if significant harm can be prevented or managed. New uses such as high seas aquaculture or geoengineering are also covered.</p>
           <p class="gl-pkg-text" data-k="cb">Capacity building and the transfer of marine technology are meant to help developing countries implement the Agreement and take part in it. Examples include sharing data and setting up technical and research programmes. The topic has its own chapter but also runs through the other three elements. A dedicated committee will monitor and review progress.</p>
         </div>
-        <!-- one small bar chart per package: its statements at each IGC (build.js) -->
+        <!-- one small column chart per package: its statements at each IGC (build.js) -->
         <div class="gl-pkg-igcs"></div>
       </div>
     </div>
   </div></section>
 
-  <!-- PrepComs: text left, bars right (bars built by js/build.js) -->
+  <!-- PrepComs: text left, bars right (build.js) -->
   <section class="gl-screen" id="gl-prepcoms"><div class="gl-split">
     <div class="gl-split-text">
       <p class="gl-big gl-reveal">The three Preparatory Commissions (PrepComs) following the Agreement adoption were spent negotiating the institutional infrastructure of the Agreement and preparing for the first COP.</p>
@@ -199,22 +188,18 @@
     </div>
   </div></section>
 
-  <!-- Who chaired the negotiations? (2026-11-18, no title of its own since the same day, part of
-       "The negotiation process", before photo 2; placeholder: content still to be worked out,
-       sketch 3a on the Design canvas, plan in claude/PLAN_new_sections_2026-11-18.md) -->
+  <!-- Who chaired the negotiations? Placeholder, content to come -->
   <section class="gl-screen gl-tint gl-chairs" id="gl-chairs"><div class="gl-wide">
     <div class="gl-placeholder gl-reveal gl-full">Chairs section to come: the IGC President, the facilitators of the package elements and the PrepCom Co-Chairs.</div>
   </div></section>
 
-  <!-- Photo banner 2 (2026-11-18, placeholder until the photo is chosen): full width, caption
-       bar at the bottom. Swap the placeholder div for <img src="img/photos/photo2.webp" alt="...">. -->
   <figure class="gl-photo gl-photo-2 gl-photo-inset">
     <img class="gl-photo-img" src="img/photos/photo2_podium_2000.jpg" srcset="img/photos/photo2_podium.jpg 1000w, img/photos/photo2_podium_2000.jpg 2000w" sizes="(max-width: 1148px) 100vw, 1100px" alt="IGC President Rena Lee speaking from the dais, with UN officials beside her and delegates in the foreground" loading="lazy" style="object-position: center 38%">
     <figcaption class="gl-photo-cap"><span>IGC President Rena Lee (Singapore) at the opening of IGC-3, New York, August 2019</span><a class="gl-photo-credit" href="https://enb.iisd.org/events/3rd-session-intergovernmental-conference-igc-conservation-and-sustainable-use-marine-0" target="_blank" rel="noopener">Photo by IISD/ENB | Francis Dejon</a></figcaption>
   </figure>
 
   <!-- The negotiation room: one dot per actor, states inside, everyone else outside
-       (js/build.js lays it out from the counts in the data; the dots pop in when it comes into view) -->
+       (build.js lays it out from the counts; glance.js draws the dots) -->
   <section class="gl-screen gl-tint gl-room-sec" id="gl-room-sec">
     <div class="gl-room-top"><h2 class="gl-head gl-room-head gl-reveal">Who took part in the negotiations?</h2></div>
     <div class="gl-split">
@@ -228,11 +213,9 @@
     </div>
   </div></section>
 
-  <!-- Most active actors (2026-11-13; toggle 2026-11-17): bubble chart, speaking time up the
-       side and as bubble size, statements along the bottom; the toggle switches between
-       states and the EU, international organisations and non-governmental actors (top 10
-       each, IGC and PrepCom statements only). Built by js/build.js from top_active and top_nonstate in glance_data.js
-       (data_cleaning.R, web_top_active() and web_top_nonstate()). -->
+  <!-- Most active actors: bubble chart (speaking time against statements), with a
+       toggle between states and the EU, international organisations and
+       non-governmental actors; IGC and PrepCom statements only (build.js) -->
   <section class="gl-screen gl-active-sec" id="gl-active-sec"><div class="gl-active">
     <p class="gl-big gl-reveal">Some actors are more active than others.</p>
     <p class="gl-small gl-reveal">See which states (and the EU), international organisations, and non-governmental actors engaged the most at the IGCs and PrepComs:</p>
@@ -250,8 +233,8 @@
   </div></section>
 
   <!-- Ratification and the actors globe: globe left (legend under it), sentence,
-       controls and country card right. Sized so globe and the whole card fit on one
-       screen. .gl-globe wraps the section so glance.js finds the controls. -->
+       controls and country card right. .gl-globe wraps the section so glance.js
+       finds the controls. -->
   <section class="gl-screen gl-tint gl-actors is-grp" id="gl-ratification"><div class="gl-globe gl-act">
     <div class="gl-split gl-split-rev">
       <div class="gl-split-vis gl-act-left">
@@ -278,32 +261,24 @@
               </div>
         </div>
         <div class="gl-card gl-reveal"><div class="gl-card-body" id="gl-card"><div class="gl-card-empty">Click a country on the globe to see its ratification status, how many statements it made during the negotiations, and on which topics it was most active. Toggle country blocs off to see only statements made in a national capacity.</div></div></div>
+        <p class="gl-note gl-reveal gl-card-note">Counts include statements from all sessions, including online dialogues and intersessional meetings.</p>
       </div>
     </div>
   </div></section>
 
-  <!-- Photo banner 3 (2026-11-18, placeholder until the photo is chosen): full width, caption
-       bar at the bottom. Swap the placeholder div for <img src="img/photos/photo3.webp" alt="...">. -->
   <figure class="gl-photo gl-photo-3 gl-photo-inset">
     <img class="gl-photo-img" src="img/photos/photo3_huddle.jpg" srcset="img/photos/photo3_huddle.jpg 1600w, img/photos/photo3_huddle_full.jpg 2800w" sizes="(max-width: 1148px) 100vw, 1100px" alt="Delegates sit close together in a circle of chairs between the desks of a UN conference room, talking with laptops on their knees" loading="lazy" style="object-position: center 55%">
     <figcaption class="gl-photo-cap"><span>A huddle at PrepCom-3, New York, April 2026</span><a class="gl-photo-credit" href="https://enb.iisd.org/media/huddle-discuss-cooperation-ifbs-3rd-session-bbnj-prepcom-1apr2026-photo" target="_blank" rel="noopener">Photo by IISD/ENB | Marc Calabretta</a></figcaption>
   </figure>
 
-  <!-- Try it yourself: taken out for now (2026-11-03). The code is still in
-       build.js (QUESTIONS, part 'cross') and does nothing without this section. -->
 
-  <!-- Next up, publications, literature -->
-  <!-- What happens next: the first COP and the Agreement's bodies (2026-11-16). Hub and
-       spokes: the COP in the middle, the bodies around it; clicking one shows what it does
-       (glance.js, COP block). Texts drafted by Claude from the Agreement, for Emil to check.
-       Each body has its own colour; orange and plum are the MGR and CB&TMT package colours. -->
+  <!-- What happens next: the COP in the middle, the Agreement's bodies around it;
+       clicking one shows what it does (glance.js, COP block) -->
   <section class="gl-screen gl-next" id="gl-next"><div class="gl-wide">
     <h2 class="gl-head gl-reveal">What happens next?</h2>
     <p class="gl-lead gl-reveal gl-cop-intro">Next on the agenda is the first Conference of the Parties (COP) in New York in January 2027. The COP is the governing body of the Agreement and is the space where the Parties will take decisions on its implementation. At its first meeting the COP is set to decide how the Agreement&rsquo;s bodies will work, building on the preparations of the three PrepComs.</p>
-    <!-- COP diagram: wider and oval since 2026-11-18 (hub 4:3, bodies on an ellipse rx 37.5%, ry 36.5%).
-         COP diagram back on the page (2026-11-18), from admin/backups/261116/cop_diagram/.
-         Four bodies end with a link to our paper (Emil, 2026-11-18). glance.js only listens to
-         clicks on .gl-cop-node, so the links inside .gl-cop-info work as they are. -->
+    <!-- Hub 4:3, bodies on an ellipse (rx 37.5%, ry 36.5%). glance.js only listens to
+         clicks on .gl-cop-node, so the paper links inside .gl-cop-info work as they are. -->
     <div class="gl-cop gl-reveal">
       <div class="gl-cop-hub">
         <svg class="gl-cop-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line class="gl-cop-spoke" data-k="stb" x1="50" y1="50" x2="50.0" y2="13.5"/><line class="gl-cop-spoke" data-k="abs" x1="50" y1="50" x2="79.3" y2="27.2"/><line class="gl-cop-spoke" data-k="cb" x1="50" y1="50" x2="86.6" y2="58.1"/><line class="gl-cop-spoke" data-k="fin" x1="50" y1="50" x2="66.3" y2="82.9"/><line class="gl-cop-spoke" data-k="icc" x1="50" y1="50" x2="33.7" y2="82.9"/><line class="gl-cop-spoke" data-k="sec" x1="50" y1="50" x2="13.4" y2="58.1"/><line class="gl-cop-spoke" data-k="chm" x1="50" y1="50" x2="20.7" y2="27.2"/></svg>
@@ -332,21 +307,16 @@
     </div>
   </div></section>
 
-  <!-- The secretariat (2026-11-18, sketch 3b; moved after the COP diagram the same day, no
-       title, part of "What happens next"): DOALOS as interim secretariat, the bids to host the
-       permanent one, decision at COP-1. Facts only, no assessment of the bids. Its own grey
-       section (Emil, 2026-11-18); the animation was dropped. Card links: joint bid: Belgian MFA joint statement and the two earlier separate bids on the UN site; China: its bid on the UN site. -->
+  <!-- The secretariat: DOALOS as interim secretariat, the bids to host the permanent
+       one, decision at COP-1. Facts only, no assessment of the bids. -->
   <section class="gl-screen gl-tint gl-sec" id="gl-secretariat"><div class="gl-wide">
     <p class="gl-big gl-reveal gl-sec-txt">Until now, the UN Division for Ocean Affairs and the Law of the Sea (DOALOS) has acted as the BBNJ&rsquo;s interim secretariat.</p>
     <p class="gl-lead gl-reveal gl-sec-txt">Where the permanent secretariat will sit is one of the first and biggest decisions of the COP. The secretariat is central to supporting the work of the COP and its subsidiary bodies, organising official meetings, coordinating with other international bodies, as well as managing the Clearing-House Mechanism.</p>
-    <!-- Timeline with the first announcements (Emil, 2026-11-18). Sources: Chile and Belgium, March 2023:
-         both announced right after the text was agreed on 4 March 2023 (Chile: MFA made it official on
-         9 March 2023, chile.gob.cl OAS page; Belgium: Belgian MFA "immediately launched its candidacy",
-         formal Council of Ministers decision 8 September 2023); PrepCom-2,
-         August 2025: Co-Chairs' closing statement; China, 16 January 2026: letter to the UN
-         Secretary-General (Chinese MFA, 20 January; no earlier public mention found); PrepCom-3, March 2026: presentations; joint bid,
-         6 November 2026: joint statement; COP-1, January 2027. Equal spacing, not to scale.
-         Animated (CSS): the line draws left to right, the points come in one after the other. -->
+    <!-- Timeline, equal spacing (not to scale). Sources: Chile and Belgium announced
+         their candidacies right after the text was agreed on 4 March 2023 (Chilean and
+         Belgian foreign ministries); PrepCom-2: Co-Chairs' closing statement; China,
+         16 January 2026: letter to the UN Secretary-General (Chinese foreign ministry);
+         joint bid, 6 November 2026: joint statement. -->
     <ol class="gl-sec-tl gl-reveal gl-full" style="--n: 6">
       <li style="--i: 0"><span class="gl-sec-mk gl-sec-mk-dot" aria-hidden="true"></span><span class="gl-sec-when"><b>Chile and Belgium</b>March 2023</span><span class="gl-sec-what">Chile and Belgium each announce their candidacies, for Valpara&iacute;so and Brussels</span></li>
       <li style="--i: 1"><span class="gl-sec-mk gl-sec-mk-prepcom" aria-hidden="true"></span><span class="gl-sec-when"><b>PrepCom-2</b>August 2025</span><span class="gl-sec-what">The PrepCom officially invites bids</span></li>
@@ -355,13 +325,10 @@
       <li style="--i: 4"><span class="gl-sec-mk gl-sec-mk-dot" aria-hidden="true"></span><span class="gl-sec-when"><b>Joint bid</b>November 2026</span><span class="gl-sec-what">Belgium and Chile join their bids</span></li>
       <li style="--i: 5"><span class="gl-sec-mk gl-sec-mk-cop" aria-hidden="true"></span><span class="gl-sec-when"><b>COP-1</b>January 2027</span><span class="gl-sec-what">COP-1 decides the seat</span></li>
     </ol>
-    <!-- The bids (sketch Bids 4, Emil 2026-11-18): one sentence, a small map of the three
-         candidate cities (img/bids_map.svg: land from geo/land-low.js, equirectangular 72N to 56S;
-         pins placed in % of the map: x = (lon + 180) / 360, y = (72 - lat) / 128), the dashed line
-         joins the two cities of the joint bid; four equal links. -->
     <p class="gl-big gl-reveal gl-sec-txt">Two bids are now on the table: a joint bid by Belgium and Chile, with the secretariat in Valpara&iacute;so and the Clearing-House Mechanism in Brussels, and a bid by China, with both in Xiamen.</p>
-    <!-- Map (2026-11-18): the bid links sit in the city cards (whole card is the link), the joint
-         statement on the dashed line; a short hint under the map replaces the old row of links. -->
+    <!-- Map of the three candidate cities (img/bids_map.svg: land from geo/land-low.js,
+         equirectangular, 72N to 56S). Pins in % of the map: x = (lon + 180) / 360,
+         y = (72 - lat) / 128. The dashed line joins the two cities of the joint bid. -->
     <figure class="gl-map gl-reveal gl-full" aria-label="World map with the three candidate cities: Valpara&iacute;so in Chile and Brussels in Belgium, joined by a dashed line for their joint bid, and Xiamen in China">
       <img class="gl-map-bg" src="img/bids_map.svg" alt="">
       <svg class="gl-map-arc" viewBox="0 0 560 199" preserveAspectRatio="none" aria-hidden="true"><path d="M168.6,163.4 C175,90 220,40 286.8,32.9"/></svg>
@@ -373,27 +340,22 @@
     <p class="gl-small gl-map-hint gl-reveal">Click a city to open its original bid, or the dashed line for the joint statement of Belgium and Chile.</p>
   </div></section>
 
-  <!-- The Agreement and other organisations (IFBs) (2026-11-18, no title, part of "What happens next"; placeholder: content still to
-       be worked out, sketch 4 on the Design canvas; data from Langlet and Vadrot 2024, Review
-       of International Studies, and the Data in Brief dataset) -->
+  <!-- The Agreement and other organisations (IFBs). Placeholder, content to come -->
   <section class="gl-screen gl-ifb" id="gl-ifb"><div class="gl-wide">
     <p class="gl-big gl-reveal gl-sec-txt">The BBNJ Agreement is not alone in the high seas. Another central issue going forward will be how the Agreement relates to existing regimes with mandates in areas beyond national jurisdiction.</p>
     <div class="gl-placeholder gl-reveal gl-full">Section to come: how the BBNJ Agreement will work with the organisations and agreements that already govern parts of the high seas (IFBs).</div>
     <p class="gl-lead gl-reveal">We will be on-site in New York to report from the COP and to continue collecting our data.</p>
   </div></section>
 
-  <!-- Literature: our publications and the literature collection, its own section
-       since 2026-11-13 (was the end of "What happens next?") -->
+  <!-- Literature: our publications and the literature collection -->
   <section class="gl-screen gl-tint gl-lit-sec" id="gl-literature"><div class="gl-wide">
     <h2 class="gl-head gl-reveal">Literature</h2>
     <p class="gl-lead gl-reveal">In the meantime, browse all of our publications on the BBNJ so far, or explore our curated collection of research on the BBNJ Agreement and its negotiations:</p>
-    <!-- publications left, literature collection card right (Emil, 2026-11-13);
-         one column below 900px -->
+    <!-- publications left, literature collection card right; one column below 900px -->
     <div class="gl-lit-two">
-      <div class="gl-lit-col gl-reveal">   <!-- one reveal for the gallery and its button, so they fade in together -->
-      <!-- Gallery of papers, newest first (2026-11-03): BBNJ papers from the
-           MARIPOLDATA and TwinPolitics publication pages (no project label, 2026-11-03). The first eight show; the
-           rest open with the button (glance.js, pubsMore). -->
+      <div class="gl-lit-col gl-reveal">
+      <!-- BBNJ papers from the MARIPOLDATA and TwinPolitics publication pages, newest
+           first. The first six show; the rest open with the button (glance.js, pubsMore). -->
       <div class="gl-pubs">
         <a class="gl-pub" href="https://doi.org/10.1093/ia/iiag120" target="_blank" rel="noopener"><span class="gl-pub-yr">2026</span><span class="gl-pub-t">Negotiating marine biodiversity science advice: a new epistemic order for areas beyond national jurisdiction?</span><span class="gl-pub-a">Fellinger &amp; Vadrot, <i>International Affairs</i></span></a>
         <a class="gl-pub" href="https://doi.org/10.1016/j.marpol.2026.107079" target="_blank" rel="noopener"><span class="gl-pub-yr">2026</span><span class="gl-pub-t">From data rationales to data infrastructure: Implications for the BBNJ clearing-house mechanism</span><span class="gl-pub-a">Lyu, Langlet-Uran&uuml;s &amp; Vadrot, <i>Marine Policy</i></span></a>
@@ -419,8 +381,8 @@
       </div>
       </div>
       <div class="gl-lit-col">
-      <!-- Literature card: a screenshot of the list (img/literature.jpg, made from
-           literature.html; retake it if that page changes a lot) -->
+      <!-- Literature card: a screenshot of literature.html (img/literature.jpg; retake it
+           if that page changes a lot) -->
       <a class="gl-lit-card gl-reveal" href="literature.html">
         <span class="gl-lit-shot"><img src="img/literature.jpg" alt="Preview of the BBNJ literature collection" loading="lazy"></span>
         <span class="gl-lit-info">
@@ -436,8 +398,6 @@
 
   <!-- Who are we? -->
   <section class="gl-screen gl-who" id="gl-who"><div class="gl-wide">
-    <!-- Who are we (sketch A, Emil 2026-11-13): text and links left, project cards and
-         the two numbers right, funder logos in one labelled row. Each fact is said once. -->
     <h2 class="gl-head gl-reveal">Who are we?</h2>
     <div class="gl-who-grid">
       <div class="gl-who-text">
@@ -476,9 +436,8 @@
     </div>
   </div></section>
 
-  <!-- Ending: funding, sources, credits (external links dropped 2026-11-03) -->
+  <!-- Funding, sources, credits -->
   <footer class="gl-foot-wrap"><div class="gl-foot-inner">
-    <!-- Acknowledgements (supervisor feedback, 2026-11-16): placeholder until Emil has the names -->
     <p class="gl-fund gl-ack">[Acknowledgements: ...]</p>
     <p class="gl-fund">The TwinPolitics and MARIPOLDATA projects have received funding from the European Research Council (ERC) under the European Union&rsquo;s Horizon Europe and Horizon 2020 research and innovation programmes (grant agreements No 101124903 &ndash; TwinPolitics &ndash; ERC-2023-CoG and No 804599 &ndash; MARIPOLDATA &ndash; ERC-2018-STG).</p>
     <p class="gl-fund">Views and opinions expressed are however those of the author(s) only and do not necessarily reflect those of the European Union or the European Research Council. Neither the European Union nor the granting authority can be held responsible for them.</p>
@@ -509,7 +468,6 @@
 <script src="geo/land-low.js"></script>
 <script src="geo/countries-low.js"></script>
 <script src="data/glance_data.js"></script>
-<script src="data/literature_data.js"></script>
 <script src="js/build.js"></script>
 <script src="js/glance.js"></script>
 </body>

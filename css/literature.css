@@ -1,7 +1,6 @@
 /* Literature page (literature.html). Builds on glance.css. Up to 1320px wide; from
-   1000px up the filters sit in a sticky column on the left of the list (2026-11-12). Rebuilt 2026-11-12:
-   search and filters, abstracts on click, plain text metadata (no tag pills).
-   Text sizes kept to 12 / 13 / 14 / 15 for small text, Inter throughout. */
+   1000px up the filters sit in a sticky column on the left of the list. Abstracts
+   open on click. Text sizes kept to 12 / 13 / 14 / 15 for small text, Inter throughout. */
 .lit-shell { min-height: 100vh; }
 .lit-shell .lit-top { padding: 20px 24px; border-bottom: 1px solid #eceef0; }
 .lit-shell .lit-back { font-size: 14px; color: #006AB4; text-decoration: none; }
@@ -130,6 +129,6 @@
 .lit-shell .lit-pages button:disabled { opacity: 0.4; cursor: default; }
 .lit-shell .lit-gap { align-self: center; color: #8a929a; padding: 0 4px; }
 
-/* 'Last updated' under the explainer (2026-11-13) */
+/* 'Last run' date of the Scopus search, under the explainer */
 .lit-shell .lit-updated { margin-left: 14px; padding-left: 14px; border-left: 1px solid #cfd7df; font-size: 13px; font-weight: 400; color: #8a929a; }
 .lit-shell .lit-updated[hidden] { display: none; }

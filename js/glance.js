@@ -1,8 +1,9 @@
 // glance.js: globes, scroll animations and clicks for the BBNJ page.
 // Map files come from geo/*.js (window.GL_GEO) so the page also works from
 // file://; the country card is drawn by build.js (window.GLANCE.renderCard).
-// Three blocks, each on its own so one failing leaves the others working:
-// the title globe, the actors globe, and the scroll animations.
+// Separate blocks, so one failing leaves the others working: the title globe,
+// the actors globe, clicks and scroll animations, the menu, in-page links and
+// the COP diagram.
 // Check with `node --check js/glance.js` after edits.
 
 // ---- QUALITY: slow computers ---------------------------------------------------
@@ -244,7 +245,7 @@ function glQuality() {
     });
     // "Count": 'nat' national capacity only, 'grp' including group statements.
     // A country with no statements in the current count is drawn grey but can
-    // still be hovered and clicked (name and card; 2026-11-03).
+    // still be hovered and clicked (name and card).
     var scope = 'grp';                                  // country blocs on by default
     var on = root.querySelector('.gl-g-scope .is-active');
     if (on && on.getAttribute('data-scope') === 'nat') scope = 'nat';
@@ -556,10 +557,10 @@ function glQuality() {
 })();
 
 
-// ---- Clicks, reveal animations and the pinned meeting overview -------------
+// ---- Clicks, reveal animations and the meeting overview --------------------
 // Content is only hidden once this block has added `gl-anim` to <html>. With
 // "reduce motion" switched on, or without IntersectionObserver, nothing is
-// hidden and the pinned section shows its final state.
+// hidden and the meeting overview shows its final state.
 (function () {
   'use strict';
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -575,11 +576,10 @@ function glQuality() {
   // right where the cards were. Click another card to switch; click the open one
   // again to go back. The move is animated (FLIP: measure, move, slide from the old
   // place); with reduce motion it just jumps.
-  var reduceMo = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   function flipMove(cards, change) {
     var first = cards.map(function (c) { return c.getBoundingClientRect(); });
     change();
-    if (reduceMo) return;
+    if (reduce) return;
     cards.forEach(function (c, i) {
       var last = c.getBoundingClientRect();
       var dx = first[i].left - last.left, dy = first[i].top - last.top;
@@ -693,7 +693,7 @@ function glQuality() {
     });
   }
   if (anim) {
-    // Reveal by section (Emil, 2026-11-16): when a section comes into view, all its
+    // Reveal by section: when a section comes into view, all its
     // .gl-reveal elements fade in one after the other (STEP apart), so nothing in it
     // stays hidden because the reader has not scrolled far enough. Leaving below
     // resets the section so it plays again; leaving above shows everything.
@@ -744,8 +744,7 @@ function glQuality() {
     });
   }
 
-  // ---- Pinned sections ----------------------------------------------------------
-  // ---- The Agreement and the official meetings (not pinned, 2026-11-03) ----------
+  // ---- The Agreement and the official meetings ------------------------------------
   // Part one shows the Agreement big in its slot. A short scroll on (MO_GO px past
   // the middle of the screen) sends it gliding down into its place in the row of
   // meetings in part two (0.8 s, on its own). From 0.3 s into the glide, once the row
@@ -755,7 +754,6 @@ function glQuality() {
   var AG_ROW = 0.62;                                  // Agreement size in the row, as a share of its full size
   var SQ_MID = 26;                                    // half the square: its centre within the .gl-meet box
   var MO_GO = 140, MO_BACK = 60;                      // px scrolled past the slot to send it down / bring it back
-  var MO_GLIDE = 800;                                 // ms the glide takes (the CSS transition)
   var MO_POP = 300;                                   // ms into the glide when the meetings start to come in
 
   function moParts(sec, stage) {
@@ -843,7 +841,7 @@ function glQuality() {
 
   // Tooltip for the meetings and the Agreement
   function moTip(stage) {
-    var tip = stage.querySelector('.gl-tl-tip');
+    var tip = stage.querySelector('.gl-mo-tip');
     if (!tip) return;
     stage.addEventListener('mousemove', function (e) {
       var t = e.target && e.target.closest ? e.target.closest('.gl-meet:not(.is-hid)') : null;
@@ -1027,8 +1025,6 @@ function glQuality() {
 // ---- COP and the Agreement's bodies ------------------------------------------------
 // Click a body in the hub to show its text in the panel and mark its spoke. Clicking the
 // open body again goes back to the COP. Texts live in index.html (.gl-cop-info).
-// The texts carry paper links for four bodies (2026-11-18), already in the saved diagram
-// (admin/backups/261116/cop_diagram/).
 (function () {
   'use strict';
   try {

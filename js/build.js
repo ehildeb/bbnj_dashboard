@@ -14,11 +14,10 @@
     return;
   }
 
-  // States on the globe with no statements in the data (Emil, 2026-11-03): they get a
-  // hover name and a card too (flag, name, ratification, "no statements"). Hand-written
-  // here until data_cleaning.R keeps states with no statements: signature and
-  // ratification dates from claude/bbnj_ratification_status.csv (UN Treaty Collection).
-  // A state the data already has is not added twice.
+  // States with no statements in the data: on the globe they still get a hover name
+  // and a card (flag, name, ratification, "no statements"). Signature and
+  // ratification dates from the UN Treaty Collection. A state the data already has
+  // is not added twice.
   var NO_STATEMENTS = [
     { isonum: '008', iso2: 'al', name: 'Albania', sig: '2025-02-20', rat: '2025-06-09' },
     { isonum: '020', iso2: 'ad', name: 'Andorra', sig: '2025-06-09', rat: null },
@@ -40,27 +39,21 @@
   }
 
   // ---- Colours and names --------------------------------------------------------
-  var PAL = {
-    igc: '#5cc79a', prepcom: '#f0b27f', cop: '#9cc8f0',
-    dialogue: '#9486c8', intersess: '#5ba4ae', informal: '#c8b79a'
-  };
-  var CLASS_LABELS = {
-    igc: 'IGCs', prepcom: 'PrepComs', cop: 'COP', dialogue: 'Online dialogues',
-    intersess: 'Intersessional meetings', informal: 'Other meetings'
-  };
-  // globe only: four clearly different hues (green, blue, orange, magenta)
-  var PKG_COLS = { mgr: '#d9965a', abmt: '#4683c4', eia: '#45a774', cb: '#a26a9e' };   // MGR orange, EIA green (swapped 2026-11-03)
-  var CROSS_COLS = ['#5cc79a', '#f0b27f', '#002F62', '#9486c8', '#5ba4ae', '#3670a8', '#009EE3', '#c8b79a'];
-  var CROSS_GREY = '#b8c0c8';
-  // Negotiation room: states in the inner rows, everyone else outside
-  // Country blocs are not drawn; the other types are shown in two groups
-  // (the counts in the data stay by type, see ROOM_JOIN)
+  var PAL = { igc: '#5cc79a', prepcom: '#f0b27f', cop: '#9cc8f0' };
+  var CLASS_LABELS = { igc: 'IGCs', prepcom: 'PrepComs', cop: 'COP' };
+  // package elements on the cards, the IGC charts and the globe
+  var PKG_COLS = { mgr: '#d9965a', abmt: '#4683c4', eia: '#45a774', cb: '#a26a9e' };
+  // Negotiation room: states in the inner rows, the other actor types in wedges in
+  // the outer rows (ROOM_JOIN). Same colours and legend labels as the most active
+  // chart (scientific institutes and businesses are shown as NGOs there too).
+  // Country blocs are not drawn.
   var ROOM = {
-    state:  { col: '#002F62', name: 'States' },
-    intl:   { col: '#009EE3', name: 'UN bodies and intergovernmental organisations' },
-    nongov: { col: '#5cc79a', name: 'NGOs, scientific institutes and businesses' }
+    state:  { col: '#2f6fae', name: 'State' },
+    un:     { col: '#a58bd8', name: 'UN body, agency or treaty' },
+    igo:    { col: '#5a3d9a', name: 'Intergovernmental organisation' },
+    nongov: { col: '#3fae7d', name: 'NGO' }
   };
-  var ROOM_JOIN = { un: 'intl', igo: 'intl', ngo: 'nongov', sci: 'nongov', bus: 'nongov' };
+  var ROOM_JOIN = { un: 'un', igo: 'igo', ngo: 'nongov', sci: 'nongov', bus: 'nongov' };
   var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
                 'August', 'September', 'October', 'November', 'December'];
 
@@ -78,24 +71,11 @@
     if (html !== undefined) e.innerHTML = html;
     return e;
   }
-  var WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten',
-               'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen',
-               'eighteen', 'nineteen', 'twenty'];
-  function word(n, cap) {
-    var w = n >= 0 && n <= 20 ? WORDS[n] : String(n);
-    return cap ? w.charAt(0).toUpperCase() + w.slice(1) : w;
-  }
-  // A round number below n, for "more than" and "over": 1,009 becomes 1,000, 77 becomes 70
+  // A round number below n, for "more than": 1,009 becomes 1,000, 77 becomes 70
   function floorNice(n) {
     if (n >= 1000) return Math.floor(n / 100) * 100;
     if (n >= 20) return Math.floor(n / 10) * 10;
     return n;
-  }
-  // Down to a round figure for "more than": 219 to 200, 41 to 40, 1,009 to 1,000
-  function roundDown(n) {
-    if (!(n > 0)) return 0;
-    var u = Math.pow(10, Math.floor(Math.log(n) / Math.LN10));
-    return Math.floor(n / u) * u;
   }
   // Down to the nearest 5 below n, for "more than" and "over": 126 to 125, 125 to 120
   function below5(n) { return n > 5 ? Math.floor((n - 1) / 5) * 5 : n; }
@@ -106,22 +86,19 @@
   }
 
   var M = D.meta;
-  var A = D.actors || { total: 0, states: 0, others: [] };
+  var A = D.actors || { states: 0, others: [] };
   var nonState = 0;
   (A.others || []).forEach(function (o) { if (o.key !== 'group') nonState += o.n; });
+  // Numbers named in index.html by data-gl (counted up) and data-gl-text (plain)
   var nums = {
-    n_meetings: M.n_meetings, n_statements: M.n_statements, n_actors: M.n_actors,
-    n_topics: M.n_topics, n_official: M.n_official, n_other: M.n_other,
-    n_igc: M.n_igc, n_prepcom: M.n_prepcom, n_before: M.n_before, n_after: M.n_after,
-    n_observations: M.n_observations, hours_floor: floorNice(M.hours || 0),
+    n_statements: M.n_statements, n_observations: M.n_observations,
+    hours_floor: floorNice(M.hours || 0),
     n_nonstate_floor: below5(nonState),
     // states that spoke in their own name, and all states reached (own name or via a bloc)
     n_states_own_floor: below5((D.countries || []).filter(function (c) { return c.n > 0; }).length),
     n_states_all_floor: below5((D.countries || []).filter(function (c) { return c.ng > 0; }).length),
-    n_packages: (D.packages || []).length, first_year: M.first_year,
-    last_year: (M.last_date || '').slice(0, 4),
-    n_actors_round: roundDown(M.n_actors), n_topics_round: roundDown(M.n_topics),
-    n_meetings_round: roundDown(M.n_meetings)
+    first_year: M.first_year,
+    last_year: (M.last_date || '').slice(0, 4)
   };
 
   // ---- Numbers in the text --------------------------------------------------------
@@ -136,25 +113,8 @@
       var v = nums[e.getAttribute('data-gl-text')];
       if (v !== undefined) e.textContent = typeof v === 'number' ? fmt(v) : v;
     });
-    // "more than" only when the real number is above its round figure
-    $$('[data-gl-more]').forEach(function (e) {
-      var v = M[e.getAttribute('data-gl-more')];
-      if (typeof v === 'number' && roundDown(v) >= v) e.hidden = true;
-    });
-    $$('[data-gl-word]').forEach(function (e) {
-      var v = nums[e.getAttribute('data-gl-word')];
-      if (v !== undefined) e.textContent = word(v, e.hasAttribute('data-cap'));
-    });
-    $$('[data-gl-date]').forEach(function (e) {
-      var v = M[e.getAttribute('data-gl-date')];
-      if (v) e.textContent = longDate(v);
-    });
-    var R = D.ratification;
-    $$('[data-gl-rat]').forEach(function (e) {
-      if (R && R[e.getAttribute('data-gl-rat')] !== undefined) e.textContent = R[e.getAttribute('data-gl-rat')];
-    });
-    var lit = window.LIT_DATA, ln = $('#gl-lit-n');
-    if (ln && lit && lit.n) ln.textContent = fmt(lit.n) + ' papers';
+    var ln = $('#gl-lit-n');
+    if (ln && M.n_papers) ln.textContent = fmt(M.n_papers) + ' papers';
   });
 
   // ---- Ratification sentence --------------------------------------------------------
@@ -168,30 +128,24 @@
     if (u) { if (R.as_of) u.textContent = 'Last updated: ' + R.as_of + ' (UN Treaty Collection)'; else u.hidden = true; }
   });
 
-  // ---- The negotiations at a glance: the Agreement and the meetings ------------
-  // Builds the pieces; glance.js places them (all absolutely positioned in
-  // #gl-mo-stage). Each square carries what glance.js needs: data-side (before
-  // or after the adoption, official meetings only), data-pos (place in date
-  // order among all meetings, 0 = first) and data-tip (name and dates). Online
-  // and intersessional meetings get the same square, without a label.
+  // ---- The Agreement and the official meetings -----------------------------------
+  // Builds the pieces; glance.js places them (absolutely positioned in
+  // #gl-mo-stage). Each square carries data-pos (its place in date order, 0 =
+  // first) and data-tip (name and dates); the stage carries data-agr, the place of
+  // the Agreement between the meetings before and after its adoption.
   part('meetings', function () {
     var stage = $('#gl-mo-stage'), mt = D.meetings;
     if (!stage || !mt) return;
-    var off = (mt.official || []).slice(), other = mt.other || [];
+    var off = mt.official || [];
     var adopt = mt.adoption || '2023-06-19';
-    var N = mt.n_all + (mt.has_cop ? 0 : 1);           // places in the row (COP-1 last until it is in the data)
-    // the Agreement sits just after the last meeting that started by the adoption day
     var nBefore = 0;
     off.forEach(function (m) { if (m.start <= adopt) nBefore++; });
-    other.forEach(function (m) { if (m.start <= adopt) nBefore++; });
-    stage.setAttribute('data-n', N);
     stage.setAttribute('data-agr', nBefore - 0.5);
 
     var agr = el('a', 'gl-mo-agr');
     agr.href = 'https://www.un.org/bbnjagreement/en/bbnj-agreement/text-bbnj-agreement';
     agr.target = '_blank';
     agr.rel = 'noopener';
-    // Stand-in cover until a picture of the real front page is added
     agr.innerHTML = '<span class="gl-mo-cover"><span class="gl-mo-cover-k">Agreement</span>' +
       '<span class="gl-mo-cover-t">under the United Nations Convention on the Law of the Sea on the Conservation ' +
       'and Sustainable Use of Marine Biological Diversity of Areas beyond National Jurisdiction</span>' +
@@ -199,7 +153,7 @@
     (stage.closest('.gl-mo') || stage).appendChild(agr);   // outside the stage: it travels between the two parts
 
     // Earth Negotiations Bulletin (ENB, IISD) summary report of each official
-    // meeting, by meeting key (checked 2026-11-03). A square with a report is a link.
+    // meeting, by meeting key. A square with a report is a link.
     var ENB = {
       igc1: 'https://enb.iisd.org/events/1st-session-intergovernmental-conference-igc-international-legally-binding-instrument-12',
       igc2: 'https://enb.iisd.org/events/2nd-session-intergovernmental-conference-igc-conservation-and-sustainable-use-marine/summary',
@@ -213,50 +167,42 @@
       prepcom3: 'https://enb.iisd.org/marine-biodiversity-beyond-national-jurisdiction-bbnj-cop-prepcom3-summary'
     };
 
-    // side: 'before' or 'after' (official meetings) or 'other'
-    function square(m, side, pos, outline) {
-      var url = side !== 'other' && m.key ? ENB[m.key] : null;
-      var box = el(url ? 'a' : 'div', 'gl-meet is-hid' + (outline ? ' gl-meet-next' : '') + (side === 'other' ? ' gl-meet-x' : '') + (url ? ' gl-meet-link' : ''));
+    function square(m, pos, outline) {
+      var url = m.key ? ENB[m.key] : null;
+      var box = el(url ? 'a' : 'div', 'gl-meet is-hid' + (outline ? ' gl-meet-next' : '') + (url ? ' gl-meet-link' : ''));
       if (url) {
         box.href = url; box.target = '_blank'; box.rel = 'noopener';
         box.setAttribute('aria-label', m.label + ': Earth Negotiations Bulletin summary report');
         box.setAttribute('data-tip2', 'Click for the ENB summary report');
       }
-      box.setAttribute('data-cls', m.cls);
-      box.setAttribute('data-side', side);
       box.setAttribute('data-pos', pos);
       box.setAttribute('data-tip', m.tip);
       var sq = el('div', 'gl-meet-sq');
-      if (!outline) sq.style.background = PAL[m.cls] || PAL.informal;
+      if (!outline) sq.style.background = PAL[m.cls] || PAL.cop;
       box.appendChild(sq);
-      if (side !== 'other') {
-        box.appendChild(el('div', 'gl-meet-lbl', esc(m.label)));
-        box.appendChild(el('div', 'gl-meet-yr', esc(m.years)));
-      }
+      box.appendChild(el('div', 'gl-meet-lbl', esc(m.label)));
+      box.appendChild(el('div', 'gl-meet-yr', esc(m.years)));
       stage.appendChild(box);
     }
-    off.forEach(function (m) { square(m, m.start <= adopt ? 'before' : 'after', m.ord); });
-    // the online and intersessional meetings are no longer shown (Emil, 2026-11-03)
+    off.forEach(function (m) { square(m, m.ord); });
+    // COP-1 as an outline, last, until it is in the data
     if (!mt.has_cop) {
       square({ cls: 'cop', label: 'COP-1', years: 'January 2027', tip: 'COP-1: January 2027, New York' },
-             'after', N - 1, true);
+             off.length, true);
     }
-    stage.appendChild(el('div', 'gl-tl-tip'));
+    stage.appendChild(el('div', 'gl-mo-tip'));
 
-    // colour key: each type joins at the stage where its meetings appear (data-s)
+    // colour key: one entry per meeting type in the row
     var leg = $('#gl-mo-legend');
     if (leg) {
-      var stageOf = {};
-      off.forEach(function (m) { stageOf[m.cls] = Math.min(stageOf[m.cls] || 9, m.start <= adopt ? 1 : 2); });
-      if (!stageOf.cop) stageOf.cop = 2;
-      ['igc', 'prepcom', 'cop', 'dialogue', 'intersess', 'informal'].forEach(function (c) {
-        if (!stageOf[c]) return;
-        var k = el('span', 'gl-chart-key gl-mo-key',
-          '<span class="gl-legend-sw' + (c === 'cop' && !mt.has_cop ? ' gl-legend-next' : '') + '" style="background:' +
-          (c === 'cop' && !mt.has_cop ? '#ffffff' : PAL[c]) + '"></span>' +
-          esc(c === 'cop' && !mt.has_cop ? 'COP (next)' : CLASS_LABELS[c]));
-        k.setAttribute('data-s', stageOf[c]);
-        leg.appendChild(k);
+      var have = { cop: true };
+      off.forEach(function (m) { have[m.cls] = true; });
+      ['igc', 'prepcom', 'cop'].forEach(function (c) {
+        if (!have[c]) return;
+        var next = c === 'cop' && !mt.has_cop;
+        leg.appendChild(el('span', 'gl-chart-key gl-mo-key',
+          '<span class="gl-legend-sw' + (next ? ' gl-legend-next' : '') + '" style="background:' +
+          (next ? '#ffffff' : PAL[c]) + '"></span>' + esc(next ? 'COP (next)' : CLASS_LABELS[c])));
       });
     }
   });
@@ -342,10 +288,8 @@
     });
     dots.forEach(function (d) { if (d.ring === 'in') d.key = 'state'; });
 
-    var Hv = cy + dotR + 6, h = [];
-    // The dots are drawn on one canvas by glance.js (frame by frame, one layer):
-    // smooth even with ~200 dots popping in. Here only the box (same shape as the
-    // layout) and the dot list in layout units.
+    // The dots are drawn on one canvas by glance.js (roomAnim). Here only the box
+    // (same shape as the layout) and the dot list in layout units.
     var y0 = cy - R - dotR - 6, Hb = R + 2 * dotR + 12;
     box.innerHTML = '<div class="gl-room-box" style="padding-top:' + (Hb / Wv * 100).toFixed(3) + '%" aria-hidden="true">' +
       '<canvas class="gl-room-canvas"></canvas></div>';
@@ -353,7 +297,6 @@
       return { x: cx + d.r * Math.cos(d.ang), y: cy - d.r * Math.sin(d.ang) - y0, col: ROOM[d.key].col,
                out: d.ring === 'out', f: d.ord / Math.max(1, d.of - 1) };
     }) };
-    box.setAttribute('data-hv', Hv.toFixed(0));
 
     var leg = $('#gl-room-legend');
     if (leg) {
@@ -367,48 +310,45 @@
     }
   });
 
-  // ---- Most active actors: bubble chart with a toggle (2026-11-13; toggle 2026-11-17) --
-  // Three lists from data_cleaning.R, each the top 10 by speaking time:
-  //   states and the EU (top_active, web_top_active(): other blocs left out, Emil 2026-11-17)
-  //   international organisations (top_nonstate.intl: UN bodies and agencies, UN
-  //     environmental treaties, IGOs)
-  //   non-governmental actors (top_nonstate.nongov: NGOs incl. the High Seas Alliance,
-  //     scientific institutes, businesses)
-  // x: statements, y: hours of speaking time, bubble area: hours. Linear axes that start
-  // near the data, not at zero (a log version was tried and dropped, Emil 2026-11-13);
-  // the axes rescale on every tab. Labels go right of the bubble, or left, above or
-  // below when that spot is taken. The bubbles grow in once the chart scrolls into view
-  // and again on every tab switch; hover dims the others.
+  // ---- Most active actors: bubble chart with a toggle -----------------------------
+  // Three lists from data_cleaning.R (IGCs and PrepComs only), each the top 10 by
+  // speaking time:
+  //   states and the EU (top_active)
+  //   international organisations (top_nonstate.intl: UN bodies, agencies and
+  //     treaties, IGOs)
+  //   non-governmental actors (top_nonstate.nongov: NGOs, scientific institutes,
+  //     businesses)
+  // x: statements, y: hours of speaking time, bubble area: hours. Linear axes that
+  // start near the data, not at zero; they rescale on every tab. Labels go right of
+  // the bubble, or left, above or below when that spot is taken. The bubbles grow in
+  // once the chart scrolls into view and again on every tab switch; hover dims the
+  // others.
   part('most active', function () {
     var box = $('#gl-active'), sec = box && box.closest('.gl-active');
     var NS_ = D.top_nonstate || {};
-    // IGC and PrepCom statements only (data_cleaning.R; Emil, 2026-11-17)
     var SETS = {
       state:  { list: D.top_active || [], what: 'states and the EU' },
       intl:   { list: NS_.intl || [],     what: 'international organisations' },
-      // every non-governmental actor shown as NGO, one colour and one key entry (Emil,
-      // 2026-11-18: no Business type; the ICPC is typed business in the data)
+      // every non-governmental actor is shown as NGO: one colour, one key entry
       nongov: { list: (NS_.nongov || []).map(function (t) {
                   var c = {}; for (var q in t) c[q] = t[q]; c.kind = 'ngo'; return c; }),
                 what: 'non-governmental actors' }
     };
     if (!box || !SETS.state.list.length) { if (sec) sec.style.display = 'none'; return; }
-    // colours and key labels by kind (international in purple, non-governmental in the
-    // green of the negotiation room dots; one shade per type)
+    // colours and key labels by kind: states in blue, international organisations in
+    // purple, NGOs in the green of the negotiation room dots
     var KINDS = {
       state: { col: '#2f6fae', name: 'State' },
-      bloc:  { col: '#002F62', name: 'EU' },          // the only bloc in the list (others left out in data_cleaning.R)
-      un:    { col: '#a58bd8', name: 'UN body, agency or treaty' },          // purples: clearly apart from
-      igo:   { col: '#5a3d9a', name: 'Intergovernmental organisation' },     // the state blues (Emil, 2026-11-17)
-      ngo:   { col: '#3fae7d', name: 'NGO' },
-      sci:   { col: '#9ad9bb', name: 'Scientific institute' },
-      bus:   { col: '#1f7a52', name: 'Business' }
+      bloc:  { col: '#002F62', name: 'EU' },          // the only bloc in the list
+      un:    { col: '#a58bd8', name: 'UN body, agency or treaty' },
+      igo:   { col: '#5a3d9a', name: 'Intergovernmental organisation' },
+      ngo:   { col: '#3fae7d', name: 'NGO' }
     };
     var NS = 'http://www.w3.org/2000/svg', W = 1036, H = 480, m = { l: 64, r: 24, t: 14, b: 46 };
     var NAMES = { 'United Kingdom of Great Britain and Northern Ireland': 'United Kingdom',
                   'United States of America': 'United States', 'Russian Federation': 'Russia' };
     function name(t) { return NAMES[t.name] || t.name; }
-    // full name for hover and screen readers (non-state actors: acronym on the chart, 2026-11-17)
+    // full name for hover and screen readers (non-state actors show an acronym on the chart)
     function full(t) { return t.full || name(t); }
     function S(tag, at, par) {
       var e = document.createElementNS(NS, tag);
@@ -447,8 +387,6 @@
 
       var nMin = Infinity, nMax = 0, hMin = Infinity, hMax = 0;
       T.forEach(function (t) { nMin = Math.min(nMin, t.n); nMax = Math.max(nMax, t.n); hMin = Math.min(hMin, t.hours); hMax = Math.max(hMax, t.hours); });
-      // linear axes on every tab (a log scale for the non-governmental tab was tried and
-      // dropped, Emil 2026-11-17)
       var xs = step(nMax - nMin), ys = step(hMax - hMin), XT = [], YT = [], v;
       var x0 = Math.max(0, Math.floor((nMin - (nMax - nMin) * 0.06) / (xs / 2)) * (xs / 2));
       var x1 = Math.ceil((nMax + (nMax - nMin) * 0.05) / (xs / 2)) * (xs / 2);
@@ -496,7 +434,7 @@
       }
       function hit(a) {                                    // how badly a label box collides (0: free)
         var bad = 0;
-        if (a.x < 2 || a.x + a.w > W - 2 || a.y < 0 || a.y + a.h > H - m.b) bad += 1e6;   // never outside the chart (long names, 2026-11-17)
+        if (a.x < 2 || a.x + a.w > W - 2 || a.y < 0 || a.y + a.h > H - m.b) bad += 1e6;   // never outside the chart
         else if (a.x < m.l) bad += 50;                    // over the hour labels: allowed, but avoided
         for (var i = 0; i < B.length; i++) {
           var c = B[i], nx = Math.max(a.x, Math.min(c.x, a.x + a.w)), ny = Math.max(a.y, Math.min(c.y, a.y + a.h));
@@ -517,7 +455,7 @@
           { x: b.x + d + g, y: b.y - d - h, a: 'start' }, { x: b.x + d + g, y: b.y + d, a: 'start' },
           { x: b.x - d - g - w, y: b.y - d - h, a: 'end' }, { x: b.x - d - g - w, y: b.y + d, a: 'end' }];
         // further up and to the right, joined by a thin line: only used when every close
-        // spot is taken (the corner of the non-governmental tab, 2026-11-17)
+        // spot is taken
         for (var f = 1; f <= 10; f++)
           spots.push({ x: b.x + b.r + 18 + f * 6, y: b.y - h / 2 - f * 20, a: 'start', far: true, cost: 25 + f * 4 });
         var s = spots[0], best = Infinity;
@@ -600,56 +538,36 @@
     draw('state');
 
     if (!animate) { seen = true; return; }
-    // start once a quarter of the chart is on screen (was 0.6: the bubbles stayed
-    // empty if the reader stopped higher up; Emil, 2026-11-16)
+    // start once a quarter of the chart is on screen
     var io = new IntersectionObserver(function (es) {
       if (es[0].isIntersecting) { io.disconnect(); seen = true; setTimeout(grow, 150); }
     }, { threshold: 0.25 });
     io.observe(box);
   });
 
-  // ---- Package cards: names, and a small bar chart per package --------------------
-  // The cards show no counts (Emil, 2026-11-03). Each package's explainer gets a
-  // column chart of its statements at each IGC, from cross.pairs
-  // 'section_level1|meeting' (IGCs with no statements on any package are left out).
+  // ---- Package cards: colours, and a small column chart per package ----------------
+  // The cards show no counts. Each package's explainer gets a column chart of its
+  // statements at each IGC (packages in glance_data.js).
   var pkgNames = {};
-  var PKG_MATCH = { mgr: /genetic/i, abmt: /area-based/i, eia: /impact/i, cb: /capacity/i };
   part('packages', function () {
     $$('.gl-pkg').forEach(function (card) {
       var k = card.getAttribute('data-k');
       pkgNames[k] = $('.gl-pkg-name', card).textContent;
       if (PKG_COLS[k]) card.style.setProperty('--pk', PKG_COLS[k]);   // same colours as the globe
     });
-    var box = $('.gl-pkg-igcs'), pr = D.cross && D.cross.pairs && D.cross.pairs['section_level1|meeting'];
-    if (!box || !pr) return;
-    var A = pr.a.labels, B = pr.b.labels, cls = pr.b.cls || [];
-    var rowOf = {};
-    Object.keys(PKG_MATCH).forEach(function (k) {
-      for (var i = 0; i < A.length; i++) if (PKG_MATCH[k].test(A[i])) { rowOf[k] = i; break; }
-    });
-    var cnt = {};                                       // cnt[package][meeting index]
-    Object.keys(rowOf).forEach(function (k) { cnt[k] = {}; });
-    pr.cells.forEach(function (c) {
-      Object.keys(rowOf).forEach(function (k) { if (rowOf[k] === c[0]) cnt[k][c[1]] = c[2]; });
-    });
-    var cols = [];                                      // IGCs in the order of the data
-    B.forEach(function (lab, j) {
-      if (cls[j] !== 'igc') return;
-      var any = Object.keys(cnt).some(function (k) { return cnt[k][j] > 0; });
-      if (any) cols.push(j);
-    });
-    Object.keys(cnt).forEach(function (k) {
-      var mx = 1;
-      cols.forEach(function (j) { mx = Math.max(mx, cnt[k][j] || 0); });
-      var h = '<div class="gl-pkg-igc" data-k="' + k + '" style="--pk:' + (PKG_COLS[k] || '') + '"><div class="gl-pkg-igc-t">Statements at each IGC</div><div class="gl-pkg-igc-cols">';
-      cols.forEach(function (j) {
-        var v = cnt[k][j] || 0;
-        // the IGC with the most statements is slightly highlighted (first one on a tie)
-        var top = v === mx && v > 0 && !h.includes('is-top');
-        h += '<div class="gl-pkg-igc-col' + (top ? ' is-top' : '') + '" aria-label="' + esc(B[j]) + ': ' + fmt(v) + ' statements">' +
+    var box = $('.gl-pkg-igcs'), P = D.packages;
+    if (!box || !P || !P.igcs) return;
+    (P.items || []).forEach(function (it) {
+      var mx = 1, top = -1;
+      it.n.forEach(function (v) { if (v > mx) mx = v; });
+      it.n.forEach(function (v, j) { if (top < 0 && v === mx) top = j; });   // highlighted: the IGC with the most
+      var h = '<div class="gl-pkg-igc" data-k="' + it.key + '" style="--pk:' + (PKG_COLS[it.key] || '') + '">' +
+        '<div class="gl-pkg-igc-t">Statements at each IGC</div><div class="gl-pkg-igc-cols">';
+      it.n.forEach(function (v, j) {
+        h += '<div class="gl-pkg-igc-col' + (j === top ? ' is-top' : '') + '" aria-label="' + esc(P.igcs[j]) + ': ' + fmt(v) + ' statements">' +
           '<span class="gl-pkg-igc-v">' + fmt(v) + '</span>' +
           '<span class="gl-pkg-igc-bar" style="height:' + Math.round(v / mx * 96) + 'px"></span>' +
-          '<span class="gl-pkg-igc-lbl">' + esc(B[j]) + '</span></div>';
+          '<span class="gl-pkg-igc-lbl">' + esc(P.igcs[j]) + '</span></div>';
       });
       box.insertAdjacentHTML('beforeend', h + '</div></div>');
     });
@@ -676,7 +594,7 @@
     }
   });
 
-  // ---- Growth chart ---------------------------------------------------
+  // ---- Growth chart: statements so far, with every meeting as a band ---------------
   part('growth', function () {
     var box = $('#gl-growth'), g = D.growth;
     if (!box || !g || !g.days || !g.days.length) return;
@@ -699,17 +617,17 @@
     var h = [];
     g.ticks.forEach(function (v) {
       var pos = 'top:' + ((1 - v / g.ymax) * 100).toFixed(3) + '%;';
-      h.push('<div class="home-grid-line" style="' + pos + '"></div>');
-      h.push('<div class="home-grid-lbl" style="' + pos + '">' + fmt(v) + '</div>');
+      h.push('<div class="gl-gr-grid-line" style="' + pos + '"></div>');
+      h.push('<div class="gl-gr-grid-lbl" style="' + pos + '">' + fmt(v) + '</div>');
     });
     // guide strips for formal sessions only
     g.meetings.forEach(function (m) {
       if (!m.formal) return;
       var l = pct(m.start), w = pct(m.end) - l;
-      h.push('<div class="home-guide" style="left:' + l.toFixed(3) + '%;width:' + w.toFixed(3) + '%;"></div>');
+      h.push('<div class="gl-gr-guide" style="left:' + l.toFixed(3) + '%;width:' + w.toFixed(3) + '%;"></div>');
     });
-    h.push('<svg class="home-chart-svg" viewBox="0 0 1000 300" preserveAspectRatio="none" aria-hidden="true">' +
-           '<path class="home-area" d="' + area + '"></path><path class="home-line" d="' + line + '"></path></svg>');
+    h.push('<svg class="gl-gr-chart-svg" viewBox="0 0 1000 300" preserveAspectRatio="none" aria-hidden="true">' +
+           '<path class="gl-gr-area" d="' + area + '"></path><path class="gl-gr-line" d="' + line + '"></path></svg>');
     // bands for every meeting; staggered labels with connectors for formal ones
     var fn = 0;
     g.meetings.forEach(function (m) {
@@ -717,11 +635,11 @@
       if (m.formal) fn += 1;
       var top = fn % 2 === 1 ? -88 : -72;
       if (m.formal) {
-        h.push('<div class="home-conn" style="left:' + cx.toFixed(3) + '%;top:' + (top + 15) + 'px;height:' + (-50 - (top + 15)) + 'px;"></div>');
+        h.push('<div class="gl-gr-conn" style="left:' + cx.toFixed(3) + '%;top:' + (top + 15) + 'px;height:' + (-50 - (top + 15)) + 'px;"></div>');
       }
-      h.push('<div class="home-band home-band-' + m.cls + '" style="left:' + l.toFixed(3) + '%;width:' + w.toFixed(3) + '%;"></div>');
+      h.push('<div class="gl-gr-band gl-gr-band-' + m.cls + '" style="left:' + l.toFixed(3) + '%;width:' + w.toFixed(3) + '%;"></div>');
       if (m.formal) {
-        h.push('<div class="home-mlbl" style="left:' + cx.toFixed(3) + '%;top:' + top + 'px;">' + esc(m.label) + '</div>');
+        h.push('<div class="gl-gr-mlbl" style="left:' + cx.toFixed(3) + '%;top:' + top + 'px;">' + esc(m.label) + '</div>');
       }
     });
     // year axis
@@ -730,12 +648,12 @@
       var iso = y + '-01-01', d = isoDays(iso);
       if (d <= t0 || d >= t1) continue;
       var pos = 'left:' + pct(iso).toFixed(3) + '%;';
-      h.push('<div class="home-ytick" style="' + pos + '"></div><div class="home-ylbl" style="' + pos + '">' + y + '</div>');
+      h.push('<div class="gl-gr-ytick" style="' + pos + '"></div><div class="gl-gr-ylbl" style="' + pos + '">' + y + '</div>');
     }
-    h.push('<div class="home-hover-line"></div><div class="home-tip"></div>');
+    h.push('<div class="gl-gr-hover-line"></div><div class="gl-gr-tip"></div>');
 
-    var chart = el('div', 'home-chart');
-    var plot = el('div', 'home-plot', h.join(''));
+    var chart = el('div', 'gl-gr-chart');
+    var plot = el('div', 'gl-gr-plot', h.join(''));
     plot.setAttribute('data-t0', g.t0);
     plot.setAttribute('data-t1', g.t1);
     plot.__days = g.days;
@@ -744,7 +662,7 @@
 
     // hover: date and statements so far
     var SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    var tip = $('.home-tip', plot), vline = $('.home-hover-line', plot);
+    var tip = $('.gl-gr-tip', plot), vline = $('.gl-gr-hover-line', plot);
     var dayNums = g.days.map(function (d) { return isoDays(d[0]); });
     function move(clientX, clientY) {
       var r = plot.getBoundingClientRect();
@@ -795,7 +713,7 @@
       return k;
     }
     var keys = el('div', 'gl-g-keys');
-    (D.packages || []).forEach(function (p) {
+    ((D.packages && D.packages.items) || []).forEach(function (p) {
       var full = pkgNames[p.key] || p.key;
       keys.appendChild(key(PKG_COLS[p.key], ABBR[p.key] || full, full));
     });
@@ -855,338 +773,6 @@
       topList(grp ? r.top_prepcom_g : r.top_prepcom, 'Most discussed at the PrepComs', 'prepcom') + '</div>';
   }
 
-  // ---- Try it yourself ---------------------------------------------------------------
-  // Every pair of variables is counted in advance by data_cleaning.R.
-  var cross = D.cross;
-  var view = 'bubbles';
-
-  // n colours spread along the palette (colorRampPalette in R)
-  function ramp(n) {
-    if (n <= CROSS_COLS.length) return CROSS_COLS.slice(0, n);
-    var rgb = CROSS_COLS.map(function (c) {
-      return [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)];
-    });
-    var out = [];
-    for (var i = 0; i < n; i++) {
-      var t = i / (n - 1) * (rgb.length - 1), k = Math.min(rgb.length - 2, Math.floor(t)), f = t - k;
-      out.push('#' + [0, 1, 2].map(function (j) {
-        var v = Math.round(rgb[k][j] + (rgb[k + 1][j] - rgb[k][j]) * f);
-        return (v < 16 ? '0' : '') + v.toString(16);
-      }).join(''));
-    }
-    return out;
-  }
-  function colsFor(side, isMeeting) {
-    if (isMeeting && side.cls) {
-      return side.cls.map(function (c) { return c === 'undef' ? CROSS_GREY : (PAL[c] || PAL.informal); });
-    }
-    var c = ramp(side.labels.length);
-    side.undef.forEach(function (u, i) { if (u) c[i] = CROSS_GREY; });
-    return c;
-  }
-  function shorten(x, n) { return x.length > n ? x.slice(0, n - 1) + '…' : x; }
-  function shortAll(labels, n) {
-    var s = labels.map(function (x) { return shorten(x, n); });
-    var seen = {}, dup = false;
-    s.forEach(function (x) { if (seen[x]) dup = true; seen[x] = true; });
-    return dup ? labels.slice() : s;
-  }
-  function varName(k) {
-    for (var i = 0; i < cross.vars.length; i++) if (cross.vars[i].key === k) return cross.vars[i].label.toLowerCase();
-    return k;
-  }
-
-  // Bubble matrix in SVG: rows = "Statements per", columns = "Split by",
-  // bubble area = statements, numbers inside bubbles of at least 45% of the largest
-  var SVGNS = 'http://www.w3.org/2000/svg';
-  function svgEl(tag, attrs, text) {
-    var e = document.createElementNS(SVGNS, tag);
-    for (var k in attrs) if (Object.prototype.hasOwnProperty.call(attrs, k)) e.setAttribute(k, attrs[k]);
-    if (text !== undefined) e.textContent = text;
-    return e;
-  }
-  function measure(svg, labels, size) {
-    var t = svgEl('text', { 'font-size': size, x: -9999, y: -9999 });
-    svg.appendChild(t);
-    var mx = 0;
-    labels.forEach(function (s) { t.textContent = s; mx = Math.max(mx, t.getComputedTextLength ? t.getComputedTextLength() : s.length * 6); });
-    svg.removeChild(t);
-    return mx;
-  }
-
-  function drawBubbles(p, v2) {
-    var box = $('#gl-bubbles'), tip = $('.gl-x-tip');
-    box.innerHTML = '';
-    var W = box.clientWidth;
-    if (!W) return;                                  // not laid out yet
-    if (!p.cells.length) { box.innerHTML = '<div class="gl-bx-empty">Nothing to show.</div>'; return; }
-    var ys = shortAll(p.a.labels, 34), xs = shortAll(p.b.labels, 30);
-    var cols = colsFor(p.b, v2 === 'meeting');
-    var R = ys.length, C = xs.length;
-    var svg = svgEl('svg', { width: W, role: 'img', 'aria-label': 'Bubble chart of statements' });
-    box.appendChild(svg);
-    var left = Math.min(Math.ceil(measure(svg, ys, 11)) + 12, Math.round(W * 0.4));
-    var tilt = C > 4;
-    var lw = measure(svg, xs, 11);
-    var top = tilt ? Math.ceil(lw * 0.58 + 14) : 28;
-    // tilted labels lean right: keep room so the last one stays inside the card
-    var right = tilt ? Math.max(8, Math.ceil(measure(svg, [xs[C - 1]], 11) * 0.82 - (W - left) / C / 2)) : 8;
-    var cw = (W - left - right) / C;
-    var ch = 46;
-    var maxD = Math.min(52, cw - 4, ch - 4);
-    var H = top + R * ch + 4;
-    svg.setAttribute('height', H);
-    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
-
-    var mx = 0;
-    p.cells.forEach(function (c) { mx = Math.max(mx, c[2]); });
-    var g = svgEl('g', {});
-    svg.appendChild(g);
-    for (var i = 0; i < R; i++) {
-      var cy = top + i * ch + ch / 2;
-      g.appendChild(svgEl('line', { 'class': 'gl-bx-grid', x1: left, x2: W - right, y1: cy, y2: cy }));
-      var yl = svgEl('text', { 'class': 'gl-bx-lbl', x: left - 10, y: cy, 'text-anchor': 'end', 'dominant-baseline': 'middle' }, ys[i]);
-      yl.appendChild(svgEl('title', {}, p.a.labels[i]));
-      g.appendChild(yl);
-    }
-    for (var j = 0; j < C; j++) {
-      var cx = left + j * cw + cw / 2;
-      g.appendChild(svgEl('line', { 'class': 'gl-bx-grid', x1: cx, x2: cx, y1: top, y2: top + R * ch }));
-      var xl = tilt
-        ? svgEl('text', { 'class': 'gl-bx-lbl', x: cx, y: top - 8, 'text-anchor': 'start', transform: 'rotate(-35 ' + cx + ' ' + (top - 8) + ')' }, xs[j])
-        : svgEl('text', { 'class': 'gl-bx-lbl', x: cx, y: top - 10, 'text-anchor': 'middle' }, xs[j]);
-      xl.appendChild(svgEl('title', {}, p.b.labels[j]));
-      g.appendChild(xl);
-    }
-    p.cells.forEach(function (c) {
-      var cx = left + c[1] * cw + cw / 2, cy = top + c[0] * ch + ch / 2;
-      var r = Math.max(1.5, Math.sqrt(c[2] / mx) * maxD / 2);
-      var circ = svgEl('circle', { cx: cx.toFixed(1), cy: cy.toFixed(1), r: r.toFixed(2), fill: cols[c[1]] });
-      circ.__glTip = '<b>' + esc(p.a.labels[c[0]]) + '</b><br>' + esc(p.b.labels[c[1]]) + '<br>' + fmt(c[2]) + ' statements';
-      g.appendChild(circ);
-      if (c[2] >= 0.45 * mx && r >= 11) {
-        g.appendChild(svgEl('text', { 'class': 'gl-bx-num', 'font-size': fmt(c[2]).length > 4 ? 10 : 11, x: cx.toFixed(1), y: cy.toFixed(1), 'text-anchor': 'middle', 'dominant-baseline': 'central' }, fmt(c[2])));
-      }
-    });
-    // hover (delegated on the svg)
-    var cur = null;
-    svg.addEventListener('mousemove', function (e) {
-      var t = e.target && e.target.tagName === 'circle' ? e.target : null;
-      if (cur && cur !== t) cur.classList.remove('is-hover');
-      cur = t;
-      if (!t) { tip.style.display = 'none'; return; }
-      t.classList.add('is-hover');
-      var br = $('.gl-cross').getBoundingClientRect();
-      tip.innerHTML = t.__glTip;
-      tip.style.display = 'block';
-      tip.style.left = (e.clientX - br.left) + 'px';
-      tip.style.top = (e.clientY - br.top) + 'px';
-    });
-    svg.addEventListener('mouseleave', function () {
-      if (cur) cur.classList.remove('is-hover');
-      cur = null;
-      tip.style.display = 'none';
-    });
-  }
-
-  function drawTable(p) {
-    var box = $('#gl-xtab');
-    if (!p.cells.length) { box.innerHTML = '<div class="gl-bx-empty">Nothing to show.</div>'; return; }
-    var mx = 0, m = {};
-    p.cells.forEach(function (c) { mx = Math.max(mx, c[2]); m[c[0] + ':' + c[1]] = c[2]; });
-    var h = '<table class="gl-xtab"><thead><tr><th></th>' +
-      p.b.labels.map(function (b) { return '<th>' + esc(b) + '</th>'; }).join('') + '</tr></thead><tbody>';
-    p.a.labels.forEach(function (a, i) {
-      h += '<tr><th scope="row">' + esc(a) + '</th>';
-      p.b.labels.forEach(function (b, j) {
-        var n = m[i + ':' + j] || 0;
-        var al = n === 0 ? 0 : 0.06 + 0.5 * n / mx;
-        h += '<td' + (n === 0 ? ' class="is-zero"' : '') + ' style="background:rgba(0,106,180,' + al.toFixed(2) + ')">' + fmt(n) + '</td>';
-      });
-      h += '</tr>';
-    });
-    box.innerHTML = h + '</tbody></table>';
-  }
-
-  // Notes name everything that is left out or counted more than once
-  function crossNote(p, v1, v2) {
-    var n = ['Bubble size and numbers count statements.'];
-    if (p.a.hidden > 0) n.push('Only the ' + p.a.labels.length + ' most frequent values of ' + varName(v1) + ' are shown (' + p.a.hidden + ' more are not).');
-    if (p.b.hidden > 0) n.push('Only the ' + p.b.labels.length + ' most frequent values of ' + varName(v2) + ' are shown (' + p.b.hidden + ' more are not).');
-    if (cross.multi.indexOf(v1) >= 0 || cross.multi.indexOf(v2) >= 0) n.push('A statement with several values (for example several actor types) counts under each of them.');
-    if (v1 === 'actor' || v2 === 'actor') n.push('Chair roles are not counted as actors (' + cross.chair_text + ').');
-    return n.join(' ');
-  }
-
-  function renderCross() {
-    var sx = $('#gl-x'), sf = $('#gl-fill');
-    if (!sx || !sf || !cross) return;
-    var v1 = sx.value, v2 = sf.value, note = $('#gl-cross-note');
-    var bub = $('#gl-bubbles'), tab = $('#gl-xtab');
-    bub.hidden = view !== 'bubbles';
-    tab.hidden = view !== 'table';
-    if (v1 === v2) {
-      bub.innerHTML = tab.innerHTML = '<div class="gl-bx-empty">Pick two different things.</div>';
-      note.textContent = '';
-      return;
-    }
-    var p = cross.pairs[v1 + '|' + v2];
-    if (!p) { bub.innerHTML = tab.innerHTML = '<div class="gl-bx-empty">Nothing to show.</div>'; note.textContent = ''; return; }
-    if (view === 'bubbles') drawBubbles(p, v2); else drawTable(p);
-    note.textContent = crossNote(p, v1, v2);
-  }
-
-  // Question cards: each sets the two variables and gives a one-line answer
-  // worked out from the counts (labels as in the data). A question whose pair
-  // is not in the data is left out.
-  function rowTotals(p) {
-    var t = p.a.labels.map(function () { return 0; });
-    p.cells.forEach(function (c) { t[c[0]] += c[2]; });
-    return t;
-  }
-  function topCol(p, rowOk) {
-    var t = p.b.labels.map(function () { return 0; });
-    p.cells.forEach(function (c) { if (rowOk(c[0])) t[c[1]] += c[2]; });
-    var best = -1;
-    t.forEach(function (v, j) { if (v > 0 && !p.b.undef[j] && (best < 0 || v > t[best])) best = j; });
-    return best;
-  }
-  function B(x) { return '<b>' + esc(x) + '</b>'; }
-  var QUESTIONS = [
-    { q: 'Which topics dominated each meeting?', v1: 'meeting', v2: 'section_level1',
-      take: function (p) {
-        var cls = p.a.cls || [];
-        var i = topCol(p, function (r) { return cls[r] === 'igc'; });
-        var j = topCol(p, function (r) { return cls[r] === 'prepcom'; });
-        if (i < 0 || j < 0) return '';
-        return 'At the IGCs, ' + B(p.b.labels[i]) + ' drew the most statements; at the PrepComs, ' + B(p.b.labels[j]) + '.';
-      } },
-    { q: 'Who did the talking?', v1: 'actor_type', v2: 'meeting',
-      take: function (p) {
-        var t = rowTotals(p), top = 0;
-        t.forEach(function (v, i) { if (v > t[top]) top = i; });
-        var cols = p.b.labels.length, won = 0;
-        p.b.labels.forEach(function (x, j) {
-          var best = -1, bv = -1;
-          p.cells.forEach(function (c) { if (c[1] === j && c[2] > bv) { bv = c[2]; best = c[0]; } });
-          if (best === top) won++;
-        });
-        return B(p.a.labels[top]) + ' was the most frequent actor type at ' +
-          (won === cols ? 'every meeting' : won + ' of ' + cols + ' meetings') + '.';
-      } },
-    { q: 'Who spoke the most, and on what?', v1: 'actor', v2: 'section_level1',
-      take: function (p) {
-        var l = p.a.labels;
-        if (l.length < 3) return '';
-        return 'The most active speakers were ' + B(l[0]) + ', ' + B(l[1]) + ' and ' + B(l[2]) + '.';
-      } },
-    { q: 'Where were statements made?', v1: 'negotiation_format', v2: 'meeting',
-      take: function (p) {
-        var t = rowTotals(p), o = t.map(function (v, i) { return i; })
-          .filter(function (i) { return !p.a.undef[i]; })
-          .sort(function (x, y) { return t[y] - t[x]; });
-        if (o.length < 2) return '';
-        return 'Most statements were made in ' + B(p.a.labels[o[0]].toLowerCase()) + ', followed by ' + B(p.a.labels[o[1]].toLowerCase()) + '.';
-      } },
-    { q: 'How busy was each year?', v1: 'year', v2: 'actor_type',
-      take: function (p) {
-        var t = rowTotals(p), top = 0;
-        t.forEach(function (v, i) { if (v > t[top]) top = i; });
-        return B(p.a.labels[top]) + ' was the busiest year in our data.';
-      } }
-  ];
-  var curQ = -1;
-
-  function setQuestion(k) {
-    curQ = k;
-    $$('.gl-q').forEach(function (b) {
-      var on = +b.getAttribute('data-q') === k;
-      b.classList.toggle('is-active', on);
-      b.setAttribute('aria-pressed', on ? 'true' : 'false');
-    });
-  }
-  // after any change: if the two lists match a question, that card lights up
-  function syncQuestion() {
-    var v1 = $('#gl-x').value, v2 = $('#gl-fill').value, k = -1;
-    QUESTIONS.forEach(function (q, i) { if (q.ok && q.v1 === v1 && q.v2 === v2) k = i; });
-    setQuestion(k);
-  }
-  function renderTake() {
-    var box = $('#gl-x-take');
-    if (!box) return;
-    var q = QUESTIONS[curQ], p = q ? cross.pairs[q.v1 + '|' + q.v2] : null, t = '';
-    if (q && p) { try { t = q.take(p) || ''; } catch (e) { t = ''; } }
-    box.innerHTML = t;
-    box.hidden = !t;
-  }
-
-  part('cross', function () {
-    var sx = $('#gl-x'), sf = $('#gl-fill');
-    if (!sx || !sf || !cross || !cross.vars.length) return;
-    cross.vars.forEach(function (v) {
-      sx.appendChild(new Option(v.label, v.key));
-      sf.appendChild(new Option(v.label, v.key));
-    });
-    var keys = cross.vars.map(function (v) { return v.key; });
-    // question cards
-    var qs = $('#gl-qs');
-    QUESTIONS.forEach(function (q, i) {
-      q.ok = keys.indexOf(q.v1) >= 0 && keys.indexOf(q.v2) >= 0 && !!cross.pairs[q.v1 + '|' + q.v2];
-      if (!q.ok || !qs) return;
-      var b = el('button', 'gl-q', esc(q.q));
-      b.type = 'button';
-      b.setAttribute('data-q', i);
-      b.setAttribute('aria-pressed', 'false');
-      b.addEventListener('click', function () {
-        sx.value = q.v1;
-        sf.value = q.v2;
-        setQuestion(i);
-        renderCross();
-        renderTake();
-      });
-      qs.appendChild(b);
-    });
-    var first = -1;
-    QUESTIONS.forEach(function (q, i) { if (first < 0 && q.ok) first = i; });
-    if (first >= 0) {
-      sx.value = QUESTIONS[first].v1;
-      sf.value = QUESTIONS[first].v2;
-    } else {
-      sx.value = keys.indexOf('section_level1') >= 0 ? 'section_level1' : keys[0];
-      sf.value = keys.indexOf('actor_type') >= 0 ? 'actor_type' : keys[Math.min(1, keys.length - 1)];
-    }
-    function onPick() { syncQuestion(); renderCross(); renderTake(); }
-    sx.addEventListener('change', onPick);
-    sf.addEventListener('change', onPick);
-    $$('.gl-view button').forEach(function (b) {
-      b.addEventListener('click', function () {
-        view = b.getAttribute('data-view');
-        $$('.gl-view button').forEach(function (o) {
-          o.classList.toggle('is-active', o === b);
-          o.setAttribute('aria-pressed', o === b ? 'true' : 'false');
-        });
-        renderCross();
-      });
-    });
-    // redraw on width changes only (bubbles are laid out in pixels)
-    var lastW = 0, tmr = 0;
-    function onResize() {
-      var w = $('#gl-bubbles').clientWidth;
-      if (w === lastW || view !== 'bubbles') return;
-      lastW = w;
-      window.clearTimeout(tmr);
-      tmr = window.setTimeout(renderCross, 120);
-    }
-    window.addEventListener('resize', onResize);
-    syncQuestion();
-    renderCross();
-    renderTake();
-    lastW = $('#gl-bubbles').clientWidth;
-    // the fonts change label widths: redraw once they are in
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { if (view === 'bubbles') renderCross(); });
-  });
-
   // For glance.js (globe and country card) and for checking in the console
-  window.GLANCE = { data: D, renderCard: renderCard, pkgCols: PKG_COLS, pkgNames: pkgNames, room: ROOM,
-                    shade: shade, noPkgCol: NOPKG_COL };
+  window.GLANCE = { data: D, renderCard: renderCard, pkgCols: PKG_COLS, shade: shade, noPkgCol: NOPKG_COL };
 })();

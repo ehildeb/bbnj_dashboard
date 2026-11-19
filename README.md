@@ -17,8 +17,11 @@ Double-click `index.html` (or `literature.html`). Both work offline.
 Run `../data cleaning/data_cleaning.R` (Source in RStudio). At the end it
 writes:
 
-- `data/glance_data.js`: every number on the main page
+- `data/glance_data.js`: every number and chart on the main page
 - `data/literature_data.js`: the list on `literature.html`
+
+Both hold only what the page reads: counts and the literature list, no
+statement text.
 
 Then reload the page. Never edit those two files by hand.
 
@@ -30,7 +33,8 @@ are filled in from the data. Placeholders still to fill are in square brackets.
 ## Put it online
 
 Upload the folder to any static host (GitHub Pages, Netlify, the university
-web space). Nothing else is needed.
+web space). Nothing else is needed. On GitHub Pages: Settings, Pages, deploy
+from the `main` branch, root folder.
 
 ## What is in this folder
 
@@ -46,7 +50,8 @@ js/literature.js       list, sorting and pages of the literature page
 data/                  made by data_cleaning.R, do not edit
 geo/                   map shapes for the two globes (see geo/README.txt)
 flags/                 country flags (flag-icons, MIT licence)
-img/logos/             project and funder logos
+img/                   logos, photos (IISD/ENB, credited on the page), the
+                       bids map and the literature preview
 vendor/                d3-array, d3-geo, topojson-client (ISC licence)
 fonts/                 Inter and Open Sans (SIL Open Font Licence)
 ```

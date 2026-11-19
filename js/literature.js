@@ -125,7 +125,6 @@
   function entry(p, n) {
     var t = p.title ? mark(p.title) : '(no title)';
     var title = p.doi ? '<a href="' + esc(p.doi) + '" target="_blank" rel="noopener">' + t + '</a>' : t;
-    // volume and issue left out for now (Emil, 2026-11-12); they are still in the data
     var ref = [];
     if (p.source) ref.push('<i>' + mark(p.source) + '</i>');
     if (p.year) ref.push(String(p.year));
