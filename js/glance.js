@@ -1027,8 +1027,8 @@ function glQuality() {
 // ---- COP and the Agreement's bodies ------------------------------------------------
 // Click a body in the hub to show its text in the panel and mark its spoke. Clicking the
 // open body again goes back to the COP. Texts live in index.html (.gl-cop-info).
-// The texts carry paper links for four bodies (2026-11-18): take them over from the draft
-// list (.gl-cop-draft-list) when the diagram goes back in.
+// The texts carry paper links for four bodies (2026-11-18), already in the saved diagram
+// (admin/backups/261116/cop_diagram/).
 (function () {
   'use strict';
   try {

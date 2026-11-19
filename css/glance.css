@@ -63,7 +63,7 @@ a { color: #006AB4; }
   font-weight: 400;
   line-height: 1.55;
   color: #363c42;
-  max-width: 760px;
+  max-width: 820px;   /* one reading width for running text across the page (Emil, 2026-11-18) */
 }
 .gl-shell .gl-title {
   margin: 0;
@@ -86,7 +86,7 @@ a { color: #006AB4; }
   font-size: clamp(17px, 1.35vw, 20px);
   font-weight: 500;
   line-height: 1.45;
-  max-width: 760px;
+  max-width: 820px;
 }
 .gl-shell .gl-small {
   margin: 0;
@@ -94,7 +94,7 @@ a { color: #006AB4; }
   font-size: 15px;
   line-height: 1.6;
   color: #6b737b;
-  max-width: 600px;
+  max-width: 820px;   /* same cap as the normal text (was 600px until 2026-11-18) */
 }
 .gl-shell .gl-small strong { color: #002F62; font-weight: 600; }
 .gl-shell .gl-note { font-size: 13px; color: #8a929a; }
@@ -541,7 +541,7 @@ a { color: #006AB4; }
   font-size: clamp(17px, 1.35vw, 20px);
   line-height: 1.55;
   color: #363c42;
-  max-width: 760px;
+  max-width: 820px;
 }
 .gl-shell .gl-pkg-text.is-active { display: block; }
 /* small column chart under the explainer: statements at each IGC */
@@ -847,7 +847,7 @@ a { color: #006AB4; }
 
 /* ---- Most active states and blocs (bubble chart, 2026-11-13) -------------------- */
 .gl-shell .gl-active { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
-.gl-shell .gl-active-sub { margin: 0; max-width: 760px; }
+.gl-shell .gl-active-sub { margin: 0; max-width: 820px; }
 .gl-shell .gl-active-key { display: flex; gap: 20px; font-size: 13px; color: #4a5560; }
 .gl-shell .gl-active-sw { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
 .gl-shell .gl-active-chart { position: relative; width: 100%; }
@@ -1043,53 +1043,68 @@ html:not(.gl-anim) .gl-shell .gl-mo-slot { display: none; }   /* no float: the A
    placed by left/top in % (centre of the node). Spokes are an SVG under the nodes.
    Clicking a node shows its text in the panel on the right (glance.js, COP block). */
 .gl-shell .gl-cop {
-  display: grid; grid-template-columns: minmax(0, 560px) minmax(0, 1fr); gap: clamp(32px, 5vw, 72px);
-  align-items: center; margin: -16px 0 -8px;   /* close to the paragraph above (Emil, 2026-11-16) */
+  display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: clamp(32px, 4vw, 56px);
+  align-items: center; width: 100%; margin: 0;   /* diagram gets three fifths, panel centred on it (wider oval diagram, 2026-11-18) */
 }
-.gl-shell .gl-cop-hub { position: relative; width: 100%; aspect-ratio: 1 / 1; }
+.gl-shell .gl-cop-intro { max-width: 820px; }
+.gl-shell .gl-cop-hub { position: relative; width: 100%; max-width: 680px; aspect-ratio: 4 / 3; }   /* oval: bodies sit on an ellipse (positions in index.html) */
+
 .gl-shell .gl-cop-lines { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-.gl-shell .gl-cop-spoke { stroke: #b8c4d0; stroke-width: 0.35; transition: stroke 0.2s ease, stroke-width 0.2s ease; }
-.gl-shell .gl-cop-spoke.is-on { stroke: #002F62; stroke-width: 0.6; }
+.gl-shell .gl-cop-spoke { stroke: #c9d2db; stroke-width: 0.35; transition: stroke 0.2s ease, stroke-width 0.2s ease; }
+.gl-shell .gl-cop-spoke.is-on { stroke-width: 0.7; }
+/* Bodies keep their full outline in their colour (Emil, 2026-11-18); selected = a pale
+   tint of the colour (the same 14% mix as the package cards) instead of a solid fill */
 .gl-shell .gl-cop-node {
   --c: #5b7a99;
   position: absolute; transform: translate(-50%, -50%);
-  width: 27%; min-height: 14%; padding: 8px 10px; box-sizing: border-box;
+  width: 23%; min-height: 15%; padding: 8px 10px; box-sizing: border-box;
   display: flex; align-items: center; justify-content: center; text-align: center;
-  font: 500 13.5px/1.3 Inter, system-ui, sans-serif; color: #002F62;
+  font: 500 14px/1.3 Inter, system-ui, sans-serif; color: #002F62;
   background: #ffffff; border: 2px solid var(--c); border-radius: 6px; cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 47, 98, 0.06);
-  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
 }
 /* one colour per body (2026-11-16, Emil): orange and plum as the MGR and CB&TMT packages */
-.gl-shell .gl-cop-node[data-k="stb"] { --c: #4683c4; }
-.gl-shell .gl-cop-node[data-k="abs"] { --c: #d9965a; }
-.gl-shell .gl-cop-node[data-k="cb"]  { --c: #a26a9e; }
-.gl-shell .gl-cop-node[data-k="fin"] { --c: #45a774; }
-.gl-shell .gl-cop-node[data-k="icc"] { --c: #c06b6b; }
-.gl-shell .gl-cop-node[data-k="sec"] { --c: #6f7f8f; }
-.gl-shell .gl-cop-node[data-k="chm"] { --c: #3f9a9a; }
-.gl-shell .gl-cop-node:hover { box-shadow: 0 4px 14px rgba(0, 47, 98, 0.14); }
+.gl-shell .gl-cop [data-k="stb"] { --c: #4683c4; }
+.gl-shell .gl-cop [data-k="abs"] { --c: #d9965a; }
+.gl-shell .gl-cop [data-k="cb"]  { --c: #a26a9e; }
+.gl-shell .gl-cop [data-k="fin"] { --c: #45a774; }
+.gl-shell .gl-cop [data-k="icc"] { --c: #c06b6b; }
+.gl-shell .gl-cop [data-k="sec"] { --c: #6f7f8f; }
+.gl-shell .gl-cop [data-k="chm"] { --c: #3f9a9a; }
+.gl-shell .gl-cop-info[data-k="cop"] { --c: #002F62; }
+.gl-shell .gl-cop-spoke.is-on { stroke: var(--c); }
+.gl-shell .gl-cop-node:hover { box-shadow: 0 3px 10px rgba(0, 47, 98, 0.10); }
 .gl-shell .gl-cop-node:focus-visible { outline: 2px solid #006AB4; outline-offset: 3px; }
-.gl-shell .gl-cop-node.is-active { background: var(--c); color: #ffffff; }
+.gl-shell .gl-cop-node.is-active { background: #ffffff; background: color-mix(in srgb, var(--c) 14%, #ffffff); }
 .gl-shell .gl-cop-centre {
-  --c: #002F62; width: 22%; min-height: 0; aspect-ratio: 1 / 1; border-radius: 50%;
+  --c: #002F62; width: 19%; min-height: 0; aspect-ratio: 1 / 1; border-radius: 50%; padding: 0;
+  border: 2px solid #002F62;
   font-size: clamp(18px, 2vw, 24px); font-weight: 600; background: #ffffff; color: #002F62;
 }
-.gl-shell .gl-cop-centre.is-active { background: #002F62; color: #ffffff; }
-.gl-shell .gl-cop-side { display: flex; flex-direction: column; gap: 18px; max-width: 460px; }
-.gl-shell .gl-cop-hint { margin: 0; color: #6b737b; }
-.gl-shell .gl-cop-panel { min-height: 220px; }   /* about the tallest text, so the hint does not jump */
-.gl-shell .gl-cop-info h3 { margin: 0 0 10px; font-size: clamp(20px, 1.8vw, 24px); font-weight: 600; color: #002F62; line-height: 1.25; }
-.gl-shell .gl-cop-info p { margin: 0; font-size: clamp(17px, 1.4vw, 20px); line-height: 1.55; color: #4a5560; }
+.gl-shell .gl-cop-centre.is-active { background: #ffffff; background: color-mix(in srgb, #002F62 10%, #ffffff); }
+/* Wide screens: the diagram reaches 120px past the left text edge and grows, the boxes keep
+   their size (Emil, 2026-11-18): boxes and COP circle get smaller percentages of the bigger hub */
+@media (min-width: 1400px) {
+  .gl-shell .gl-cop-hub { width: calc(100% + 120px); max-width: 800px; margin-left: -120px; }
+  .gl-shell .gl-cop-node { width: 19%; }
+  .gl-shell .gl-cop-node.gl-cop-centre { width: 15.5%; }
+}.gl-shell .gl-cop-side { display: flex; flex-direction: column; gap: 18px; max-width: 480px; }
+.gl-shell .gl-cop-hint { margin: 0; color: #6b737b; }   /* above the panel, so it never moves (2026-11-18) */
+.gl-shell .gl-cop-panel { min-height: 330px; }   /* about the tallest text, so the column keeps its height */
+/* the text panel like the open package element: a stripe in the body's colour on the left */
+.gl-shell .gl-cop-info { border-left: 3px solid var(--c); padding: 6px 0 6px 24px; }
+.gl-shell .gl-cop-info h3 { margin: 0 0 12px; font-size: clamp(22px, 2.2vw, 28px); font-weight: 500; color: #002F62; line-height: 1.2; }
+.gl-shell .gl-cop-info p { margin: 0; font-size: clamp(17px, 1.35vw, 20px); line-height: 1.55; color: #363c42; }
+.gl-shell .gl-cop-info .gl-cop-paper { margin-top: 12px; }   /* paper links in their own paragraph, same size as the text (2026-11-18) */
 .gl-shell .gl-cop-info .gl-cop-art { font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: #6b737b; margin-bottom: 6px; }
-.gl-anim .gl-shell .gl-cop-info:not([hidden]) { animation: gl-fade 0.25s ease; }
+.gl-anim .gl-shell .gl-cop-info:not([hidden]) { animation: gl-panel 0.4s ease both; }   /* same slide-in as the package text */
 @media (max-width: 900px) {
   .gl-shell .gl-cop { grid-template-columns: minmax(0, 1fr); }
-  .gl-shell .gl-cop-hub { max-width: 520px; }
+  .gl-shell .gl-cop-hub { max-width: 640px; }
 }
 @media (max-width: 560px) {
-  .gl-shell .gl-cop-node { font-size: 10.5px; padding: 4px 5px; width: 28%; border-radius: 5px; }
-  .gl-shell .gl-cop-node.gl-cop-centre { width: 22%; padding: 0; border-radius: 50%; font-size: 16px; }
+  .gl-shell .gl-cop-node { font-size: 10.5px; padding: 4px 5px; width: 25%; border-radius: 5px; }
+  .gl-shell .gl-cop-node.gl-cop-centre { width: 19%; padding: 0; border-radius: 50%; font-size: 16px; }
   .gl-shell .gl-cop-panel { min-height: 0; }
 }
 
@@ -1108,3 +1123,110 @@ html:not(.gl-anim) .gl-shell .gl-mo-slot { display: none; }   /* no float: the A
   .gl-shell .gl-cop-draft { grid-template-columns: minmax(0, 1fr); }
   .gl-shell .gl-cop-draft .gl-placeholder { min-height: 220px; }
 }
+
+/* ---- Photo banners between sections (2026-11-18) -----------------------------------
+   Full width, half a screen high, caption bar at the bottom. Placeholder until the photos
+   are chosen: replace .gl-photo-ph with <img class="gl-photo-img">. */
+.gl-shell .gl-photo { margin: 0; padding-bottom: 8px; background: transparent; }
+.gl-shell .gl-photo-ph, .gl-shell .gl-photo-img { height: clamp(260px, 50vh, 480px); background: #c8d2dc; }
+@media (max-width: 700px) { .gl-shell .gl-photo-ph, .gl-shell .gl-photo-img { height: clamp(200px, 32vh, 260px); } }   /* lower on phones: less stretching of the photos */
+.gl-shell .gl-photo-img { width: 100%; object-fit: cover; display: block; }
+.gl-shell .gl-photo-ph {
+  display: flex; align-items: center; justify-content: center; padding: 24px;
+  box-sizing: border-box; text-align: center; color: #2b3f55; font-size: 16px; font-weight: 500;
+}
+.gl-shell .gl-photo-cap {
+  display: flex; justify-content: flex-end; gap: 6px; padding: 6px max(24px, calc((100% - 1100px) / 2)) 0;
+  font-size: 11.5px; color: #8a929a; background: transparent;   /* quiet caption under the photo (2026-11-18) */
+}
+.gl-shell .gl-photo-credit { color: #8a929a; text-decoration: none; white-space: nowrap; }
+.gl-shell .gl-photo-credit:hover { text-decoration: underline; }
+.gl-shell .gl-photo-credit::before { content: "\00b7"; margin-right: 6px; }
+
+
+/* ---- The secretariat (2026-11-18): timeline and offer cards ------------------------ */
+/* secretariat timeline (2026-11-18): announcements and the joint bid as small grey dots,
+   PrepComs as apricot dots, COP-1 as a dashed circle; equal spacing (--n points) */
+.gl-shell .gl-sec-tl { position: relative; list-style: none; margin: 8px 0; padding: 0; display: grid; grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr)); width: 100%; }
+.gl-shell .gl-sec-tl::before { content: ""; position: absolute; left: 12px; right: calc(100% / var(--n, 4) - 12px); top: 11px; height: 2px; background: #d5dbe1; transform-origin: left center; }   /* ends at the last marker */
+.gl-shell .gl-sec-tl li { position: relative; display: flex; flex-direction: column; gap: 6px; padding-right: 16px; }
+.gl-shell .gl-sec-mk { position: relative; width: 24px; height: 24px; border-radius: 50%; box-sizing: border-box; margin-bottom: 8px; }
+.gl-shell .gl-sec-mk-prepcom { background: #f0b27f; }
+.gl-shell .gl-sec-mk-cop { background: #ffffff; border: 2px dashed #9cc8f0; }
+.gl-shell .gl-sec-mk-dot { background: transparent; }
+.gl-shell .gl-sec-mk-dot::after { content: ""; position: absolute; left: 5px; top: 5px; width: 14px; height: 14px; border-radius: 50%; background: #6f7f8f; }
+.gl-shell .gl-sec-when { display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: #8a929a; }
+.gl-shell .gl-sec-when b { font-size: 13px; font-weight: 600; color: #4a5560; }
+.gl-shell .gl-sec-what { font-size: 15px; font-weight: 600; color: #002F62; line-height: 1.35; }
+/* animation: the line draws left to right (1.6 s), the points pop in as it reaches them;
+   runs again when the timeline comes back into view (gl-reveal, glance.js) */
+.gl-anim .gl-shell .gl-sec-tl.gl-reveal { opacity: 1; transform: none; }
+.gl-anim .gl-shell .gl-sec-tl::before { transform: scaleX(0); transition: transform 0.3s ease; }
+.gl-anim .gl-shell .gl-sec-tl.is-in::before { transform: scaleX(1); transition: transform 1.6s cubic-bezier(0.45, 0, 0.2, 1); }
+.gl-anim .gl-shell .gl-sec-tl .gl-sec-mk { transform: scale(0); transition: transform 0.45s cubic-bezier(0.34, 1.4, 0.64, 1); }
+.gl-anim .gl-shell .gl-sec-tl .gl-sec-when, .gl-anim .gl-shell .gl-sec-tl .gl-sec-what { opacity: 0; transform: translateY(6px); transition: opacity 0.3s ease, transform 0.3s ease; }
+.gl-anim .gl-shell .gl-sec-tl.is-in .gl-sec-mk { transform: scale(1); transition-delay: calc(var(--i) * 1.6s / var(--n, 4)); }   /* delays only on the way in */
+.gl-anim .gl-shell .gl-sec-tl.is-in .gl-sec-when, .gl-anim .gl-shell .gl-sec-tl.is-in .gl-sec-what { opacity: 1; transform: none; transition-duration: 0.4s; transition-delay: calc(var(--i) * 1.6s / var(--n, 4) + 0.12s); }
+@media (max-width: 900px) {
+  .gl-shell .gl-sec-tl { grid-template-columns: minmax(0, 1fr); gap: 18px; padding-left: 40px; }
+  .gl-shell .gl-sec-tl::before { left: 11px; right: auto; top: 12px; bottom: 12px; width: 2px; height: auto; transform-origin: center top; }
+  .gl-anim .gl-shell .gl-sec-tl::before { transform: scaleY(0); }
+  .gl-anim .gl-shell .gl-sec-tl.is-in::before { transform: scaleY(1); }
+  .gl-shell .gl-sec-tl li { padding-right: 0; }
+  .gl-shell .gl-sec-mk { position: absolute; left: -40px; top: 0; }
+}
+.gl-shell .gl-sec-txt { max-width: 820px; }   /* text as wide as in the other sections (2026-11-18) */
+/* the bids: map of the three candidate cities (sketch Bids 4, 2026-11-18) */
+.gl-shell .gl-map { position: relative; margin: 0; width: 100%; aspect-ratio: 560 / 199; border-radius: 6px; overflow: hidden; }
+.gl-shell .gl-map-bg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.gl-shell .gl-map-arc { position: absolute; inset: 0; width: 100%; height: 100%; }
+.gl-shell .gl-map-arc path { fill: none; stroke: #6f7f8f; stroke-width: 1.6; stroke-dasharray: 4 4; vector-effect: non-scaling-stroke; }
+.gl-shell .gl-map-pin { position: absolute; width: 0; height: 0; }
+.gl-shell .gl-map-dot { position: absolute; left: -6px; top: -6px; width: 12px; height: 12px; border-radius: 50%; background: #002F62; box-shadow: 0 0 0 3px #ffffff; }
+.gl-shell .gl-map-lbl {
+  position: absolute; left: 14px; top: 0; transform: translateY(-50%); z-index: 1;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px; white-space: nowrap; box-sizing: border-box;
+  padding: 5px 11px 6px 5px; background-color: #ffffff; border: 1px solid #d5dbe1; border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 47, 98, 0.12); text-decoration: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.gl-shell .gl-map-lbl:hover, .gl-shell .gl-map-lbl:focus-visible { border-color: #006AB4; box-shadow: 0 2px 8px rgba(0, 47, 98, 0.18); }
+.gl-shell .gl-map-city { display: flex; align-items: center; gap: 6px; font-size: 14px; line-height: 18px; font-weight: 600; color: #002F62; }
+.gl-shell .gl-map-link { display: inline-flex; align-items: center; gap: 4px; padding-left: 24px; font-size: 13px; line-height: 16px; font-weight: 500; color: #006AB4; }
+.gl-shell .gl-map-lbl:hover .gl-map-link { text-decoration: underline; }
+.gl-shell .gl-map-pin-l .gl-map-lbl { left: auto; right: 14px; align-items: flex-end; padding: 5px 5px 6px 11px; }   /* card left of the dot, flag next to it */
+.gl-shell .gl-map-pin-l .gl-map-city { flex-direction: row-reverse; }
+.gl-shell .gl-map-pin-l .gl-map-link { padding-left: 0; padding-right: 24px; }
+.gl-shell .gl-map-lbl img { width: 18px; height: 18px; border-radius: 50%; object-fit: cover; display: block; flex-shrink: 0; }
+.gl-shell .gl-map-dot { z-index: 2; }
+.gl-shell .gl-map-joint {
+  position: absolute; transform: translate(-50%, -50%); z-index: 1;
+  display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
+  padding: 2px 8px; background: #ffffff; border: 1px dashed #6f7f8f; border-radius: 999px;
+  font-size: 13px; line-height: 16px; font-weight: 500; color: #006AB4; text-decoration: none;
+}
+.gl-shell .gl-map-joint:hover, .gl-shell .gl-map-joint:focus-visible { border-color: #006AB4; text-decoration: underline; }
+.gl-shell .gl-map-hint { margin: 12px 0 0; color: #6b7480; max-width: none; }   /* one line under the map (gl-small caps at 600px) */
+@media (max-width: 700px) {
+  .gl-shell .gl-map-lbl { padding: 2px 7px 3px 2px; }
+  .gl-shell .gl-map-pin-l .gl-map-lbl { padding: 2px 2px 3px 7px; }
+  .gl-shell .gl-map-city { font-size: 12px; line-height: 14px; gap: 4px; }
+  .gl-shell .gl-map-link, .gl-shell .gl-map-joint { font-size: 11px; line-height: 13px; }
+  .gl-shell .gl-map-link { display: none; }   /* phones: the map is too small for two-line cards; the whole card is still the link */
+  .gl-shell .gl-map-lbl img { width: 14px; height: 14px; }
+}
+.gl-shell .gl-sec-links { margin: 0; display: flex; flex-wrap: wrap; gap: 8px 28px; }
+.gl-shell .gl-sec-link { font-size: 15px; color: #006AB4; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+.gl-shell .gl-sec-link:hover { text-decoration: underline; }
+/* main title of the actors part, above the room, on one line (2026-11-18) */
+.gl-shell .gl-room-top { max-width: 1100px; margin: 0 auto 40px; }
+.gl-shell .gl-room-top .gl-head { max-width: none; white-space: nowrap; }
+@media (max-width: 700px) { .gl-shell .gl-room-top .gl-head { white-space: normal; } }
+
+/* a photo too small to stretch across the screen sits at text width instead (2026-11-18:
+   the podium photo is 1000 px wide); white band with room above and below */
+.gl-shell .gl-photo-inset { padding: 64px 24px 56px; background: #e9eef3; }   /* every photo in its own band, a tone apart from the white and grey sections (2026-11-18) */
+.gl-shell .gl-photo-inset .gl-photo-cap, .gl-shell .gl-photo-inset .gl-photo-credit { color: #5f6872; }   /* darker caption on the band, for contrast */
+.gl-shell .gl-photo-inset .gl-photo-img { max-width: 1100px; height: clamp(240px, 40vw, 440px); margin: 0 auto; border-radius: 3px; }
+.gl-shell .gl-photo-inset .gl-photo-cap { max-width: 1100px; margin: 0 auto; padding: 8px 0 0; }
+@media (max-width: 700px) { .gl-shell .gl-photo-inset { padding: 40px 16px 32px; } .gl-shell .gl-photo-inset .gl-photo-img { height: clamp(180px, 50vw, 260px); } }

@@ -386,7 +386,11 @@
     var SETS = {
       state:  { list: D.top_active || [], what: 'states and the EU' },
       intl:   { list: NS_.intl || [],     what: 'international organisations' },
-      nongov: { list: NS_.nongov || [],   what: 'non-governmental actors' }
+      // every non-governmental actor shown as NGO, one colour and one key entry (Emil,
+      // 2026-11-18: no Business type; the ICPC is typed business in the data)
+      nongov: { list: (NS_.nongov || []).map(function (t) {
+                  var c = {}; for (var q in t) c[q] = t[q]; c.kind = 'ngo'; return c; }),
+                what: 'non-governmental actors' }
     };
     if (!box || !SETS.state.list.length) { if (sec) sec.style.display = 'none'; return; }
     // colours and key labels by kind (international in purple, non-governmental in the
