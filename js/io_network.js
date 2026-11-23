@@ -213,6 +213,26 @@
       }, gl);
       return { el: e, l: l };
     });
+    // wide invisible strip along each line, only active for the lines of the clicked
+    // node: hovering (or tapping) it shows the statement count of that line
+    lines.forEach(function (x) {
+      var e = x.hit = svgEl('path', { d: edgePath(x.l), fill: 'none', stroke: 'transparent',
+        'stroke-width': 12, 'class': 'gl-io-hit' }, gl);
+      e.style.pointerEvents = 'none';
+      e.addEventListener('pointerenter', function (ev) { x.el.style.strokeOpacity = 0.9; lineTip(x.l, ev); });
+      e.addEventListener('pointermove', function (ev) { lineTip(x.l, ev); });
+      e.addEventListener('pointerleave', function () { x.el.style.strokeOpacity = 0.5; if (tip) tip.hidden = true; });
+      e.addEventListener('click', function (ev) { ev.stopPropagation(); lineTip(x.l, ev); });
+    });
+    function lineTip(l, ev) {
+      if (!tip) return;
+      tip.innerHTML = '<span>' + fmt(l.n) + (l.n === 1 ? ' statement' : ' statements') + '</span>';
+      tip.hidden = false;
+      var r = box.getBoundingClientRect();
+      var x = ev.clientX - r.left + 12, y = ev.clientY - r.top - 30;
+      if (x + tip.offsetWidth > r.width - 4) x = ev.clientX - r.left - 12 - tip.offsetWidth;
+      tip.style.left = Math.max(4, x) + 'px'; tip.style.top = Math.max(4, y) + 'px'; tip.style.right = 'auto';
+    }
 
     var groups = [], dragging = null;
     var order = V.nodes.filter(function (n) { return !n.item; }).concat(V.nodes.filter(function (n) { return n.item; }));
@@ -232,11 +252,11 @@
           });
         }
       } else {
-        n.circ = svgEl('circle', { r: n.size, 'class': 'gl-io-dot', fill: COL.io }, el);
-        // label in its own top layer, so a package circle never hides it
-        n.lel = svgEl('g', { 'class': 'gl-io-lblg' }, gt);
-        var lb = svgEl('text', { 'class': 'gl-io-lbl', x: n.size + 4, 'dominant-baseline': 'central' }, n.lel);
-        lb.textContent = n.label;
+          n.circ = svgEl('circle', { r: n.size, 'class': 'gl-io-dot', fill: COL.io }, el);
+          // label in its own top layer, so a package circle never hides it
+          n.lel = svgEl('g', { 'class': 'gl-io-lblg' }, gt);
+          var lb = svgEl('text', { 'class': 'gl-io-lbl', x: n.size + 4, 'dominant-baseline': 'central' }, n.lel);
+          lb.textContent = n.label;
       }
       n.el = el;
       groups.push({ el: el, n: n });
@@ -260,7 +280,7 @@
           txt.setAttribute('x', left ? -(n.size + 4) : n.size + 4);
         }
       });
-      lines.forEach(function (x) { x.el.setAttribute('d', edgePath(x.l)); });
+      lines.forEach(function (x) { var d = edgePath(x.l); x.el.setAttribute('d', d); if (x.hit) x.hit.setAttribute('d', d); });
     }
     redraw();
 
@@ -282,14 +302,6 @@
       var title = n.item ? n.label : n.label + (n.full && n.full !== n.label ? ' (' + n.full + ')' : '');
       var h = '<strong>' + esc(title) + '</strong><span class="gl-io-tip-n">' +
         (n.item ? fmt(n.n) + ' mentions of IFBs' : 'Appears in ' + fmt(n.n) + ' statements') + '</span>';
-      var sn = selNode();
-      if (sn && sn !== n && sn.item !== n.item) {
-        var m = 0;
-        V.links.forEach(function (l) { if ((l.s === n && l.t === sn) || (l.s === sn && l.t === n)) m = l.n; });
-        var pkg = n.item ? n : sn, io = n.item ? sn : n;
-        h += '<span class="gl-io-tip-n">' + fmt(m) + ' statements mention ' + esc(io.label) + ' under ' +
-          esc(igc ? (PKG_SHORT[pkg.key] || pkg.label) : pkg.label) + '</span>';
-      }
       mine.slice(0, 6).forEach(function (l) {
         var other = l.s === n ? l.t : l.s;
         var name = other.item ? (igc ? (PKG_SHORT[other.key] || other.label) : other.label) : other.label;
@@ -377,6 +389,9 @@
         var on = sn && (x.l.t === sn || x.l.s === sn);
         x.el.style.opacity = sn ? (on ? 1 : 0.04) : '';
         x.el.style.strokeOpacity = on ? 0.5 : '';
+        // line counts only for the clicked node, not while hovering previews another
+        var cs = !preview && selNode();
+        x.hit.style.pointerEvents = cs && (x.l.t === cs || x.l.s === cs) ? 'stroke' : 'none';
       });
       groups.forEach(function (x) {
         x.el.classList.toggle('is-sel', x.n === selNode());
@@ -393,7 +408,7 @@
       applySel();
     }
     svg.addEventListener('click', function (ev) {
-      if (!ev.target.closest || !ev.target.closest('.gl-io-node')) { if (state.sel[mode]) toggleSel(null); }
+      if (!ev.target.closest || !ev.target.closest('.gl-io-node, .gl-io-hit')) { if (state.sel[mode]) toggleSel(null); }
     });
 
     // ---- Live: d3-force from the ForceAtlas2 positions; dots can be dragged ----------
