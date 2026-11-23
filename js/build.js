@@ -41,17 +41,19 @@
   // ---- Colours and names --------------------------------------------------------
   var PAL = { igc: '#5cc79a', prepcom: '#f0b27f', cop: '#9cc8f0' };
   var CLASS_LABELS = { igc: 'IGCs', prepcom: 'PrepComs', cop: 'COP' };
-  // package elements on the cards, the IGC charts and the globe
-  var PKG_COLS = { mgr: '#d9965a', abmt: '#4683c4', eia: '#45a774', cb: '#a26a9e' };
+  // package elements on the cards, the IGC charts and the globe: muted, and checked
+  // in a colour blindness simulation (deutan, protan, tritan: every pair, the 'none'
+  // grey and the ocean stay clearly apart); MGR, the most discussed, gets the calm blue
+  var PKG_COLS = { mgr: '#3f6f9f', abmt: '#b9a3d6', eia: '#8cc7ad', cb: '#d8a865' };   // MGR blue, ABMT purple, EIA green, CB&TMT orange (Emil, 2026-11-20)
   // Negotiation room: states in the inner rows, the other actor types in wedges in
   // the outer rows (ROOM_JOIN). Same colours and legend labels as the most active
-  // chart (scientific institutes and businesses are shown as NGOs there too).
+  // chart (NGOs, scientific institutes and businesses share one colour and key).
   // Country blocs are not drawn.
   var ROOM = {
-    state:  { col: '#2f6fae', name: 'State' },
+    state:  { col: '#1f5a9a', name: 'State' },
     un:     { col: '#a58bd8', name: 'UN body, agency or treaty' },
     igo:    { col: '#5a3d9a', name: 'Intergovernmental organisation' },
-    nongov: { col: '#3fae7d', name: 'NGO' }
+    nongov: { col: '#3fae7d', name: 'NGO, business or scientific institution' }
   };
   var ROOM_JOIN = { un: 'un', igo: 'igo', ngo: 'nongov', sci: 'nongov', bus: 'nongov' };
   var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
@@ -125,7 +127,17 @@
     p.textContent = 'To date, ' + who(R.states_signed, R.eu_signed) + ' have signed the Agreement, and ' +
       who(R.states_ratified, R.eu_ratified) + ' have ratified it.';
     var u = $('#gl-rat-updated');                         // when the list was taken from the UN
-    if (u) { if (R.as_of) u.textContent = 'Last updated: ' + R.as_of + ' (UN Treaty Collection)'; else u.hidden = true; }
+    if (u) {
+      if (R.as_of) {
+        u.textContent = ' Signatures and ratifications last updated: ' + R.as_of + ' (';
+        var a = document.createElement('a');              // link so readers can check the current list
+        a.href = 'https://treaties.un.org/Pages/ViewDetails.aspx?src=TREATY&mtdsg_no=XXI-10&chapter=21&clang=_en';
+        a.target = '_blank'; a.rel = 'noopener';
+        a.textContent = 'UN Treaty Collection';
+        u.appendChild(a);
+        u.appendChild(document.createTextNode(').'));
+      } else u.hidden = true;
+    }
   });
 
   // ---- The Agreement and the official meetings -----------------------------------
@@ -329,20 +341,20 @@
     var SETS = {
       state:  { list: D.top_active || [], what: 'states and the EU' },
       intl:   { list: NS_.intl || [],     what: 'international organisations' },
-      // every non-governmental actor is shown as NGO: one colour, one key entry
+      // every non-governmental actor gets one colour and one key entry
       nongov: { list: (NS_.nongov || []).map(function (t) {
                   var c = {}; for (var q in t) c[q] = t[q]; c.kind = 'ngo'; return c; }),
                 what: 'non-governmental actors' }
     };
     if (!box || !SETS.state.list.length) { if (sec) sec.style.display = 'none'; return; }
     // colours and key labels by kind: states in blue, international organisations in
-    // purple, NGOs in the green of the negotiation room dots
+    // purple, non-governmental actors in the green of the negotiation room dots
     var KINDS = {
       state: { col: '#2f6fae', name: 'State' },
       bloc:  { col: '#002F62', name: 'EU' },          // the only bloc in the list
       un:    { col: '#a58bd8', name: 'UN body, agency or treaty' },
       igo:   { col: '#5a3d9a', name: 'Intergovernmental organisation' },
-      ngo:   { col: '#3fae7d', name: 'NGO' }
+      ngo:   { col: '#3fae7d', name: 'NGO, business or scientific institution' }
     };
     var NS = 'http://www.w3.org/2000/svg', W = 1036, H = 480, m = { l: 64, r: 24, t: 14, b: 46 };
     var NAMES = { 'United Kingdom of Great Britain and Northern Ireland': 'United Kingdom',
@@ -356,8 +368,8 @@
       if (par) par.appendChild(e);
       return e;
     }
-    function step(span) {                                 // a round tick step, about 5 to 7 ticks
-      var raw = Math.max(span, 1e-9) / 6, u = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10)), f = raw / u;
+    function step(span, per) {                            // a round tick step, about `per` (default 6) ticks
+      var raw = Math.max(span, 1e-9) / (per || 6), u = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10)), f = raw / u;
       return (f < 1.5 ? 1 : f < 3.5 ? 2.5 : f < 7.5 ? 5 : 10) * u;
     }
     var keyBox = $('#gl-active-key'), euNote = $('#gl-active-eu'), nsNote = $('#gl-active-ns');
@@ -365,9 +377,19 @@
     var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var animate = !reduce && !!window.IntersectionObserver, seen = false, cur = null, B = [];
 
+    // phones: the chart is drawn at the width it is shown at (taller, fewer x ticks),
+    // so labels and axes keep a readable size instead of being scaled down
+    var narrow = false, rk = 1;
+    function sizeFor() {
+      var bw = box.clientWidth || 1036;
+      narrow = bw < 700;
+      if (narrow) { W = Math.max(300, Math.round(bw)); H = Math.round(W * 1.05); m = { l: 66, r: 14, t: 14, b: 44 }; rk = Math.max(0.55, W / 1036 * 1.5); }
+      else { W = 1036; H = 480; m = { l: 64, r: 24, t: 14, b: 46 }; rk = 1; }
+    }
     function draw(k) {
       var T = SETS[k].list;
       cur = k;
+      sizeFor();
       var old = $('svg', box);
       if (old) box.removeChild(old);
       if (!tip.parentNode) box.appendChild(tip);
@@ -387,7 +409,7 @@
 
       var nMin = Infinity, nMax = 0, hMin = Infinity, hMax = 0;
       T.forEach(function (t) { nMin = Math.min(nMin, t.n); nMax = Math.max(nMax, t.n); hMin = Math.min(hMin, t.hours); hMax = Math.max(hMax, t.hours); });
-      var xs = step(nMax - nMin), ys = step(hMax - hMin), XT = [], YT = [], v;
+      var xs = step(nMax - nMin, narrow ? 3.5 : 6), ys = step(hMax - hMin, narrow ? 5 : 6), XT = [], YT = [], v;
       var x0 = Math.max(0, Math.floor((nMin - (nMax - nMin) * 0.06) / (xs / 2)) * (xs / 2));
       var x1 = Math.ceil((nMax + (nMax - nMin) * 0.05) / (xs / 2)) * (xs / 2);
       var y0 = Math.max(0, Math.floor((hMin - (hMax - hMin) * 0.08) / (ys / 2)) * (ys / 2));
@@ -417,7 +439,7 @@
 
       // radius = kr * sqrt(hours); the biggest bubble is about as big in every tab
       var kr = 2.8 * Math.sqrt(62.8 / Math.max(hMax, 1));
-      kr = Math.min(kr, 6.5);
+      kr = Math.min(kr, 6.5) * rk;
       B = T.map(function (t) { return { t: t, x: X(t.n), y: Y(t.hours), r: kr * Math.sqrt(t.hours) }; });
       // label spots: right, left, above, below; first one that hits no bubble, no label, no edge
       var boxes = [];
@@ -520,6 +542,10 @@
     }
 
     // the toggle: tabs without data are hidden
+    // redraw when the chart switches between the phone and the wide drawing
+    window.addEventListener('resize', function () {
+      if (cur && (box.clientWidth < 700) !== narrow) draw(cur);
+    });
     var tabs = $$('.gl-active-tabs button');
     tabs.forEach(function (b) {
       var k = b.getAttribute('data-set');
@@ -687,43 +713,62 @@
   });
 
   // ---- Actors globe: colour and legend -----------------------------------------
-  // One colour per country: the hue is the package element it spoke on most,
-  // the shade how many statements it made (light: few, dark: many; log scale).
-  // glance.js uses GLANCE.shade for the globe, so legend and globe always match.
-  var NOPKG_COL = '#8f9aa6';
-  function hexRgb(c) { return [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)]; }
-  function shade(col, t) {
-    var c = hexRgb(col), lo = [], hi = [], out = [];
-    for (var i = 0; i < 3; i++) {
-      lo[i] = c[i] + (255 - c[i]) * 0.72;              // pale tint
-      hi[i] = c[i] * 0.72 + [0, 30, 60][i] * 0.28;     // deep, a little towards navy (keeps the hue)
-      out[i] = Math.round(lo[i] + (hi[i] - lo[i]) * t);
-    }
+  // Two views, one variable each (toggle 'Colour by' beside the blocs toggle):
+  //   pkg: flat colour of the package element a country spoke on most;
+  //   n:   total statements, one light to dark ramp (log scale), on all topics.
+  // glance.js uses GLANCE.statCol and GLANCE.pkgCols, so legend and globe match.
+  var NOPKG_COL = '#6f747a';                           // darker grey: a light one is mistaken for ABMT or CB&TMT by colour blind readers
+  var PKG_SHORT = { mgr: 'MGR', abmt: 'ABMT', eia: 'EIA', cb: 'CB&TMT' };
+  // view 'rat': ratified navy, signed (not yet ratified) a lighter blue of the same
+  // ramp, the rest in the no-data grey (both blues clearly darker than the ocean)
+  var RAT_COLS = { rat: '#1d3f6e', sig: '#7d9fc6' };   // one blue ramp: signed is a step before ratified (Emil, 2026-11-20)
+  // sequential ramp for statements: pale sand to the page navy, lightness rising
+  // steadily (safe for colour blindness); the sand end stands apart from the blue ocean
+  var STAT_STOPS = [[233, 226, 207], [159, 182, 204], [93, 127, 163], [29, 63, 110]];
+  function statCol(t) {
+    t = Math.max(0, Math.min(1, t));
+    var x = t * (STAT_STOPS.length - 1), i = Math.min(Math.floor(x), STAT_STOPS.length - 2), f = x - i, out = [];
+    for (var j = 0; j < 3; j++) out[j] = Math.round(STAT_STOPS[i][j] + (STAT_STOPS[i + 1][j] - STAT_STOPS[i][j]) * f);
     return 'rgb(' + out.join(',') + ')';
   }
   part('globe legend', function () {
     var leg = $('#gl-g-legend');
     if (!leg) return;
-    // short names to save room; the full name shows on hover
-    var ABBR = { mgr: 'MGR', abmt: 'ABMT', eia: 'EIA', cb: 'CB&TMT' };
+    // view 'rat': ratification status (UN Treaty Collection)
+    var rv = el('div', 'gl-g-leg gl-g-leg-rat');
+    var rk = el('div', 'gl-g-keys');
+    [[RAT_COLS.rat, 'Ratified'], [RAT_COLS.sig, 'Signed, not yet ratified'], ['#eef1f4', 'Not signed']].forEach(function (x) {
+      rk.appendChild(el('span', 'gl-chart-key', '<span class="gl-g-sw' + (x[1] === 'Not signed' ? ' gl-g-sw-line' : '') + '" style="background:' + x[0] + '"></span>' + esc(x[1])));
+    });
+    rv.appendChild(rk);
+    leg.appendChild(rv);
+    // view 'pkg': one flat swatch per package element (short names, full name on hover)
+    var pk = el('div', 'gl-g-leg gl-g-leg-pkg');
+    var keys = el('div', 'gl-g-keys');
     function key(col, short, full) {
-      var k = el('span', 'gl-chart-key', '<span class="gl-g-ramp" style="background:linear-gradient(90deg,' +
-        shade(col, 0) + ',' + shade(col, 1) + ')"></span>' + esc(short));
+      var k = el('span', 'gl-chart-key', '<span class="gl-g-sw" style="background:' + col + '"></span>' + esc(short));
       k.title = full;
       return k;
     }
-    var keys = el('div', 'gl-g-keys');
     ((D.packages && D.packages.items) || []).forEach(function (p) {
       var full = pkgNames[p.key] || p.key;
-      keys.appendChild(key(PKG_COLS[p.key], ABBR[p.key] || full, full));
+      keys.appendChild(key(PKG_COLS[p.key], PKG_SHORT[p.key] || full, full));
     });
     keys.appendChild(key(NOPKG_COL, 'None', 'No package statements'));
-    leg.appendChild(keys);
-    leg.appendChild(el('div', 'gl-g-legend-note', 'Colour: the package element a country spoke on most. Darker: more statements.'));
+    pk.appendChild(keys);
+    pk.appendChild(el('div', 'gl-g-legend-note', 'The package element a country spoke on most (cross-cutting issues excluded).'));
+    leg.appendChild(pk);
+    // view 'n': one ramp
+    var nv = el('div', 'gl-g-leg gl-g-leg-n');
+    var stops = [0, 0.33, 0.67, 1].map(function (t) { return statCol(t); }).join(',');
+    nv.appendChild(el('div', 'gl-g-keys', '<span class="gl-g-ramp-lbl">Fewer</span><span class="gl-g-ramp gl-g-ramp-wide" style="background:linear-gradient(90deg,' +
+      stops + ')"></span><span class="gl-g-ramp-lbl">More</span>'));
+    nv.appendChild(el('div', 'gl-g-legend-note', 'Total statements, on all topics. Darker: more statements.'));
+    leg.appendChild(nv);
   });
 
-  function topList(t, title, cls) {
-    var h = '<div class="gl-card-top gl-top-' + cls + '"><div class="gl-card-lbl"><span class="gl-card-sw"></span>' + title + '</div>';
+  function topList(t, title) {
+    var h = '<div class="gl-card-top"><div class="gl-card-lbl">' + title + '</div>';
     if (!t || !t.length) {
       h += '<div class="gl-card-none">No statements</div>';
     } else {
@@ -758,21 +803,25 @@
     var grp = window.GLANCE && window.GLANCE.scope === 'grp';
     var gs = r.groups || [], nVia = 0;
     gs.forEach(function (g) { nVia += g[1]; });
-    // Only the United Kingdom gets a note behind the EU: it left on 31 January 2020
+    // groups: [name, statements, member from, member until]; dates only for countries
+    // that joined or left during the negotiations (group_members.csv)
     var via = gs.map(function (g) {
-      return esc(g[0]) + (r.iso3 === 'GBR' && g[0] === 'EU' ? ' (member until 31 January 2020)' : '');
+      var d = g[2] && g[3] ? ' (member from ' + longDate(g[2]) + ' to ' + longDate(g[3]) + ')'
+            : g[3] ? ' (member until ' + longDate(g[3]) + ')'
+            : g[2] ? ' (member since ' + longDate(g[2]) + ')' : '';
+      return esc(g[0]) + d;
     }).join(', ');
     box.innerHTML = head +
       '<div class="gl-card-stats"><div class="gl-card-stat"><span class="gl-card-num">' + fmt(r.n || 0) + '</span>' +
         '<span class="gl-card-lbl">in national capacity</span></div>' +
       (grp
         ? '<div class="gl-card-stat"><span class="gl-card-num">' + fmt(nVia) + '</span>' +
-          '<span class="gl-card-lbl">' + (gs.length ? 'through ' + (gs.length === 1 ? 'bloc' : 'blocs') + ': ' + via : 'through blocs') + '</span></div>'
+          '<span class="gl-card-lbl">' + (gs.length ? 'by ' + (gs.length === 1 ? 'a bloc' : 'blocs') + ' it belongs to: ' + via : 'by blocs it belongs to') + '</span></div>'
         : '') + '</div>' +
-      '<div class="gl-card-tops">' + topList(grp ? r.top_igc_g : r.top_igc, 'Most discussed at the IGCs', 'igc') +
-      topList(grp ? r.top_prepcom_g : r.top_prepcom, 'Most discussed at the PrepComs', 'prepcom') + '</div>';
+      '<div class="gl-card-tops">' + topList(grp ? r.top_igc_g : r.top_igc, 'Most discussed at the IGCs') +
+      topList(grp ? r.top_prepcom_g : r.top_prepcom, 'Most discussed at the PrepComs') + '</div>';
   }
 
   // For glance.js (globe and country card) and for checking in the console
-  window.GLANCE = { data: D, renderCard: renderCard, pkgCols: PKG_COLS, shade: shade, noPkgCol: NOPKG_COL };
+  window.GLANCE = { data: D, renderCard: renderCard, pkgCols: PKG_COLS, pkgShort: PKG_SHORT, ratCols: RAT_COLS, statCol: statCol, noPkgCol: NOPKG_COL };
 })();

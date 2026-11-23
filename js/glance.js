@@ -212,8 +212,9 @@ function glQuality() {
 //     country again deselects it and zooms back out;
 //   - double click: zooms back out (the selection stays as it was before the
 //     double click);
-//   - colour: hue = main package element, shade = statements (GLANCE.shade in
-//     build.js, so the legend matches).
+//   - colour, toggle 'Colour by': 'pkg' flat colour of the main package element,
+//     'n' total statements on one light to dark ramp (GLANCE.statCol in build.js,
+//     so the legend matches).
 (function () {
   'use strict';
   var d3 = window.d3, topo = window.topojson;
@@ -252,6 +253,14 @@ function glQuality() {
     GL.scope = scope;
     function val(r) { return !r ? 0 : (scope === 'grp' ? (r.ng || 0) : (r.n || 0)); }
     function pkgOf(r) { return scope === 'grp' ? r.pkg_g : r.pkg; }
+    var view = 'pkg';                                   // 'rat' ratification, 'pkg' main package (default), 'n' statements
+    var onV = root.querySelector('.gl-g-view .is-active');
+    if (onV) view = onV.getAttribute('data-view') || 'pkg';
+    var ratCols = GL.ratCols || { rat: '#1d3f6e', sig: '#e2c48f' };
+    function ratOf(r) { return !r ? null : (r.rat ? 'rat' : (r.sig ? 'sig' : null)); }
+    // drawn at all (and as a dot when tiny): in the ratification view every signatory,
+    // otherwise every country with statements in the current count
+    function shown(r) { return view === 'rat' ? !!ratOf(r) : !!val(r); }
 
     var proj = d3.geoOrthographic().clipAngle(90).precision(0);
     var path = d3.geoPath(proj, ctx);
@@ -264,10 +273,14 @@ function glQuality() {
     var vel = [0, 0], raf = 0, anim = null, q = glQuality();
 
     function colour(r) {
+      if (view === 'rat') { var st = ratOf(r); return st ? ratCols[st] : NODATA; }
       if (!r || !val(r)) return NODATA;
-      var pk = pkgOf(r), t = maxLog[scope] ? Math.log(val(r) + 1) / maxLog[scope] : 0;
-      var col = (pk && pkgCols[pk]) || GL.noPkgCol || '#8f9aa6';
-      return GL.shade ? GL.shade(col, t) : col;
+      if (view === 'n') {
+        var t = maxLog[scope] ? Math.log(val(r) + 1) / maxLog[scope] : 0;
+        return GL.statCol ? GL.statCol(t) : '#5d7fa3';
+      }
+      var pk = pkgOf(r);
+      return (pk && pkgCols[pk]) || GL.noPkgCol || '#6f747a';
     }
 
     function resize() {
@@ -316,7 +329,7 @@ function glQuality() {
       var R = proj.scale(), rr = 3 + Math.min(3, k * 0.6);
       dots.forEach(function (d) {
         var tiny = !d.__f || d.__f.__sr * R * R < 30;
-        if (!tiny || !val(d) || !visible(d.pt)) { d.__xy = null; return; }
+        if (!tiny || !shown(d) || !visible(d.pt)) { d.__xy = null; return; }
         var xy = proj(d.pt);
         d.__xy = xy;
         ctx.beginPath(); ctx.arc(xy[0], xy[1], d === sel ? rr + 2 : rr, 0, 2 * Math.PI);
@@ -407,6 +420,14 @@ function glQuality() {
     function showTip(r, x, y) {
       if (!r) { tipEl.style.display = 'none'; return; }
       var t = '<b>' + r.name + '</b><br>' + (r.none ? 'No statements' : val(r).toLocaleString('en-GB') + ' statements');
+      if (view === 'rat') {
+        var rs = ratOf(r);
+        t += '<br>' + (rs === 'rat' ? 'Ratified' : rs === 'sig' ? 'Signed, not yet ratified' : 'Not signed');
+      }
+      if (!r.none && view === 'pkg' && val(r)) {               // name the colour, never colour alone
+        var pk = pkgOf(r);
+        t += '<br>Main package: ' + ((pk && GL.pkgShort && GL.pkgShort[pk]) || 'none');
+      }
       tipEl.innerHTML = t;
       tipEl.style.display = 'block';
       tipEl.style.left = x + 'px';
@@ -505,6 +526,16 @@ function glQuality() {
     root.querySelector('.gl-g-zout').addEventListener('click', function () { zoomTo(kT / 1.6); });
     root.querySelector('.gl-g-reset').addEventListener('click', function () { animate([-10, -15], 1, 700); });
     var section = root.closest('.gl-actors');
+    var leg = document.getElementById('gl-g-legend');
+    if (leg) leg.setAttribute('data-view', view);
+    root.querySelectorAll('.gl-g-view button').forEach(function (b) {
+      b.addEventListener('click', function () {
+        view = b.getAttribute('data-view') || 'pkg';
+        root.querySelectorAll('.gl-g-view button').forEach(function (o) { o.classList.toggle('is-active', o === b); });
+        if (leg) leg.setAttribute('data-view', view);
+        kick();
+      });
+    });
     root.querySelectorAll('.gl-g-scope button').forEach(function (b) {
       b.addEventListener('click', function () {
         scope = b.getAttribute('data-scope') === 'grp' ? 'grp' : 'nat';
@@ -524,15 +555,31 @@ function glQuality() {
     var t = (window.GL_GEO || {}).countries;
     if (!t) { canvas.classList.add('is-ready'); return; }
     try {
-      feats = topo.feature(t, t.objects.countries).features;
+      // Antarctica (id 010) is broken in the simplified country files (only a
+      // sliver is left), so it is dropped there and drawn from the land layer
+      // instead (polygons wholly south of 55S), in the no-data grey.
+      var noAnt = function (f) { return f.id !== '010'; };
+      feats = topo.feature(t, t.objects.countries).features.filter(noAnt);
+      var land = (window.GL_GEO || {}).land;
+      if (land && land.objects && land.objects.land) {
+        var lf = topo.feature(land, land.objects.land), lp = [];
+        (lf.features || [lf]).forEach(function (f) {
+          var g = f.geometry, ps = !g ? [] : (g.type === 'MultiPolygon' ? g.coordinates : [g.coordinates]);
+          ps.forEach(function (pp) { var b = d3.geoBounds({ type: 'Polygon', coordinates: pp }); if (b[1][1] < -55) lp.push(pp); });
+        });
+        if (lp.length) feats.push({ type: 'Feature', id: 'ata', __sr: 1, geometry: { type: 'MultiPolygon', coordinates: lp } });
+      }
       feats.forEach(function (f) {
+        if (f.id === 'ata') return;
         f.__sr = d3.geoArea(f);
         var r = f.id !== undefined ? byNum[f.id] : null;
         if (r) { f.__r = r; r.__f = f; }
       });
       var tl = (window.GL_GEO || {}).countriesLow;
       if (tl) {
-        featsLow = topo.feature(tl, tl.objects.countries).features;
+        featsLow = topo.feature(tl, tl.objects.countries).features.filter(noAnt);
+        var ata = feats.filter(function (f) { return f.id === 'ata'; })[0];
+        if (ata) featsLow.push(ata);
         featsLow.forEach(function (f) { f.__r = f.id !== undefined ? byNum[f.id] || null : null; });
       }
       rows.forEach(function (r) {
@@ -779,18 +826,47 @@ function glQuality() {
     if (!P.agr || !P.slot) return;
     var AW = P.agr.offsetWidth || 240, AH = P.agr.offsetHeight || 314;
     var IW = P.sq.length ? P.sq[0].offsetWidth : 72;
-    var n = P.sq.length, rowY = H / 2;
+    var n = P.sq.length, rowY = H / 2, ys = [], agY, u, sB, xs = [], agX = null;
 
-    // the row with every official meeting: the Agreement's final place
-    var u = Math.min(1, (W - 8) / (n * SLOT + AW * AG_ROW + 2 * GAP));
-    var sB = Math.min(1, (W - 16) / AW, (H - 8) / AH, AG_ROW * u);
-    var slot = SLOT * u, gap = GAP * u, agW = AW * sB;
-    var x = (W - (agW + 2 * gap + n * slot)) / 2, agX = null, xs = [];
-    P.sq.forEach(function (b) {
-      if (agX === null && +b.getAttribute('data-pos') > P.agrPos) { agX = x + gap + agW / 2; x += agW + 2 * gap; }
-      xs.push(x + slot / 2); x += slot;
-    });
-    if (agX === null) agX = x + gap + agW / 2;
+    if (W < 640) {
+      // phones: no single row (it would be tiny). Rows of at most four meetings, with
+      // the Agreement on its own row between the IGCs and the PrepComs
+      var PER = 4, RH = 122;   // room for the square, its label and year
+      u = Math.min(1, (W - 8) / (PER * SLOT));
+      sB = Math.min(AG_ROW, (W * 0.48) / AW);
+      var slotN = SLOT * u, rowH = RH * u, agH = AH * sB;
+      var before = P.sq.filter(function (b) { return +b.getAttribute('data-pos') < P.agrPos; });
+      var y = 0;
+      var rows = function (list) {
+        for (var i = 0; i < list.length; i += PER) {
+          var chunk = list.slice(i, i + PER), x0 = (W - chunk.length * slotN) / 2;
+          chunk.forEach(function (b, j) { b.__x = x0 + (j + 0.5) * slotN; b.__y = y + rowH / 2; });
+          y += rowH;
+        }
+      };
+      rows(before);
+      y += 14; agY = y + agH / 2; agX = W / 2; y += agH + 18;
+      rows(P.sq.filter(function (b) { return before.indexOf(b) < 0; }));
+      y += 10;   // space above the colour key
+      P.sq.forEach(function (b) { xs.push(b.__x); ys.push(b.__y); });
+      var want = Math.ceil(y) + 'px';
+      if (stage.style.height !== want) stage.style.height = want;
+      H = stage.clientHeight;
+      rowY = ys.length ? ys[0] : agY;
+    } else {
+      if (stage.style.height) { stage.style.height = ''; H = stage.clientHeight; rowY = H / 2; }
+      // the row with every official meeting: the Agreement's final place
+      u = Math.min(1, (W - 8) / (n * SLOT + AW * AG_ROW + 2 * GAP));
+      sB = Math.min(1, (W - 16) / AW, (H - 8) / AH, AG_ROW * u);
+      var slot = SLOT * u, gap = GAP * u, agW = AW * sB;
+      var x = (W - (agW + 2 * gap + n * slot)) / 2;
+      P.sq.forEach(function (b) {
+        if (agX === null && +b.getAttribute('data-pos') > P.agrPos) { agX = x + gap + agW / 2; x += agW + 2 * gap; }
+        xs.push(x + slot / 2); ys.push(rowY); x += slot;
+      });
+      if (agX === null) agX = x + gap + agW / 2;
+      agY = rowY;
+    }
 
     // start (slot in part one) and end (row in part two), in the section's coordinates
     var rs = sec.getBoundingClientRect(), ra = P.slot.getBoundingClientRect(), rt = stage.getBoundingClientRect();
@@ -798,7 +874,7 @@ function glQuality() {
     var sA = Math.min(1.6, ra.height / AH, (ra.width || W) / AW);
     var ghost = P.slot.querySelector('.gl-mo-ghost');
     if (ghost) { ghost.style.width = Math.round(AW * sA) + 'px'; ghost.style.height = Math.round(AH * sA) + 'px'; }
-    var bx = rt.left - rs.left + agX, by = rt.top - rs.top + rowY;
+    var bx = rt.left - rs.left + agX, by = rt.top - rs.top + agY;
     // a short scroll past the slot sends it down: it glides to the row on its own
     // (CSS transition, 0.8 s) rather than following the scroll; back up, it returns
     var yA = ra.top + ra.height / 2, mid = window.innerHeight / 2, past = mid - yA;
@@ -821,7 +897,7 @@ function glQuality() {
     }
     P.sq.forEach(function (b, i) {
       var s = shown ? u : 0.3 * u;
-      b.style.transform = 'translate(' + (xs[i] - IW / 2).toFixed(1) + 'px,' + (rowY - SQ_MID).toFixed(1) + 'px) scale(' + s.toFixed(3) + ')';
+      b.style.transform = 'translate(' + (xs[i] - IW / 2).toFixed(1) + 'px,' + (ys[i] - SQ_MID).toFixed(1) + 'px) scale(' + s.toFixed(3) + ')';
       b.classList.toggle('is-hid', !shown);
     });
   }
@@ -976,6 +1052,16 @@ function glQuality() {
     window.addEventListener('scroll', function () {
       if (!tick && !panel.hidden) { tick = true; window.requestAnimationFrame(mark); }
     }, { passive: true });
+    // phones: the button tucks away while scrolling down (it covered text at the right
+    // edge) and comes back on any scroll up
+    var lastY = window.pageYOffset || 0;
+    window.addEventListener('scroll', function () {
+      var y = window.pageYOffset || 0;
+      if (window.innerWidth > 760 || !panel.hidden) { nav.classList.remove('is-tuck'); lastY = y; return; }
+      if (y > lastY + 6 && y > 120) nav.classList.add('is-tuck');
+      else if (y < lastY - 6 || y < 120) nav.classList.remove('is-tuck');
+      if (Math.abs(y - lastY) > 6) lastY = y;
+    }, { passive: true });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
@@ -1043,12 +1129,25 @@ function glQuality() {
       });
       Array.prototype.forEach.call(infos, function (p) { p.hidden = p.getAttribute('data-k') !== k; });
       Array.prototype.forEach.call(spokes, function (l) { l.classList.toggle('is-on', l.getAttribute('data-k') === k); });
+      place();
     }
+    // phones: the bodies are a list and the text opens right under the tapped one
+    // (accordion); wider screens: the text stays in the side column
+    var panel = box.querySelector('.gl-cop-panel'), side = box.querySelector('.gl-cop-side');
+    function place() {
+      if (!panel || !side) return;
+      if (window.innerWidth <= 560) {
+        var act = box.querySelector('.gl-cop-node.is-active');
+        if (act && act.nextSibling !== panel) act.parentNode.insertBefore(panel, act.nextSibling);
+      } else if (panel.parentNode !== side) side.appendChild(panel);
+    }
+    window.addEventListener('resize', place);
     Array.prototype.forEach.call(nodes, function (n) {
       n.addEventListener('click', function () {
         var k = n.getAttribute('data-k');
         show(k === cur && k !== 'cop' ? 'cop' : k);
       });
     });
+    place();
   } catch (err) { if (window.console) console.error('COP block', err); }
 })();

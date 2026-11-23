@@ -37,21 +37,25 @@
   </section>
 
   <section class="lit-body">
+    <!-- phones: search and filters collapse behind this button (literature.js) -->
+    <button type="button" class="lit-ftoggle" id="lit-ftoggle" aria-expanded="false" aria-controls="lit-filters"><span id="lit-ftoggle-l">Search and filters</span></button>
     <form class="lit-filters" id="lit-filters" role="search" onsubmit="return false">
       <label class="lit-search">
         <span class="lit-lbl">Search</span>
         <input type="search" id="lit-q" placeholder="Title, author, abstract, keyword" autocomplete="off">
       </label>
       <div class="lit-selects">
-        <label><span class="lit-lbl">Package or theme</span><select id="lit-theme"><option value="">All</option></select></label>
-        <label><span class="lit-lbl">Region of first author</span><select id="lit-region"><option value="">All</option></select></label>
-        <label><span class="lit-lbl">Type</span><select id="lit-type"><option value="">All</option></select></label>
+        <!-- multiselect: a button that opens a checkbox list below it (in the flow, so the sticky column never clips it) -->
+        <div class="lit-ms" id="lit-theme"><span class="lit-lbl" id="lit-theme-l">Package or theme</span><button type="button" class="lit-ms-btn" aria-expanded="false" aria-controls="lit-theme-pop" aria-labelledby="lit-theme-l lit-theme-v"><span class="lit-ms-v" id="lit-theme-v">All</span></button><div class="lit-ms-pop" id="lit-theme-pop" role="group" aria-labelledby="lit-theme-l" hidden></div></div>
+        <div class="lit-ms" id="lit-region"><span class="lit-lbl" id="lit-region-l">Region of first author</span><button type="button" class="lit-ms-btn" aria-expanded="false" aria-controls="lit-region-pop" aria-labelledby="lit-region-l lit-region-v"><span class="lit-ms-v" id="lit-region-v">All</span></button><div class="lit-ms-pop" id="lit-region-pop" role="group" aria-labelledby="lit-region-l" hidden></div></div>
+        <div class="lit-ms" id="lit-type"><span class="lit-lbl" id="lit-type-l">Type</span><button type="button" class="lit-ms-btn" aria-expanded="false" aria-controls="lit-type-pop" aria-labelledby="lit-type-l lit-type-v"><span class="lit-ms-v" id="lit-type-v">All</span></button><div class="lit-ms-pop" id="lit-type-pop" role="group" aria-labelledby="lit-type-l" hidden></div></div>
         <label><span class="lit-lbl">From</span><select id="lit-from"></select></label>
         <label><span class="lit-lbl">To</span><select id="lit-to"></select></label>
       </div>
       <div class="lit-opts">
         <button type="button" class="lit-clear" id="lit-clear" hidden>Clear search and filters</button>
       </div>
+      <p class="lit-missing-paper">If you think a paper is missing, please get in touch at <a href="mailto:emil.wieringa.hildebrand@univie.ac.at">emil.wieringa.hildebrand@univie.ac.at</a>.</p>
     </form>
 
     <!-- list column: on wide screens the filters sit in a sticky column on the left -->

@@ -410,8 +410,9 @@ a { color: #006AB4; }
 .gl-shell .gl-act .gl-split-rev { max-width: none; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 32px 48px; }
 @media (max-width: 900px) { .gl-shell .gl-act .gl-split-rev { grid-template-columns: minmax(0, 1fr); } }
 .gl-shell .gl-act-side { gap: 16px; }
-.gl-shell .gl-act .gl-g-bar { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 10px 18px; }
-.gl-shell .gl-act .gl-g-scope { position: static; }
+.gl-shell .gl-act .gl-g-bar { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }   /* Colour by above Country blocs */
+.gl-shell .gl-act .gl-g-bar .gl-g-lens-lbl { min-width: 96px; }   /* labels the same width, so the buttons line up */
+.gl-shell .gl-act .gl-g-scope, .gl-shell .gl-act .gl-g-view { position: static; }
 .gl-shell .gl-act .gl-card { min-height: 390px; padding: 20px 22px; gap: 10px; }   /* about the tallest card, so the text above does not move */
 .gl-shell .gl-act .gl-card-body { gap: 10px; }
 .gl-shell .gl-act .gl-card-tops { gap: 10px; padding-top: 10px; }
@@ -518,25 +519,34 @@ a { color: #006AB4; }
 }
 .gl-shell .gl-g-zoom button:hover { border-color: #002F62; }
 /* Country blocs toggle: in the top left corner beside the globe */
-.gl-shell .gl-g-scope {
+.gl-shell .gl-g-scope, .gl-shell .gl-g-view {
   position: absolute; left: 0; top: 0; z-index: 2;
   display: inline-flex; align-items: center; font-size: 13px;
 }
 .gl-shell .gl-g-lens-lbl { color: #8a929a; margin-right: 10px; }
-.gl-shell .gl-g-scope button {
+.gl-shell .gl-g-scope button, .gl-shell .gl-g-view button {
   border: 1px solid #dfe4ea; background: #ffffff; color: #4a5560; padding: 5px 12px;
   font: inherit; cursor: pointer;
 }
-.gl-shell .gl-g-scope button + button { border-left: 0; }
-.gl-shell .gl-g-scope button:first-of-type { border-radius: 3px 0 0 3px; }
-.gl-shell .gl-g-scope button:last-of-type { border-radius: 0 3px 3px 0; }
-.gl-shell .gl-g-scope button.is-active { background: #002F62; border-color: #002F62; color: #ffffff; }
+.gl-shell .gl-g-scope button + button, .gl-shell .gl-g-view button + button { border-left: 0; }
+.gl-shell .gl-g-scope button:first-of-type, .gl-shell .gl-g-view button:first-of-type { border-radius: 3px 0 0 3px; }
+.gl-shell .gl-g-scope button:last-of-type, .gl-shell .gl-g-view button:last-of-type { border-radius: 0 3px 3px 0; }
+.gl-shell .gl-g-scope button.is-active, .gl-shell .gl-g-view button.is-active { background: #002F62; border-color: #002F62; color: #ffffff; }
 
-/* Legend: one light to dark ramp per package element */
+/* Legend: flat package swatches ('pkg') or one statements ramp ('n'), per the 'Colour by' toggle */
 .gl-shell .gl-g-legend { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 12px; color: #4a5560; }
 .gl-shell .gl-g-keys { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 16px; }
 .gl-shell .gl-g-ramp { width: 30px; height: 9px; border-radius: 2px; display: inline-block; }
 .gl-shell .gl-g-legend-note { color: #8a929a; }
+.gl-shell .gl-g-sw { width: 12px; height: 12px; border-radius: 2px; display: inline-block; }
+.gl-shell .gl-g-ramp-wide { width: 160px; }
+.gl-shell .gl-g-ramp-lbl { color: #4a5560; }
+.gl-shell .gl-g-leg { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.gl-shell .gl-g-legend .gl-g-leg { display: none; }
+.gl-shell .gl-g-legend[data-view="rat"] .gl-g-leg-rat,
+.gl-shell .gl-g-legend[data-view="pkg"] .gl-g-leg-pkg,
+.gl-shell .gl-g-legend[data-view="n"] .gl-g-leg-n { display: flex; }
+.gl-shell .gl-g-sw-line { box-shadow: inset 0 0 0 1px #c9d1d9; }   /* the pale 'Not signed' swatch needs an edge */
 
 .gl-shell .gl-card {
   width: 100%;
@@ -570,9 +580,6 @@ a { color: #006AB4; }
 .gl-shell .gl-card-top li { display: flex; justify-content: space-between; gap: 12px; font-size: 13.5px; color: #363c42; }
 .gl-shell .gl-card-item::first-letter { text-transform: uppercase; }
 .gl-shell .gl-card-k     { color: #8a929a; font-variant-numeric: tabular-nums; }
-.gl-shell .gl-card-sw    { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
-.gl-shell .gl-top-igc .gl-card-sw     { background: #5cc79a; }
-.gl-shell .gl-top-prepcom .gl-card-sw { background: #f0b27f; }
 .gl-shell .gl-card-none  { font-size: 13px; color: #8a929a; margin-top: 4px; }
 
 /* ============================================================================
@@ -859,8 +866,6 @@ html:not(.gl-anim) .gl-shell .gl-mo-slot { display: none; }   /* no float: the A
 .gl-shell .gl-who-facts .gl-who-link { margin-top: 0; }
 
 /* 'Last updated' lines */
-.gl-shell .gl-updated { margin: -4px 0 0; font-size: 13px; color: #8a929a; }
-.gl-shell .gl-updated:empty { display: none; }
 /* literature: collection card with its title and text on top, the picture below */
 .gl-shell .gl-lit-two .gl-lit-card { display: flex; flex-direction: column-reverse; }
 .gl-shell .gl-lit-two .gl-lit-shot { border-bottom: 0; border-top: 1px solid #b8c4d0; }
@@ -892,20 +897,22 @@ html:not(.gl-anim) .gl-shell .gl-mo-slot { display: none; }   /* no float: the A
 .gl-shell .gl-cop-hub { position: relative; width: 100%; max-width: 680px; aspect-ratio: 4 / 3; }   /* oval: bodies sit on an ellipse (positions in index.html) */
 
 .gl-shell .gl-cop-lines { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-.gl-shell .gl-cop-spoke { stroke: #c9d2db; stroke-width: 0.35; transition: stroke 0.2s ease, stroke-width 0.2s ease; }
-.gl-shell .gl-cop-spoke.is-on { stroke-width: 0.7; }
-/* Bodies keep their full outline in their colour; selected = a pale
-   tint of the colour (the same 14% mix as the package cards) instead of a solid fill */
+/* a faint orbit through all bodies; a spoke only shows for the selected body, in its colour */
+.gl-shell .gl-cop-orbit { fill: none; stroke: #dbe2ea; stroke-width: 1; stroke-dasharray: 2 5; vector-effect: non-scaling-stroke; }
+.gl-shell .gl-cop-spoke { stroke: transparent; stroke-width: 1.5; vector-effect: non-scaling-stroke; transition: stroke 0.25s ease; }
+/* Bodies: quiet white cards with a hairline border and a stripe in their colour on the
+   left (like the package cards); selected = a pale tint of the colour */
 .gl-shell .gl-cop-node {
   --c: #5b7a99;
   position: absolute; transform: translate(-50%, -50%);
-  width: 23%; min-height: 15%; padding: 8px 10px; box-sizing: border-box;
-  display: flex; align-items: center; justify-content: center; text-align: center;
-  font: 500 14px/1.3 Inter, system-ui, sans-serif; color: #002F62;
-  background: #ffffff; border: 2px solid var(--c); border-radius: 6px; cursor: pointer;
-  transition: background 0.2s ease, box-shadow 0.2s ease;
+  width: 23%; min-height: 13%; padding: 9px 12px 9px 14px; box-sizing: border-box;
+  display: flex; align-items: center; justify-content: flex-start; text-align: left;
+  font: 500 13.5px/1.3 Inter, system-ui, sans-serif; color: #1f2f44;
+  background: #ffffff; border: 1px solid #e1e6ec; border-left: 3px solid var(--c); border-radius: 4px; cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 47, 98, 0.04);
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
 }
-/* one colour per body: orange and plum as the MGR and CB&TMT packages */
+/* one colour per body (muted, no longer tied to the package cards) */
 .gl-shell .gl-cop [data-k="stb"] { --c: #4683c4; }
 .gl-shell .gl-cop [data-k="abs"] { --c: #d9965a; }
 .gl-shell .gl-cop [data-k="cb"]  { --c: #a26a9e; }
@@ -915,22 +922,26 @@ html:not(.gl-anim) .gl-shell .gl-mo-slot { display: none; }   /* no float: the A
 .gl-shell .gl-cop [data-k="chm"] { --c: #3f9a9a; }
 .gl-shell .gl-cop-info[data-k="cop"] { --c: #002F62; }
 .gl-shell .gl-cop-spoke.is-on { stroke: var(--c); }
-.gl-shell .gl-cop-node:hover { box-shadow: 0 3px 10px rgba(0, 47, 98, 0.10); }
+.gl-shell .gl-cop-node:hover { transform: translate(-50%, calc(-50% - 2px)); box-shadow: 0 6px 16px rgba(0, 47, 98, 0.10); }
 .gl-shell .gl-cop-node:focus-visible { outline: 2px solid #006AB4; outline-offset: 3px; }
-.gl-shell .gl-cop-node.is-active { background: #ffffff; background: color-mix(in srgb, var(--c) 14%, #ffffff); }
+.gl-shell .gl-cop-node.is-active { background: #ffffff; background: color-mix(in srgb, var(--c) 12%, #ffffff); border-color: var(--c); }
+/* COP: a solid navy disc with a soft halo; the halo deepens when it is selected */
 .gl-shell .gl-cop-centre {
-  --c: #002F62; width: 19%; min-height: 0; aspect-ratio: 1 / 1; border-radius: 50%; padding: 0;
-  border: 2px solid #002F62;
-  font-size: clamp(18px, 2vw, 24px); font-weight: 600; background: #ffffff; color: #002F62;
+  --c: #002F62; width: 17%; min-height: 0; aspect-ratio: 1 / 1; border-radius: 50%; padding: 0;
+  justify-content: center; text-align: center; border: 0;
+  font-size: clamp(17px, 1.8vw, 22px); font-weight: 600; letter-spacing: 0.02em; background: #002F62; color: #ffffff;
+  box-shadow: 0 0 0 10px rgba(0, 47, 98, 0.06), 0 0 0 22px rgba(0, 47, 98, 0.03);
 }
-.gl-shell .gl-cop-centre.is-active { background: #ffffff; background: color-mix(in srgb, #002F62 10%, #ffffff); }
+.gl-shell .gl-cop-centre:hover { transform: translate(-50%, -50%); box-shadow: 0 0 0 10px rgba(0, 47, 98, 0.10), 0 0 0 22px rgba(0, 47, 98, 0.05); }
+.gl-shell .gl-cop-centre.is-active { background: #002F62; box-shadow: 0 0 0 10px rgba(0, 47, 98, 0.10), 0 0 0 22px rgba(0, 47, 98, 0.05); }
 /* Wide screens: the diagram reaches 120px past the left text edge and grows, the boxes keep
    their size: boxes and COP circle get smaller percentages of the bigger hub */
 @media (min-width: 1400px) {
   .gl-shell .gl-cop-hub { width: calc(100% + 120px); max-width: 800px; margin-left: -120px; }
   .gl-shell .gl-cop-node { width: 19%; }
-  .gl-shell .gl-cop-node.gl-cop-centre { width: 15.5%; }
-}.gl-shell .gl-cop-side { display: flex; flex-direction: column; gap: 18px; max-width: 480px; }
+  .gl-shell .gl-cop-node.gl-cop-centre { width: 14%; }
+}
+.gl-shell .gl-cop-side { display: flex; flex-direction: column; gap: 18px; max-width: 480px; }
 .gl-shell .gl-cop-hint { margin: 0; color: #6b737b; }   /* above the panel, so it never moves */
 .gl-shell .gl-cop-panel { min-height: 330px; }   /* about the tallest text, so the column keeps its height */
 /* the text panel like the open package element: a stripe in the body's colour on the left */
@@ -945,8 +956,8 @@ html:not(.gl-anim) .gl-shell .gl-mo-slot { display: none; }   /* no float: the A
   .gl-shell .gl-cop-hub { max-width: 640px; }
 }
 @media (max-width: 560px) {
-  .gl-shell .gl-cop-node { font-size: 10.5px; padding: 4px 5px; width: 25%; border-radius: 5px; }
-  .gl-shell .gl-cop-node.gl-cop-centre { width: 19%; padding: 0; border-radius: 50%; font-size: 16px; }
+  .gl-shell .gl-cop-node { font-size: 10.5px; padding: 4px 5px 4px 7px; width: 25%; }
+  .gl-shell .gl-cop-node.gl-cop-centre { width: 17%; padding: 0; border-radius: 50%; font-size: 15px; box-shadow: 0 0 0 6px rgba(0, 47, 98, 0.06); }
   .gl-shell .gl-cop-panel { min-height: 0; }
 }
 
@@ -1056,3 +1067,94 @@ html:not(.gl-anim) .gl-shell .gl-mo-slot { display: none; }   /* no float: the A
 .gl-shell .gl-photo-inset .gl-photo-img { max-width: 1100px; height: clamp(240px, 40vw, 440px); margin: 0 auto; border-radius: 3px; }
 .gl-shell .gl-photo-inset .gl-photo-cap { max-width: 1100px; margin: 0 auto; padding: 8px 0 0; }
 @media (max-width: 700px) { .gl-shell .gl-photo-inset { padding: 40px 16px 32px; } .gl-shell .gl-photo-inset .gl-photo-img { height: clamp(180px, 50vw, 260px); } }
+
+/* ---- IO network (IFB section, js/io_network.js) ------------------------------ */
+.gl-shell .gl-io { width: 100%; display: flex; flex-direction: column; gap: 14px; }
+.gl-shell .gl-io-bar { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.gl-shell .gl-io-node.is-item { cursor: pointer; }
+.gl-shell .gl-io-node.is-sel circle { stroke: #002F62; stroke-width: 2; }
+.gl-shell .gl-io .gl-g-scope { position: static; }
+.gl-shell .gl-io-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: #4a5560; }
+.gl-shell .gl-io-legend[hidden] { display: none; }
+.gl-shell .gl-io-key { display: inline-flex; align-items: center; gap: 6px; }
+.gl-shell .gl-io-key i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.gl-shell .gl-io-wrap { position: relative; background: transparent; }   /* lives on the section background */
+.gl-shell .gl-io-svg { display: block; width: 100%; height: auto; overflow: visible; }   /* labels of the outermost dots may run into the page margin */
+.gl-shell .gl-io-node circle { transition: opacity .15s; }
+.gl-shell .gl-io-node, .gl-shell .gl-io-link { transition: opacity .15s; }
+.gl-shell .gl-io-dot { stroke: #ffffff; stroke-width: 1; }
+.gl-shell .gl-io-lbl { font: 400 12px "Inter", sans-serif; fill: #4a5560; pointer-events: none;
+  paint-order: stroke; stroke: #f4f6f8; stroke-width: 3px; stroke-linejoin: round; }   /* halo in the section grey, readable on circles and lines */
+.gl-shell .gl-io-lblg { transition: opacity .15s; }
+.gl-shell .gl-io-pkg { font: 500 15px "Inter", sans-serif; fill: #ffffff; pointer-events: none; }
+.gl-shell .gl-io-pkg.is-cci { fill: #4a4f55; }
+.gl-shell .gl-io-pkg.is-out { fill: #002F62; font-size: 12px; paint-order: stroke; stroke: #f4f6f8; stroke-width: 3px; }
+.gl-shell .gl-io-item { font: 500 12px "Inter", sans-serif; fill: #002F62; pointer-events: none; }
+.gl-shell .gl-io-node { cursor: default; }
+.gl-shell .gl-io-tip {
+  position: absolute; z-index: 3; pointer-events: none; max-width: 270px;
+  background: rgba(255,255,255,0.94); border: 1px solid #dfe4ea; border-radius: 3px; padding: 8px 10px;
+  font-size: 12.5px; line-height: 1.45; color: #363c42; text-align: left;
+  display: flex; flex-direction: column;
+}
+.gl-shell .gl-io-tip[hidden] { display: none; }
+.gl-shell .gl-io-tip strong { font-weight: 500; color: #002F62; }
+.gl-shell .gl-io-tip-n { color: #8a929a; margin-bottom: 4px; }
+.gl-shell .gl-io-tip-more { color: #8a929a; }
+.gl-shell .gl-io-note { text-align: left; max-width: none; margin-top: 16px; }
+.gl-shell .gl-io-svg.is-live .gl-io-node { cursor: grab; }
+.gl-shell .gl-io-svg.is-live { touch-action: none; }
+
+/* ---- COP-1 band: closing line for all upcoming decisions (white, own section) ---- */
+.gl-shell .gl-screen.gl-cop1 { background: #ffffff; padding: 110px 24px; }
+
+/* ---- Phones (mobile pass 2026-11-20) ------------------------------------------ */
+.gl-shell { overflow-x: clip; }   /* the cropped hero globe made the page a few px wider than the screen */
+/* instructions: 'Hover ...' on mouse screens, 'Tap ...' on touch screens */
+.gl-shell .gl-tap { display: none; }
+@media (hover: none) {
+  .gl-shell .gl-hov { display: none; }
+  .gl-shell .gl-tap { display: inline; }
+}
+/* touch: fingers scroll the page over the network (dots are tapped, not dragged) */
+@media (pointer: coarse) { .gl-shell .gl-io-svg.is-live { touch-action: pan-y; } }
+@media (max-width: 760px) {
+  .gl-shell .gl-menu { transition: transform 0.25s ease; }
+  .gl-shell .gl-menu.is-tuck { transform: translateY(-90px); }   /* out of the way while scrolling down */
+  .gl-shell .gl-act .gl-card { min-height: 0; }                  /* no tall empty card before a country is picked */
+  .gl-shell .gl-io-lbl { font-size: 10.5px; }
+  .gl-shell .gl-io-pkg { font-size: 12px; }
+  .gl-shell .gl-io-item { font-size: 10.5px; }
+}
+/* growth chart: the staggered meeting labels collide on phones; the colour key explains the bands */
+@media (max-width: 560px) {
+  .gl-shell .gl-gr .gl-gr-mlbl, .gl-shell .gl-gr .gl-gr-conn { display: none; }
+}
+/* globe toggles on narrow phones: the label goes on its own line so all buttons fit */
+@media (max-width: 420px) {
+  .gl-shell .gl-g-bar .gl-g-view, .gl-shell .gl-g-bar .gl-g-scope { flex-wrap: wrap; row-gap: 4px; }
+  .gl-shell .gl-g-bar .gl-g-lens-lbl { flex-basis: 100%; width: auto; margin: 0 0 2px; }
+}
+/* COP diagram on phones: a tappable list; the text opens under the tapped body (glance.js) */
+@media (max-width: 560px) {
+  .gl-shell .gl-cop { display: flex; flex-direction: column; gap: 14px; }
+  .gl-shell .gl-cop-side { order: -1; gap: 0; }
+  .gl-shell .gl-cop-hub { aspect-ratio: auto; display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: none; margin: 0; }
+  .gl-shell .gl-cop-lines { display: none; }
+  .gl-shell .gl-cop-node, .gl-shell .gl-cop-node.gl-cop-centre {
+    position: relative; left: auto !important; top: auto !important;   /* the ellipse positions are inline styles */
+    transform: none; width: 100%; min-height: 0; aspect-ratio: auto;
+    padding: 13px 40px 13px 14px; font-size: 15px; text-align: left; justify-content: flex-start;
+    border-radius: 4px;
+  }
+  .gl-shell .gl-cop-node:hover, .gl-shell .gl-cop-centre:hover { transform: none; box-shadow: none; }
+  .gl-shell .gl-cop-node.gl-cop-centre { box-shadow: none; letter-spacing: 0; font-weight: 600; }
+  .gl-shell .gl-cop-node.gl-cop-centre.is-active { box-shadow: none; }
+  .gl-shell .gl-cop-node::after { content: "+"; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 18px; font-weight: 400; opacity: 0.6; }
+  .gl-shell .gl-cop-node.is-active::after { content: "\2212"; }
+  .gl-shell .gl-cop-panel { min-height: 0; margin: 4px 0 10px; }
+  .gl-shell .gl-cop-info { padding: 4px 0 4px 16px; }
+  .gl-shell .gl-cop-info h3 { font-size: 20px; }
+  .gl-shell .gl-cop-info p { font-size: 16px; }
+  .gl-shell .gl-cop-hint { margin-bottom: 4px; }
+}

@@ -57,13 +57,24 @@
   });
 
   // ---- filter options from the data (sorted; counts in brackets)
-  function fill(sel, vals, order) {
+  // multiselect: one checkbox per value; none ticked = All. Within a filter any ticked
+  // value matches (or), across filters all must match (and).
+  function fill(box, vals, order) {
     var c = {};
     vals.forEach(function (v) { if (v) c[v] = (c[v] || 0) + 1; });
     var ks = Object.keys(c).sort(order || function (a, b) { return a < b ? -1 : 1; });
-    sel.insertAdjacentHTML('beforeend', ks.map(function (k) {
-      return '<option value="' + esc(k) + '">' + esc(k) + ' (' + fmt(c[k]) + ')</option>';
-    }).join(''));
+    box.querySelector('.lit-ms-pop').innerHTML = ks.map(function (k) {
+      return '<label class="lit-ms-opt"><input type="checkbox" value="' + esc(k) + '"><span>' + esc(k) +
+        ' <span class="lit-ms-n">(' + fmt(c[k]) + ')</span></span></label>';
+    }).join('');
+  }
+  function picked(box) {
+    return Array.prototype.map.call(box.querySelectorAll('input:checked'), function (i) { return i.value; });
+  }
+  function msLabel(box) {
+    var v = picked(box), out = box.querySelector('.lit-ms-v');
+    out.textContent = !v.length ? 'All' : v.length === 1 ? v[0] : v.length + ' selected';
+    box.classList.toggle('is-on', v.length > 0);
   }
   // packages first (in the order of the dashboard), then the rest A to Z, General and Other last
   var THEME_ORDER = ['Marine genetic resources (MGRs)', 'Area-based management tools (ABMTs/MPAs)',
@@ -151,20 +162,20 @@
   // ---- filter, sort, draw
   function apply() {
     words = norm(el.q.value).split(/\s+/).filter(Boolean);
-    var th = el.theme.value, rg = el.region.value, tp = el.type.value;
+    var th = picked(el.theme), rg = picked(el.region), tp = picked(el.type);
     var f = +el.from.value, t = +el.to.value;
     if (f > t) { var x = f; f = t; t = x; }
     var yearsOn = f !== y0 || t !== y1;
     shown = all.filter(function (p) {
-      if (th && (!p.themes || p.themes.indexOf(th) < 0)) return false;
-      if (rg && p.region !== rg) return false;
-      if (tp && p.type !== tp) return false;
+      if (th.length && !(p.themes || []).some(function (x) { return th.indexOf(x) >= 0; })) return false;
+      if (rg.length && rg.indexOf(p.region) < 0) return false;
+      if (tp.length && tp.indexOf(p.type) < 0) return false;
       if (yearsOn && (!p.year || p.year < f || p.year > t)) return false;
       for (var i = 0; i < words.length; i++) if (p._s.indexOf(words[i]) < 0) return false;
       return true;
     });
     shown.sort(SORTS[el.sort.value] || SORTS['year-desc']);
-    el.clear.hidden = !(words.length || th || rg || tp || yearsOn);
+    el.clear.hidden = !(words.length || th.length || rg.length || tp.length || yearsOn);
     page = 0;
     render();
   }
@@ -198,11 +209,32 @@
   // ---- events
   var timer = 0;
   el.q.addEventListener('input', function () { clearTimeout(timer); timer = setTimeout(apply, 150); });
-  [el.theme, el.region, el.type, el.from, el.to, el.sort].forEach(function (s) {
-    s.addEventListener('change', apply);
+  [el.from, el.to, el.sort].forEach(function (s) { s.addEventListener('change', apply); });
+  var boxes = [el.theme, el.region, el.type];
+  function openBox(box, open) {
+    box.querySelector('.lit-ms-pop').hidden = !open;
+    box.querySelector('.lit-ms-btn').setAttribute('aria-expanded', open ? 'true' : 'false');
+    box.classList.toggle('is-open', open);
+  }
+  boxes.forEach(function (box) {
+    box.querySelector('.lit-ms-btn').addEventListener('click', function () {
+      var open = box.querySelector('.lit-ms-pop').hidden;
+      boxes.forEach(function (b) { openBox(b, b === box && open); });   // one list open at a time
+    });
+    box.addEventListener('change', function () { msLabel(box); apply(); });
+    box.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') { openBox(box, false); box.querySelector('.lit-ms-btn').focus(); }
+    });
+  });
+  document.addEventListener('click', function (e) {
+    boxes.forEach(function (b) { if (!b.contains(e.target)) openBox(b, false); });
   });
   el.clear.addEventListener('click', function () {
-    el.q.value = ''; el.theme.value = ''; el.region.value = ''; el.type.value = '';
+    el.q.value = '';
+    boxes.forEach(function (b) {
+      Array.prototype.forEach.call(b.querySelectorAll('input:checked'), function (i) { i.checked = false; });
+      msLabel(b); openBox(b, false);
+    });
     el.from.value = y0; el.to.value = y1;
     apply();
     el.q.focus();
@@ -222,5 +254,23 @@
     var top = document.querySelector('.lit-bar');
     if (top && top.scrollIntoView) top.scrollIntoView({ block: 'start' });
   });
+  // phones: search and filters collapse behind a button; it says when any are in use
+  (function () {
+    var tg = $('lit-ftoggle'), form = $('lit-filters'), clr = $('lit-clear');
+    if (!tg || !form) return;
+    var mq = window.matchMedia ? window.matchMedia('(max-width: 760px)') : null;
+    function sync() {
+      var small = mq && mq.matches, open = tg.getAttribute('aria-expanded') === 'true';
+      form.classList.toggle('is-collapsed', !!small && !open);
+      tg.classList.toggle('is-on', !!clr && !clr.hidden);
+    }
+    tg.addEventListener('click', function () {
+      tg.setAttribute('aria-expanded', tg.getAttribute('aria-expanded') === 'true' ? 'false' : 'true');
+      sync();
+    });
+    ['input', 'change', 'click'].forEach(function (ev) { form.addEventListener(ev, function () { setTimeout(sync, 0); }); });
+    if (mq && mq.addListener) mq.addListener(sync);
+    sync();
+  })();
   apply();
 })();
