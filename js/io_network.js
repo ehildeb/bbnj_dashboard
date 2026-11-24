@@ -213,26 +213,22 @@
       }, gl);
       return { el: e, l: l };
     });
-    // wide invisible strip along each line, only active for the lines of the clicked
-    // node: hovering (or tapping) it shows the statement count of that line
+    // wide invisible strip along each line; only the lines of the selected node take
+    // the pointer, and hovering one shows the same pair card as hovering its node
     lines.forEach(function (x) {
       var e = x.hit = svgEl('path', { d: edgePath(x.l), fill: 'none', stroke: 'transparent',
         'stroke-width': 12, 'class': 'gl-io-hit' }, gl);
       e.style.pointerEvents = 'none';
-      e.addEventListener('pointerenter', function (ev) { x.el.style.strokeOpacity = 0.9; lineTip(x.l, ev); });
-      e.addEventListener('pointermove', function (ev) { lineTip(x.l, ev); });
-      e.addEventListener('pointerleave', function () { x.el.style.strokeOpacity = 0.5; if (tip) tip.hidden = true; });
-      e.addEventListener('click', function (ev) { ev.stopPropagation(); lineTip(x.l, ev); });
+      function on(ev) {
+        var sn = selNode();
+        if (!sn || dragging) return;
+        pairTip(x.l.s === sn ? x.l.t : x.l.s, sn, ev);
+      }
+      e.addEventListener('pointerenter', on);
+      e.addEventListener('pointermove', on);
+      e.addEventListener('pointerleave', function () { pairOff(); if (tip) tip.hidden = true; });
+      e.addEventListener('click', function (ev) { ev.stopPropagation(); on(ev); });
     });
-    function lineTip(l, ev) {
-      if (!tip) return;
-      tip.innerHTML = '<span>' + fmt(l.n) + (l.n === 1 ? ' statement' : ' statements') + '</span>';
-      tip.hidden = false;
-      var r = box.getBoundingClientRect();
-      var x = ev.clientX - r.left + 12, y = ev.clientY - r.top - 30;
-      if (x + tip.offsetWidth > r.width - 4) x = ev.clientX - r.left - 12 - tip.offsetWidth;
-      tip.style.left = Math.max(4, x) + 'px'; tip.style.top = Math.max(4, y) + 'px'; tip.style.right = 'auto';
-    }
 
     var groups = [], dragging = null;
     var order = V.nodes.filter(function (n) { return !n.item; }).concat(V.nodes.filter(function (n) { return n.item; }));
@@ -260,12 +256,20 @@
       }
       n.el = el;
       groups.push({ el: el, n: n });
+      // nothing selected: hovering previews that node (its links and sizes);
+      // something selected: the picture stays, the card shows only the link
+      // between the hovered node and the selected one (Emil, 2026-11-24)
       el.addEventListener('mouseenter', function () {
         if (dragging) return;
-        applySel(n);                // hovering previews the selection (sizes too)
-        focus(n);
+        var sn = selNode();
+        if (!sn) { applySel(n); focus(n); }
+        else if (n === sn) focus(n);
+        else pairTip(n, sn);
       });
-      el.addEventListener('mouseleave', function () { if (!dragging) rest(); });
+      el.addEventListener('mouseleave', function () {
+        if (dragging) return;
+        if (selNode()) { pairOff(); if (tip) tip.hidden = true; } else rest();
+      });
       el.addEventListener('pointerdown', function (ev) { startDrag(ev, n); });
     });
     function redraw() {
@@ -280,7 +284,7 @@
           txt.setAttribute('x', left ? -(n.size + 4) : n.size + 4);
         }
       });
-      lines.forEach(function (x) { var d = edgePath(x.l); x.el.setAttribute('d', d); if (x.hit) x.hit.setAttribute('d', d); });
+      lines.forEach(function (x) { var d = edgePath(x.l); x.el.setAttribute('d', d); x.hit.setAttribute('d', d); });
     }
     redraw();
 
@@ -318,6 +322,34 @@
       if (y + th > r.height - 4) y = r.height - 4 - th;
       tip.style.left = Math.max(4, x) + 'px'; tip.style.top = Math.max(4, y) + 'px'; tip.style.right = 'auto';
     }
+    // card for a hovered node while another is selected: how many statements link
+    // the two (an IO and a package/item); two packages/items have no link
+    var pairLine = null;
+    function nm(n) { return n.item && igc ? (PKG_SHORT[n.key] || n.label) : n.label; }
+    function pairTip(n, sn, ev) {
+      pairOff();
+      if (!tip || n.item === sn.item) { if (tip) tip.hidden = true; return; }
+      var io = n.item ? sn : n, it = n.item ? n : sn, hit = null;
+      lines.forEach(function (x) { if ((x.l.s === io && x.l.t === it) || (x.l.s === it && x.l.t === io)) hit = x; });
+      var k = hit ? hit.l.n : 0;
+      if (hit) { pairLine = hit; hit.el.style.strokeOpacity = 0.9; }
+      tip.innerHTML = '<span>' + (k ? fmt(k) + (k === 1 ? ' statement links ' : ' statements link ') : 'No statements link ') +
+        esc(nm(io)) + ' to ' + esc(nm(it)) + '</span>';
+      tip.hidden = false;
+      var r = box.getBoundingClientRect(), kk = r.width / IO_CFG.W;
+      var tw = tip.offsetWidth, th = tip.offsetHeight;
+      var x, y;
+      if (ev) {                     // on a line: next to the pointer
+        x = ev.clientX - r.left + 12; y = ev.clientY - r.top - 30;
+        if (x + tw > r.width - 4) x = ev.clientX - r.left - 12 - tw;
+      } else {                      // on a node: beside the dot
+        x = (n.x + n.size) * kk + 12; y = n.y * kk - 12;
+        if (x + tw > r.width - 4) x = (n.x - n.size) * kk - 12 - tw;
+      }
+      if (y + th > r.height - 4) y = r.height - 4 - th;
+      tip.style.left = Math.max(4, x) + 'px'; tip.style.top = Math.max(4, y) + 'px'; tip.style.right = 'auto';
+    }
+    function pairOff() { if (pairLine) { pairLine.el.style.strokeOpacity = 0.5; pairLine = null; } }
     function unfocus() {
       lines.forEach(function (x) { x.el.style.opacity = ''; });
       groups.forEach(function (x) { x.el.style.opacity = ''; if (x.n.lel) x.n.lel.style.opacity = ''; });
@@ -389,7 +421,6 @@
         var on = sn && (x.l.t === sn || x.l.s === sn);
         x.el.style.opacity = sn ? (on ? 1 : 0.04) : '';
         x.el.style.strokeOpacity = on ? 0.5 : '';
-        // line counts only for the clicked node, not while hovering previews another
         var cs = !preview && selNode();
         x.hit.style.pointerEvents = cs && (x.l.t === cs || x.l.s === cs) ? 'stroke' : 'none';
       });
@@ -405,6 +436,7 @@
     // click a package/item to show only it; click it again (or empty space) to show all
     function toggleSel(n) {
       state.sel[mode] = (n && state.sel[mode] !== n.id) ? n.id : null;
+      pairLine = null;
       applySel();
     }
     svg.addEventListener('click', function (ev) {

@@ -941,6 +941,10 @@ html:not(.gl-anim) .gl-shell .gl-mo-slot { display: none; }   /* no float: the A
 }
 .gl-shell .gl-cop-centre:hover { transform: translate(-50%, -50%); box-shadow: 0 0 0 10px rgba(0, 47, 98, 0.10), 0 0 0 22px rgba(0, 47, 98, 0.05); }
 .gl-shell .gl-cop-centre.is-active { background: #002F62; box-shadow: 0 0 0 10px rgba(0, 47, 98, 0.10), 0 0 0 22px rgba(0, 47, 98, 0.05); }
+/* COP not selected (a body is open): white disc with a navy ring, so selected and not
+   selected read clearly apart (Emil, 2026-11-24) */
+.gl-shell .gl-cop-centre:not(.is-active) { background: #ffffff; color: #002F62; box-shadow: inset 0 0 0 2px #002F62; }
+.gl-shell .gl-cop-centre:not(.is-active):hover { background: #eef2f7; box-shadow: inset 0 0 0 2px #002F62, 0 0 0 10px rgba(0, 47, 98, 0.06); }
 /* Wide screens: the diagram reaches 120px past the left text edge and grows, the boxes keep
    their size: boxes and COP circle get smaller percentages of the bigger hub */
 @media (min-width: 1400px) {
@@ -965,6 +969,7 @@ html:not(.gl-anim) .gl-shell .gl-mo-slot { display: none; }   /* no float: the A
 @media (max-width: 560px) {
   .gl-shell .gl-cop-node { font-size: 10.5px; padding: 4px 5px 4px 7px; width: 25%; }
   .gl-shell .gl-cop-node.gl-cop-centre { width: 17%; padding: 0; border-radius: 50%; font-size: 15px; box-shadow: 0 0 0 6px rgba(0, 47, 98, 0.06); }
+  .gl-shell .gl-cop-node.gl-cop-centre:not(.is-active) { box-shadow: inset 0 0 0 2px #002F62; }
   .gl-shell .gl-cop-panel { min-height: 0; }
 }
 

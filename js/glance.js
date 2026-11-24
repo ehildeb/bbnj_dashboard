@@ -1110,7 +1110,7 @@ function glQuality() {
 
 // ---- COP and the Agreement's bodies ------------------------------------------------
 // Click a body in the hub to show its text in the panel and mark its spoke. Clicking the
-// open body again goes back to the COP. Texts live in index.html (.gl-cop-info).
+// open body again, or anywhere outside the bodies and the text, goes back to the COP. Texts live in index.html (.gl-cop-info).
 (function () {
   'use strict';
   try {
@@ -1147,6 +1147,12 @@ function glQuality() {
         var k = n.getAttribute('data-k');
         show(k === cur && k !== 'cop' ? 'cop' : k);
       });
+    });
+    // a click anywhere outside the bodies and the text goes back to the COP
+    document.addEventListener('click', function (ev) {
+      if (cur === 'cop' || !ev.target.closest) return;
+      if (ev.target.closest('.gl-cop-node, .gl-cop-panel')) return;
+      show('cop');
     });
     place();
   } catch (err) { if (window.console) console.error('COP block', err); }
