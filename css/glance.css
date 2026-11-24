@@ -124,7 +124,7 @@ a { color: #006AB4; }
 }
 .gl-shell .gl-hero-text > * { max-width: 560px; }
 .gl-shell .gl-hero .gl-title { font-size: clamp(32px, 3.4vw, 48px); }   /* full size from about 1410px wide up, so laptops and big screens break the lines the same way */   /* a little smaller than before, so the text has room on laptops */
-.gl-shell .gl-hero .gl-sub { max-width: 540px; font-size: clamp(16px, 1.2vw, 19px); line-height: 1.55; }   /* small enough that title, three paragraphs and key fit a laptop screen */
+.gl-shell .gl-hero .gl-sub { max-width: 540px; font-size: clamp(17px, 1.35vw, 20px); line-height: 1.55; color: #363c42; }   /* same size and colour as the body text (.gl-lead), narrower column */
 .gl-shell .gl-hero-globe-cell { grid-column: 2; grid-row: 1; align-self: stretch; position: relative; min-height: 420px; }
 .gl-shell .gl-hero-globe {
   position: absolute; left: clamp(32px, 5vw, 80px); top: 50%; transform: translateY(-50%);
@@ -768,8 +768,11 @@ a { color: #006AB4; }
 .gl-shell .gl-foot-wrap a { color: #ffffff; }
 
 .gl-shell .gl-fund, .gl-shell .gl-credit { margin: 0; }
+.gl-shell .gl-foot-inner .gl-fund-first { margin-top: 18px; padding-top: 18px; border-top: 1px solid rgba(255, 255, 255, 0.18); }   /* divider between the toggles and the funding text */
+.gl-shell .gl-foot-inner .gl-credit { margin-top: 18px; padding-top: 18px; border-top: 1px solid rgba(255, 255, 255, 0.18); }   /* "Created by" at the very bottom, set apart by a hairline */
 .gl-shell .gl-sources summary { cursor: pointer; color: #ffffff; font-weight: 500; }
 .gl-shell .gl-sources ul { margin: 10px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+.gl-shell .gl-ack p, .gl-shell .gl-cite p { margin: 10px 0 0; }   /* acknowledgements and citation: running text in a toggle like Sources */
 html:not(.gl-anim) .gl-shell .gl-mo-slot { display: none; }   /* no float: the Agreement starts in the row */
 
 /* ---- Menu ---------------------------------------------------------------

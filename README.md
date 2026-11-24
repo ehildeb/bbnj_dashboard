@@ -1,4 +1,4 @@
-# BBNJ negotiations at a glance
+# The BBNJ negotiations at a glance
 
 A static web page about the BBNJ Agreement negotiations, from the field notes of
 the MARIPOLDATA and TwinPolitics projects. Plain HTML, CSS and JavaScript: no
