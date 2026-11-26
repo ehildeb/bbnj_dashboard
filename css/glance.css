@@ -213,6 +213,8 @@ a { color: #006AB4; }
 
 /* The BBNJ Agreement: the 45% in the globe's high seas blue */
 .gl-shell .gl-hs-n { color: #2f6fae; font-weight: 600; }
+/* The line with the 95% under the bar */
+.gl-shell .gl-vol { margin-top: 20px; }
 /* Earth's surface bar: same colours as the globe (land a shade darker than on the
    globe so it shows on the grey background) */
 .gl-shell .gl-surf { width: 100%; max-width: 900px; }
@@ -476,6 +478,10 @@ a { color: #006AB4; }
 @keyframes gl-grow { from { transform: scaleY(0); } to { transform: none; } }
 
 /* ---- PrepCom bars ------------------------------------------------------------ */
+/* PrepComs: most discussed items as a numbered list (no counts) */
+.gl-shell .gl-prep-list { margin: 0; padding-left: 1.6em; font-size: clamp(17px, 1.6vw, 20px); line-height: 1.5; color: #002F62; }
+.gl-shell .gl-prep-list li { padding-left: 0.3em; margin: 0 0 6px; }
+.gl-shell .gl-prep-list li::marker { color: #d98b4a; font-weight: 600; }
 .gl-shell .gl-bars { width: 100%; max-width: 720px; display: flex; flex-direction: column; gap: 12px; }
 .gl-shell .gl-bar-row {
   display: grid;
@@ -768,6 +774,7 @@ a { color: #006AB4; }
 .gl-shell .gl-foot-wrap a { color: #ffffff; }
 
 .gl-shell .gl-fund, .gl-shell .gl-credit { margin: 0; }
+.gl-shell .gl-foot-inner .gl-contact { margin: 18px 0 0; }   /* "For questions": under the toggles, above the first divider */
 .gl-shell .gl-foot-inner .gl-fund-first { margin-top: 18px; padding-top: 18px; border-top: 1px solid rgba(255, 255, 255, 0.18); }   /* divider between the toggles and the funding text */
 .gl-shell .gl-foot-inner .gl-credit { margin-top: 18px; padding-top: 18px; border-top: 1px solid rgba(255, 255, 255, 0.18); }   /* "Created by" at the very bottom, set apart by a hairline */
 .gl-shell .gl-sources summary { cursor: pointer; color: #ffffff; font-weight: 500; }
@@ -974,6 +981,53 @@ html:not(.gl-anim) .gl-shell .gl-mo-slot { display: none; }   /* no float: the A
 }
 
 /* Placeholder block for a visual still to come */
+/* Who chaired: two rows of cards (package elements, cross-cutting issues). Each shows its
+   topic; on hover, focus or tap it widens, the others in the row shrink, and the names slide
+   in. Top edge in the package colour (--pk inline, as PKG_COLS in build.js), grey otherwise. */
+.gl-shell .gl-ch-rows { display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 1100px; margin-top: 24px; }
+.gl-shell .gl-ch-row { display: flex; gap: 14px; }
+.gl-shell .gl-ch-item { --pk: #a3adb7; flex: 1 1 0; min-width: 0; box-sizing: border-box;
+  padding: 16px 18px; border-radius: 8px; background: #ffffff; border: 1px solid #e3e8ed; border-top: 4px solid var(--pk);
+  cursor: default; outline: none;
+  transition: flex-grow 0.5s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s, background-color 0.3s; }
+.gl-shell .gl-ch-item > b { display: block; font-size: 15.5px; font-weight: 600; line-height: 1.3; color: #002F62; }
+/* the count and the names share one spot: the count shows when closed, the names when open */
+.gl-shell .gl-ch-body { display: grid; margin-top: 8px; }
+.gl-shell .gl-ch-body > * { grid-area: 1 / 1; }
+.gl-shell .gl-ch-n { font-size: 13px; color: #8a929a; transition: opacity 0.2s; }
+.gl-shell .gl-ch-names { opacity: 0; transform: translateY(6px); transition: opacity 0.25s, transform 0.35s; }
+.gl-shell .gl-ch-names span { display: block; font-size: 15px; line-height: 1.4; color: #1f2a36; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gl-shell .gl-ch-names span + span { margin-top: 4px; }
+.gl-shell .gl-ch-names em { font-style: normal; font-size: 13px; color: #8a929a; margin-left: 4px; }
+/* open: this card grows, the others shrink */
+/* open (class set by glance.js, not :hover, so it does not jitter) */
+.gl-shell .gl-ch-row.has-open .gl-ch-item { flex-grow: 0.8; }
+.gl-shell .gl-ch-row .gl-ch-item.is-open { flex-grow: 1.9; box-shadow: 0 6px 18px rgba(0, 47, 98, 0.10);
+  background: color-mix(in srgb, var(--pk) 8%, #ffffff); }
+.gl-shell .gl-ch-item.is-open .gl-ch-n { opacity: 0; }
+.gl-shell .gl-ch-item.is-open .gl-ch-names { opacity: 1; transform: none; transition-delay: 0.12s; }
+/* fixed height on wider screens, enough for a three-line topic and three names, so the
+   rows never change height and nothing below moves */
+@media (min-width: 761px) {
+  .gl-shell .gl-ch-item { height: 178px; overflow: hidden; }
+  /* the topic and the count keep one width (--tw, set by glance.js: a card at its
+     narrowest), so they do not re-wrap while the cards widen and narrow */
+  .gl-shell .gl-ch-item > b, .gl-shell .gl-ch-n { width: var(--tw, auto); }
+  .gl-shell .gl-ch-n { white-space: nowrap; }
+}
+@media (prefers-reduced-motion: reduce) { .gl-shell .gl-ch-item, .gl-shell .gl-ch-names, .gl-shell .gl-ch-n { transition: none; } }
+/* narrow screens: one card per line, tap to open (no widening) */
+@media (max-width: 760px) {
+  .gl-shell .gl-ch-row { flex-direction: column; }
+  .gl-shell .gl-ch-row.has-open .gl-ch-item, .gl-shell .gl-ch-row .gl-ch-item.is-open { flex-grow: 1; }
+  .gl-shell .gl-ch-names span { white-space: normal; }
+  .gl-shell .gl-ch-names { display: none; }
+  .gl-shell .gl-ch-item.is-open .gl-ch-names { display: block; }
+}
+.gl-shell .gl-chairs-hint { margin-top: 16px; }
+.gl-shell .gl-chairs-pc { margin-top: 24px; }
+@media (max-width: 1000px) { .gl-shell .gl-chairs-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .gl-shell .gl-chairs-list { grid-template-columns: 1fr; } }
 .gl-shell .gl-placeholder {
   display: flex; align-items: center; justify-content: center; min-height: 320px; margin: 8px 0 32px;
   border: 2px dashed #b8c4d0; border-radius: 6px; color: #8a929a; font-size: 15px; text-align: center; padding: 24px;
@@ -992,7 +1046,7 @@ html:not(.gl-anim) .gl-shell .gl-mo-slot { display: none; }   /* no float: the A
   font-size: 11.5px; color: #8a929a; background: transparent;   /* quiet caption under the photo */
 }
 .gl-shell .gl-photo-credit { color: #8a929a; text-decoration: none; white-space: nowrap; }
-.gl-shell .gl-photo-credit:hover { text-decoration: underline; }
+.gl-shell a.gl-photo-credit:hover { text-decoration: underline; }   /* only the credits that are links (ENB photos) */
 .gl-shell .gl-photo-credit::before { content: "\00b7"; margin-right: 6px; }
 
 /* ---- The secretariat: timeline and map of the bids --------------------------- */
@@ -1169,4 +1223,11 @@ html:not(.gl-anim) .gl-shell .gl-mo-slot { display: none; }   /* no float: the A
   .gl-shell .gl-cop-info h3 { font-size: 20px; }
   .gl-shell .gl-cop-info p { font-size: 16px; }
   .gl-shell .gl-cop-hint { margin-bottom: 4px; }
+}
+
+/* Laptop screens (Emil, 2026-11-26): the whole page at 90%, like browser zoom 90%.
+   Screens from 901 to 1600 px wide only, so phones and big monitors stay as they
+   are. Scripts divide pointer positions by the zoom (glZoom and glRect in build.js). */
+@media (min-width: 901px) and (max-width: 1600px) {
+  body { zoom: 0.9; }
 }

@@ -64,7 +64,7 @@
     'Capacity-building and transfer of marine technology committee': 'CB&TMT committee',
     'Implementation and compliance committee': 'Compliance committee',
     'Access and benefit-sharing committee': 'ABS committee',
-    'Rules of procedure of the COP': 'COP rules of procedure',
+    'Rules of procedure of the CoP': 'CoP rules of procedure',
     'Scientific and technical body': 'Scientific and technical body'
   };
   var cache = {}, sim = null, K = 1;
@@ -315,7 +315,7 @@
       tip.innerHTML = h;
       tip.hidden = false;
       // beside the dot; flipped to the left near the right edge, upwards near the bottom
-      var r = box.getBoundingClientRect(), k = r.width / IO_CFG.W;
+      var r = glRect(box), k = r.width / IO_CFG.W;
       var tw = tip.offsetWidth, th = tip.offsetHeight;
       var x = (n.x + n.size) * k + 12, y = n.y * k - 12;
       if (x + tw > r.width - 4) x = (n.x - n.size) * k - 12 - tw;
@@ -336,12 +336,12 @@
       tip.innerHTML = '<span>' + (k ? fmt(k) + (k === 1 ? ' statement links ' : ' statements link ') : 'No statements link ') +
         esc(nm(io)) + ' to ' + esc(nm(it)) + '</span>';
       tip.hidden = false;
-      var r = box.getBoundingClientRect(), kk = r.width / IO_CFG.W;
+      var r = glRect(box), kk = r.width / IO_CFG.W;
       var tw = tip.offsetWidth, th = tip.offsetHeight;
       var x, y;
       if (ev) {                     // on a line: next to the pointer
-        x = ev.clientX - r.left + 12; y = ev.clientY - r.top - 30;
-        if (x + tw > r.width - 4) x = ev.clientX - r.left - 12 - tw;
+        x = ev.clientX / r.z - r.left + 12; y = ev.clientY / r.z - r.top - 30;
+        if (x + tw > r.width - 4) x = ev.clientX / r.z - r.left - 12 - tw;
       } else {                      // on a node: beside the dot
         x = (n.x + n.size) * kk + 12; y = n.y * kk - 12;
         if (x + tw > r.width - 4) x = (n.x - n.size) * kk - 12 - tw;

@@ -155,7 +155,7 @@ function glQuality() {
     });
     canvas.addEventListener('pointermove', function (e) {
       if (e.pointerId !== drag) return;
-      var now = performance.now(), dx = e.clientX - last[0], dy = e.clientY - last[1];
+      var now = performance.now(), dx = (e.clientX - last[0]) / glZoom(), dy = (e.clientY - last[1]) / glZoom();
       var deg = 180 / Math.PI / proj.scale();                // the surface follows the pointer
       rot = [rot[0] + dx * deg, Math.max(-80, Math.min(80, rot[1] - dy * deg))];
       var dt = Math.max(8, now - last[2]);
@@ -449,7 +449,7 @@ function glQuality() {
       canvas.classList.add('is-drag');
     });
     canvas.addEventListener('pointermove', function (e) {
-      var r = canvas.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+      var r = glRect(canvas), x = e.clientX / r.z - r.left, y = e.clientY / r.z - r.top;
       if (!pts[e.pointerId]) {                                // hover
         var h = pick(x, y);
         if (h !== hover) { hover = h; kick(); }
@@ -465,7 +465,7 @@ function glQuality() {
         kick();
         return;
       }
-      var now = performance.now(), dx = e.clientX - last[0], dy = e.clientY - last[1];
+      var now = performance.now(), dx = (e.clientX - last[0]) / glZoom(), dy = (e.clientY - last[1]) / glZoom();
       moved += Math.abs(dx) + Math.abs(dy);
       var deg = 180 / Math.PI / (base * k);                  // the surface follows the pointer
       rot = [rot[0] + dx * deg, Math.max(-80, Math.min(80, rot[1] - dy * deg))];
@@ -495,7 +495,7 @@ function glQuality() {
           return;
         }
         lastClick = { t: now, x: e.clientX, y: e.clientY, prevSel: sel };
-        var r = canvas.getBoundingClientRect(), h = pick(e.clientX - r.left, e.clientY - r.top);
+        var r = glRect(canvas), h = pick(e.clientX / r.z - r.left, e.clientY / r.z - r.top);
         if (h) choose(h);
         else if (sel) { deselect(); zoomOut(); }              // click in the water: deselect and zoom out
       } else if (!reduce && performance.now() - last[2] < 80) {
@@ -629,7 +629,7 @@ function glQuality() {
     if (reduce) return;
     cards.forEach(function (c, i) {
       var last = c.getBoundingClientRect();
-      var dx = first[i].left - last.left, dy = first[i].top - last.top;
+      var dx = (first[i].left - last.left) / glZoom(), dy = (first[i].top - last.top) / glZoom();
       var sx = first[i].width / Math.max(1, last.width), sy = first[i].height / Math.max(1, last.height);
       c.style.transition = 'none';
       c.style.transformOrigin = '0 0';
@@ -869,7 +869,7 @@ function glQuality() {
     }
 
     // start (slot in part one) and end (row in part two), in the section's coordinates
-    var rs = sec.getBoundingClientRect(), ra = P.slot.getBoundingClientRect(), rt = stage.getBoundingClientRect();
+    var rs = glRect(sec), ra = glRect(P.slot), rt = glRect(stage), z = rs.z;
     var ax = ra.left - rs.left + ra.width / 2, ay = ra.top - rs.top + ra.height / 2;
     var sA = Math.min(1.6, ra.height / AH, (ra.width || W) / AW);
     var ghost = P.slot.querySelector('.gl-mo-ghost');
@@ -877,7 +877,7 @@ function glQuality() {
     var bx = rt.left - rs.left + agX, by = rt.top - rs.top + agY;
     // a short scroll past the slot sends it down: it glides to the row on its own
     // (CSS transition, 0.8 s) rather than following the scroll; back up, it returns
-    var yA = ra.top + ra.height / 2, mid = window.innerHeight / 2, past = mid - yA;
+    var yA = (ra.top + ra.height / 2) * z, mid = window.innerHeight / 2, past = mid - yA;   // screen pixels
     if (!anim) P.down = true;
     else if (!P.down && past > MO_GO) { P.down = true; P.tDown = Date.now(); setTimeout(update, MO_POP + 20); }
     else if (P.down && past < MO_BACK) P.down = false;
@@ -886,7 +886,7 @@ function glQuality() {
     sec.classList.toggle('is-down', !!P.down);
 
     // the meetings start coming in while it is still gliding (MO_POP), once the row is on screen
-    var rowOn = rt.top + rowY < window.innerHeight * 0.95;
+    var rowOn = (rt.top + rowY) * z < window.innerHeight * 0.95;
     var shown = !anim || !!(P.down && Date.now() - P.tDown >= MO_POP && rowOn);
     if (P.down && !rowOn) setTimeout(update, 200);   // may land off screen: look again shortly
     sec.classList.toggle('is-in', shown);
@@ -922,7 +922,7 @@ function glQuality() {
     stage.addEventListener('mousemove', function (e) {
       var t = e.target && e.target.closest ? e.target.closest('.gl-meet:not(.is-hid)') : null;
       if (!t) { tip.style.display = 'none'; return; }
-      var r = (t.querySelector('.gl-meet-sq') || t).getBoundingClientRect();
+      var r = glRect(t.querySelector('.gl-meet-sq') || t);
       var t2 = t.getAttribute('data-tip2');
       tip.textContent = t.getAttribute('data-tip') + (t2 ? '\n' + t2 : '');
       tip.style.display = 'block';
@@ -1156,4 +1156,64 @@ function glQuality() {
     });
     place();
   } catch (err) { if (window.console) console.error('COP block', err); }
+})();
+
+// ---- Who chaired: cards that widen on hover ----------------------------------------
+// The open card is set here (class is-open), not by CSS :hover, so it does not jitter:
+// it opens at once, but only on a real pointer move (not when the cards move under a
+// still pointer while they widen).
+// The gap between cards keeps the open one open; leaving the row closes it. Keyboard
+// focus and taps open a card too.
+(function () {
+  'use strict';
+  try {
+    var rows = document.querySelectorAll('.gl-ch-row');
+    if (!rows.length) return;
+    // The topic text gets one fixed width: that of a card at its narrowest (another card
+    // open), so the words never re-wrap while the cards change width. Same numbers as the
+    // CSS: gap 14px, flex-grow 0.8 (others) and 1.9 (open), padding 18px, border 1px.
+    function textWidth() {
+      Array.prototype.forEach.call(rows, function (row) {
+        var n = row.children.length, w = row.clientWidth - 14 * (n - 1);
+        var narrow = w * 0.8 / (0.8 * (n - 1) + 1.9);
+        row.style.setProperty('--tw', Math.max(80, Math.floor(narrow - 2 * 18 - 2)) + 'px');
+      });
+    }
+    textWidth();
+    window.addEventListener('resize', textWidth);
+    Array.prototype.forEach.call(rows, function (row) {
+      var items = row.querySelectorAll('.gl-ch-item'), open = null, last = 0, px = -1, py = -1;
+      function set(it) {
+        if (it === open) return;
+        if (open) open.classList.remove('is-open');
+        open = it;
+        if (it) it.classList.add('is-open');
+        row.classList.toggle('has-open', !!it);
+        last = Date.now();
+      }
+      row.addEventListener('mousemove', function (e) {
+        // only a real move counts: while the cards widen the browser can send moves with
+        // the same position, and following those made the cards flick back and forth
+        if (e.clientX === px && e.clientY === py) return;
+        px = e.clientX; py = e.clientY;
+        var it = e.target && e.target.closest ? e.target.closest('.gl-ch-item') : null;
+        if (it && it.parentNode === row) set(it);        // over a gap: keep the open card
+      });
+      row.addEventListener('mouseleave', function () {
+        px = py = -1;
+        set(null);
+      });
+      Array.prototype.forEach.call(items, function (it) {
+        it.addEventListener('focus', function () { set(it); });
+        it.addEventListener('blur', function () { if (open === it && !row.matches(':hover')) set(null); });
+        // taps (no hover): open, or close when tapped again (a tap also focuses the card,
+        // which opens it just before this, so only close a card opened earlier)
+        it.addEventListener('pointerup', function (e) {
+          if (e.pointerType === 'mouse') return;
+          if (open === it && Date.now() - last > 350) set(null);
+          else set(it);
+        });
+      });
+    });
+  } catch (err) { if (window.console) console.error('chairs block', err); }
 })();

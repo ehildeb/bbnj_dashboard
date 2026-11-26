@@ -4,6 +4,19 @@
 //
 // Plain ES5, no build step. Each part runs in its own try/catch, so a problem
 // in one part only leaves that part empty. Check with `node --check js/build.js`.
+// Page zoom (laptop screens get body { zoom: 0.9 } in glance.css). Pointer
+// positions and getBoundingClientRect are in screen pixels, but positions set in
+// CSS inside the page are in page pixels, so they are divided by the zoom.
+window.glZoom = function () {
+  var z = parseFloat(window.getComputedStyle(document.body).zoom);
+  return z > 0 ? z : 1;
+};
+// getBoundingClientRect in page pixels, plus the zoom (z) to divide clientX/Y by
+window.glRect = function (el) {
+  var r = el.getBoundingClientRect(), z = window.glZoom();
+  return { left: r.left / z, top: r.top / z, width: r.width / z, height: r.height / z, z: z };
+};
+
 (function () {
   'use strict';
 
@@ -40,7 +53,7 @@
 
   // ---- Colours and names --------------------------------------------------------
   var PAL = { igc: '#5cc79a', prepcom: '#f0b27f', cop: '#9cc8f0' };
-  var CLASS_LABELS = { igc: 'IGCs', prepcom: 'PrepComs', cop: 'COP' };
+  var CLASS_LABELS = { igc: 'IGCs', prepcom: 'PrepComs', cop: 'CoP' };
   // package elements on the cards, the IGC charts and the globe: muted, and checked
   // in a colour blindness simulation (deutan, protan, tritan: every pair, the 'none'
   // grey and the ocean stay clearly apart); MGR, the most discussed, gets the calm blue
@@ -126,16 +139,16 @@
     function who(n, eu) { return fmt(n) + (n === 1 ? ' state' : ' states') + (eu ? ' and the EU' : ''); }
     p.textContent = 'To date, ' + who(R.states_signed, R.eu_signed) + ' have signed the Agreement, and ' +
       who(R.states_ratified, R.eu_ratified) + ' have ratified it.';
-    var u = $('#gl-rat-updated');                         // when the list was taken from the UN
+    var u = $('#gl-rat-updated');                         // when the list was last checked
     if (u) {
       if (R.as_of) {
-        u.textContent = ' Signatures and ratifications last updated: ' + R.as_of + ' (';
+        u.textContent = 'Signatures and ratifications last updated: ' + R.as_of + ' (';
         var a = document.createElement('a');              // link so readers can check the current list
-        a.href = 'https://treaties.un.org/Pages/ViewDetails.aspx?src=TREATY&mtdsg_no=XXI-10&chapter=21&clang=_en';
+        a.href = 'https://highseasalliance.org/treaty-ratification/';
         a.target = '_blank'; a.rel = 'noopener';
-        a.textContent = 'UN Treaty Collection';
+        a.textContent = 'High Seas Alliance';
         u.appendChild(a);
-        u.appendChild(document.createTextNode(').'));
+        u.appendChild(document.createTextNode('). '));
       } else u.hidden = true;
     }
   });
@@ -199,7 +212,7 @@
     off.forEach(function (m) { square(m, m.ord); });
     // COP-1 as an outline, last, until it is in the data
     if (!mt.has_cop) {
-      square({ cls: 'cop', label: 'COP-1', years: 'January 2027', tip: 'COP-1: January 2027, New York' },
+      square({ cls: 'cop', label: 'CoP-1', years: 'January 2027', tip: 'CoP-1: January 2027, New York' },
              off.length, true);
     }
     stage.appendChild(el('div', 'gl-mo-tip'));
@@ -214,7 +227,7 @@
         var next = c === 'cop' && !mt.has_cop;
         leg.appendChild(el('span', 'gl-chart-key gl-mo-key',
           '<span class="gl-legend-sw' + (next ? ' gl-legend-next' : '') + '" style="background:' +
-          (next ? '#ffffff' : PAL[c]) + '"></span>' + esc(next ? 'COP (next)' : CLASS_LABELS[c])));
+          (next ? '#ffffff' : PAL[c]) + '"></span>' + esc(next ? 'CoP (next)' : CLASS_LABELS[c])));
       });
     }
   });
@@ -384,7 +397,7 @@
       var bw = box.clientWidth || 1036;
       narrow = bw < 700;
       if (narrow) { W = Math.max(300, Math.round(bw)); H = Math.round(W * 1.05); m = { l: 66, r: 14, t: 14, b: 44 }; rk = Math.max(0.55, W / 1036 * 1.5); }
-      else { W = 1036; H = 480; m = { l: 64, r: 24, t: 14, b: 46 }; rk = 1; }
+      else { W = 1036; H = 380; m = { l: 64, r: 24, t: 14, b: 46 }; rk = 1; }   // was 480 (Emil, 2026-11-26: less tall)
     }
     function draw(k) {
       var T = SETS[k].list;
@@ -404,6 +417,9 @@
           '<span class="gl-active-sw" style="background:' + KINDS[kk].col + '"></span>' + esc(KINDS[kk].name)));
       });
       if (euNote) euNote.style.display = k === 'state' ? '' : 'none';
+      // the cutoff: how many actors this tab shows, and what was counted
+      var cut = $('#gl-active-cut');
+      if (cut) cut.textContent = 'Top ' + T.length + ' at the IGCs and PrepComs.';
       if (nsNote) nsNote.style.display = k === 'state' ? 'none' : '';
       if (!T.length) { B = []; return; }
 
@@ -506,11 +522,11 @@
         b.l = S('text', { x: b.lx, y: b.ly, 'text-anchor': b.la }, g);
         b.l.textContent = name(b.t);
         g.addEventListener('mousemove', function (ev) {
-          var r = box.getBoundingClientRect(), t = b.t;
+          var r = glRect(box), t = b.t;
           tip.innerHTML = '<b>' + esc(full(t)) + '</b><br>' + t.hours.toFixed(1) + ' hours of speaking time<br>' +
             fmt(t.n) + (t.n === 1 ? ' statement' : ' statements');
-          var x = ev.clientX - r.left + 16, y = ev.clientY - r.top + 16, tw = tip.offsetWidth || 240;
-          if (x + tw > r.width) x = Math.max(0, ev.clientX - r.left - tw - 16);   // flip left by its real width (long names)
+          var x = ev.clientX / r.z - r.left + 16, y = ev.clientY / r.z - r.top + 16, tw = tip.offsetWidth || 240;
+          if (x + tw > r.width) x = Math.max(0, ev.clientX / r.z - r.left - tw - 16);   // flip left by its real width (long names)
           tip.style.left = x + 'px'; tip.style.top = y + 'px'; tip.style.opacity = 1;
           svg.classList.add('is-dim'); g.classList.add('is-on');
         });
@@ -691,8 +707,8 @@
     var tip = $('.gl-gr-tip', plot), vline = $('.gl-gr-hover-line', plot);
     var dayNums = g.days.map(function (d) { return isoDays(d[0]); });
     function move(clientX, clientY) {
-      var r = plot.getBoundingClientRect();
-      var x = Math.max(0, Math.min(r.width, clientX - r.left));
+      var r = glRect(plot);
+      var x = Math.max(0, Math.min(r.width, clientX / r.z - r.left));
       var dn = t0 + (x / r.width) * (t1 - t0), cum = 0;
       for (var i = 0; i < dayNums.length; i++) { if (dayNums[i] <= dn) cum = g.days[i][2]; else break; }
       var dt = new Date(dn * 864e5);
@@ -703,7 +719,7 @@
       vline.style.left = x + 'px';
       var w = tip.offsetWidth;
       tip.style.left = (x + 12 + w > r.width ? x - 12 - w : x + 12) + 'px';
-      tip.style.top = Math.max(0, Math.min(r.height - tip.offsetHeight, clientY - r.top - 30)) + 'px';
+      tip.style.top = Math.max(0, Math.min(r.height - tip.offsetHeight, clientY / r.z - r.top - 30)) + 'px';
     }
     function hide() { tip.style.display = 'none'; vline.style.display = 'none'; }
     plot.addEventListener('mousemove', function (e) { move(e.clientX, e.clientY); });
