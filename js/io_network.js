@@ -222,6 +222,7 @@
       function on(ev) {
         var sn = selNode();
         if (!sn || dragging) return;
+        if (ev && ev.type !== 'click' && (ev.pointerType === 'touch' || ev.pointerType === 'pen' || fromTouch())) return;
         pairTip(x.l.s === sn ? x.l.t : x.l.s, sn, ev);
       }
       e.addEventListener('pointerenter', on);
@@ -231,6 +232,13 @@
     });
 
     var groups = [], dragging = null;
+    // touch: the mouse events a browser fakes after a tap (mouseenter, mouseleave) and
+    // touch pointerenter on the line strips are ignored, so the 'X statements link A to B'
+    // card no longer flashes up while a tap changes the selection; the tap itself
+    // (endDrag) shows the box (2026-11-27)
+    var lastTouch = 0;
+    svg.addEventListener('pointerdown', function (ev) { if (ev.pointerType !== 'mouse') lastTouch = Date.now(); }, true);
+    function fromTouch() { return Date.now() - lastTouch < 1000; }
     var order = V.nodes.filter(function (n) { return !n.item; }).concat(V.nodes.filter(function (n) { return n.item; }));
     order.forEach(function (n) {
       var el = svgEl('g', { 'class': 'gl-io-node' + (n.item ? ' is-item' : '') }, gn);
@@ -260,14 +268,14 @@
       // something selected: the picture stays, the card shows only the link
       // between the hovered node and the selected one (Emil, 2026-11-24)
       el.addEventListener('mouseenter', function () {
-        if (dragging) return;
+        if (dragging || fromTouch()) return;
         var sn = selNode();
         if (!sn) { applySel(n); focus(n); }
         else if (n === sn) focus(n);
         else pairTip(n, sn);
       });
       el.addEventListener('mouseleave', function () {
-        if (dragging) return;
+        if (dragging || fromTouch()) return;
         if (selNode()) { pairOff(); if (tip) tip.hidden = true; } else rest();
       });
       el.addEventListener('pointerdown', function (ev) { startDrag(ev, n); });
