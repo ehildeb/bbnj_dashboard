@@ -1168,6 +1168,13 @@ html:not(.gl-anim) .gl-shell .gl-mo-slot { display: none; }   /* no float: the A
 .gl-shell .gl-io-tip strong { font-weight: 500; color: #002F62; }
 .gl-shell .gl-io-tip-n { color: #8a929a; margin-bottom: 4px; }
 .gl-shell .gl-io-tip-more { color: #8a929a; }
+/* phones (the network is drawn at its shown width under 700 px): the box sits under the
+   graph instead of over it, so it never covers the dots (2026-11-27); the inline left/top
+   that io_network.js sets are overridden */
+@media (max-width: 699px) {
+  .gl-shell .gl-io-tip { position: static; left: auto !important; top: auto !important; max-width: none;
+    margin-top: 8px; background: #ffffff; }
+}
 .gl-shell .gl-io-note { text-align: left; max-width: none; margin-top: 16px; }
 .gl-shell .gl-io-svg.is-live .gl-io-node { cursor: grab; }
 .gl-shell .gl-io-svg.is-live { touch-action: none; }

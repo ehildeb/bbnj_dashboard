@@ -635,7 +635,7 @@ window.glRect = function (el) {
     });
     var note = $('#gl-prep-note');
     if (note) {
-      note.textContent = 'Statements per agenda item';
+      note.textContent = 'Agenda items with more than 100 statements across the three PrepComs';
       note.hidden = false;
     }
   });
