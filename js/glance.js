@@ -1098,6 +1098,7 @@ function glQuality() {
     var id = a.getAttribute('href').slice(1), el = id && document.getElementById(id);
     if (!el) return;
     e.preventDefault();
+    if (el.tagName === 'DETAILS') el.open = true;      // a footer toggle (e.g. Sources) opens on arrival
     glide(el.getBoundingClientRect().top + window.pageYOffset);
     if (window.history && window.history.replaceState) window.history.replaceState(null, '', '#' + id);
   });

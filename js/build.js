@@ -509,6 +509,7 @@ window.glRect = function (el) {
         boxes.push({ x: s.x, y: s.y, w: w, h: h });
         b.lx = s.a === 'start' ? s.x : s.a === 'end' ? s.x + w : s.x + w / 2;
         b.ly = s.y + 12; b.la = s.a; b.far = !!s.far;
+        b.box = { x: s.x, y: s.y, w: w, h: h };          // the label's area, also hoverable
       });
 
       // draw the smaller bubbles last, so they sit on top
@@ -519,6 +520,9 @@ window.glRect = function (el) {
           var ang = Math.atan2(b.ly - 4 - b.y, b.lx - 3 - b.x);
           b.ln = S('line', { x1: b.x + b.r * Math.cos(ang), y1: b.y + b.r * Math.sin(ang), x2: b.lx - 3, y2: b.ly - 4, 'class': 'gl-act-lead' }, g);
         }
+        // an invisible strip under the label, so the name can be hovered too (a bubble
+        // that sits under another one is reached through its name)
+        S('rect', { x: b.box.x - 2, y: b.box.y - 1, width: b.box.w + 4, height: b.box.h + 2, 'class': 'gl-act-hit' }, g);
         b.l = S('text', { x: b.lx, y: b.ly, 'text-anchor': b.la }, g);
         b.l.textContent = name(b.t);
         g.addEventListener('mousemove', function (ev) {

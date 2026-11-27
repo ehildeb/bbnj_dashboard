@@ -730,6 +730,7 @@ a { color: #006AB4; }
 .gl-shell .gl-act-b { cursor: default; transition: opacity 0.2s ease; }
 .gl-shell .gl-act-b circle { stroke: #ffffff; stroke-width: 1.5; }
 .gl-shell .gl-act-b text { font-size: 13px; font-weight: 500; fill: #002F62; pointer-events: none; }
+.gl-shell .gl-act-b .gl-act-hit { fill: transparent; pointer-events: all; }   /* label hover area */
 .gl-shell .gl-act-b .gl-act-lead { stroke: #9aa6b2; stroke-width: 1; pointer-events: none; }   /* label leader line */
 .gl-shell .gl-active-chart svg.is-dim .gl-act-b { opacity: 0.25; }
 .gl-shell .gl-active-chart svg.is-dim .gl-act-b.is-on { opacity: 1; }
@@ -1230,4 +1231,22 @@ html:not(.gl-anim) .gl-shell .gl-mo-slot { display: none; }   /* no float: the A
    are. Scripts divide pointer positions by the zoom (glZoom and glRect in build.js). */
 @media (min-width: 901px) and (max-width: 1600px) {
   body { zoom: 0.9; }
+}
+
+/* Chairs and facilitators, static list (2026-11-27): two columns (package elements,
+   cross-cutting issues), each working group a thin stripe in its package colour with
+   the facilitators and their IGCs written out; no interaction */
+.gl-shell .gl-cl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 64px;
+  width: 100%; max-width: 1040px; margin-top: 28px; text-align: left; }
+.gl-shell .gl-cl-head { margin: 0 0 6px; font-size: 13px; font-weight: 500; letter-spacing: 0.02em;
+  color: #8a929a; text-transform: none; }
+.gl-shell .gl-cl-item { --pk: #a3adb7; padding: 12px 0 12px 14px; border-left: 3px solid var(--pk); }
+.gl-shell .gl-cl-item + .gl-cl-item { margin-top: 6px; }
+.gl-shell .gl-cl-item h3 { margin: 0 0 4px; font-size: 15.5px; font-weight: 600; line-height: 1.3; color: #002F62; }
+.gl-shell .gl-cl-item ul { list-style: none; margin: 0; padding: 0; }
+.gl-shell .gl-cl-item li { font-size: 15px; line-height: 1.45; color: #1f2a36; }
+.gl-shell .gl-cl-item li span { margin-left: 6px; font-size: 13px; color: #8a929a; white-space: nowrap; }
+@media (max-width: 760px) {
+  .gl-shell .gl-cl { grid-template-columns: 1fr; }
+  .gl-shell .gl-cl-col + .gl-cl-col { margin-top: 22px; }
 }
